@@ -44,88 +44,108 @@ final rewardedAdPlayerProvider = Provider<RewardedAdPlayer>(
   (ref) => GoogleRewardedAdPlayer(ref.watch(adRequestPreparerProvider)),
 );
 
-/// google_mobile_ads 보상형 (#808): 공통 준비 > 로드(30초 제한) > 겹침 확인 > 서버 검증 값 설정(#860) > 표시 > 닫힘
-/// 표시 중에는 전체 화면 광고 표시 중으로 기록 (앱 오프닝·전면 광고 겹침 방지, #787)
+/// google_mobile_ads 보상형 (#808): 공통 준비 > 로드(30초 제한) > 보상형 형식 공통 표시
 class GoogleRewardedAdPlayer implements RewardedAdPlayer {
   GoogleRewardedAdPlayer(this._requestPreparer);
 
   final AdRequestPreparer _requestPreparer;
+
+  static const _logLabel = 'rewarded';
 
   @override
   Future<RewardedAdOutcome> loadAndShow(
     AdPlacement placement, {
     RewardedAdServerVerification? serverVerification,
   }) async {
-    final rewardedAd = await _load(placement);
+    final rewardedAd = await loadFullScreenAd<RewardedAd>(
+      requestPreparer: _requestPreparer,
+      placement: placement,
+      logLabel: _logLabel,
+      startLoad: (preparedRequest, onLoaded, onFailed) => RewardedAd.load(
+        adUnitId: preparedRequest.unitId,
+        request: preparedRequest.request,
+        rewardedAdLoadCallback: RewardedAdLoadCallback(
+          onAdLoaded: onLoaded,
+          onAdFailedToLoad: onFailed,
+        ),
+      ),
+    );
     if (rewardedAd == null) return RewardedAdOutcome.unavailable;
-    if (FullScreenAdGuard.isFullScreenAdShowing) {
-      rewardedAd.dispose();
-      return RewardedAdOutcome.unavailable;
-    }
-    if (serverVerification != null) {
-      await _applyServerVerification(rewardedAd, serverVerification);
-    }
-    return _show(rewardedAd);
-  }
-
-  /// 서버 검증 값 설정, 실패해도 광고는 보임 (서버 검증 꺼짐 동안은 앱 신고로 기록되므로)
-  Future<void> _applyServerVerification(
-    RewardedAd rewardedAd,
-    RewardedAdServerVerification serverVerification,
-  ) async {
-    try {
-      await rewardedAd.setServerSideOptions(
-        ServerSideVerificationOptions(
-          userId: serverVerification.userId,
-          customData: serverVerification.customData,
-        ),
-      );
-    } catch (error) {
-      AppLogger.warn(
-        'ads rewarded',
-        'server verification options failed : $error',
-      );
-    }
-  }
-
-  /// 로드: 실패·미설정·시간 초과면 null (공통 로드)
-  Future<RewardedAd?> _load(AdPlacement placement) =>
-      loadFullScreenAd<RewardedAd>(
-        requestPreparer: _requestPreparer,
-        placement: placement,
-        logLabel: 'rewarded',
-        startLoad: (preparedRequest, onLoaded, onFailed) => RewardedAd.load(
-          adUnitId: preparedRequest.unitId,
-          request: preparedRequest.request,
-          rewardedAdLoadCallback: RewardedAdLoadCallback(
-            onAdLoaded: onLoaded,
-            onAdFailedToLoad: onFailed,
-          ),
-        ),
-      );
-
-  /// 표시 > 닫힘까지 대기: 공통 표시(끝나는 경로 3개 모두) > 표시 중 해제 > 보상 여부로 결과
-  Future<RewardedAdOutcome> _show(RewardedAd rewardedAd) {
-    final closedCompleter = Completer<RewardedAdOutcome>();
-    var isRewarded = false;
-    FullScreenAdGuard.markFullScreenAdShowing();
-    showFullScreenAd<RewardedAd>(
+    return showRewardedFormatAd<RewardedAd>(
       ad: rewardedAd,
-      logLabel: 'rewarded',
+      logLabel: _logLabel,
+      serverVerification: serverVerification,
+      setServerSideOptions: rewardedAd.setServerSideOptions,
       attachCallback: (callback) =>
           rewardedAd.fullScreenContentCallback = callback,
-      show: () =>
-          rewardedAd.show(onUserEarnedReward: (_, _) => isRewarded = true),
-      onShown: () {},
-      onClosed: () {
-        FullScreenAdGuard.markFullScreenAdClosed();
-        closedCompleter.complete(
-          isRewarded
-              ? RewardedAdOutcome.rewarded
-              : RewardedAdOutcome.dismissedWithoutReward,
-        );
-      },
+      show: (onUserEarnedReward) =>
+          rewardedAd.show(onUserEarnedReward: onUserEarnedReward),
     );
-    return closedCompleter.future;
+  }
+}
+
+/// 보상형 형식 공통 표시 (보상형·보상형 전면): 겹침 확인 > 서버 검증 값 설정(#860) > 표시 > 닫힘까지 대기 > 보상 여부로 결과
+/// 표시 중에는 전체 화면 광고 표시 중으로 기록 (앱 오프닝·전면 광고 겹침 방지, #787)
+Future<RewardedAdOutcome> showRewardedFormatAd<T extends AdWithoutView>({
+  required T ad,
+  required String logLabel,
+  required RewardedAdServerVerification? serverVerification,
+  required Future<void> Function(ServerSideVerificationOptions options)
+  setServerSideOptions,
+  required void Function(FullScreenContentCallback<T> callback) attachCallback,
+  required Future<void> Function(OnUserEarnedRewardCallback onUserEarnedReward)
+  show,
+}) async {
+  if (FullScreenAdGuard.isFullScreenAdShowing) {
+    ad.dispose();
+    return RewardedAdOutcome.unavailable;
+  }
+  if (serverVerification != null) {
+    await _applyServerVerification(
+      setServerSideOptions,
+      serverVerification,
+      logLabel,
+    );
+  }
+  final closedCompleter = Completer<RewardedAdOutcome>();
+  var isRewarded = false;
+  FullScreenAdGuard.markFullScreenAdShowing();
+  showFullScreenAd<T>(
+    ad: ad,
+    logLabel: logLabel,
+    attachCallback: attachCallback,
+    show: () => show((_, _) => isRewarded = true),
+    onShown: () {},
+    onClosed: () {
+      FullScreenAdGuard.markFullScreenAdClosed();
+      closedCompleter.complete(
+        isRewarded
+            ? RewardedAdOutcome.rewarded
+            : RewardedAdOutcome.dismissedWithoutReward,
+      );
+    },
+  );
+  return closedCompleter.future;
+}
+
+/// 서버 검증 값 설정, 실패해도 광고는 보임 (서버 검증 꺼짐 동안은 앱 신고로 기록되므로)
+Future<void> _applyServerVerification(
+  Future<void> Function(ServerSideVerificationOptions options)
+  setServerSideOptions,
+  RewardedAdServerVerification serverVerification,
+  String logLabel,
+) async {
+  try {
+    await setServerSideOptions(
+      ServerSideVerificationOptions(
+        userId: serverVerification.userId,
+        customData: serverVerification.customData,
+      ),
+    );
+  } catch (error) {
+    AppLogger.warn(
+      'ads $logLabel',
+      'server verification options failed : $error',
+    );
   }
 }

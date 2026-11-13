@@ -9,12 +9,16 @@ class PassqlGroupedSection extends StatelessWidget {
   const PassqlGroupedSection({
     super.key,
     this.header,
+    this.headerTrailing,
     this.footer,
     required this.children,
     this.separatorIndent = PassqlSpacing.md,
   });
 
   final String? header;
+
+  /// 머리글 오른쪽 끝 요소 (날짜별 묶음의 그날 합계 등, [header] 가 있을 때만 그림, #974)
+  final Widget? headerTrailing;
   final String? footer;
   final List<Widget> children;
   final double separatorIndent;
@@ -53,15 +57,22 @@ class PassqlGroupedSection extends StatelessWidget {
               PassqlSpacing.md,
               _headerFooterGap,
             ),
-            // 제목 이동(로터·제목 탐색)용 머리글
-            child: Semantics(
-              header: true,
-              child: Text(
-                header!,
-                style: PassqlTypography.footnote.copyWith(
-                  color: colors.secondaryLabel,
+            child: Row(
+              children: [
+                // 제목 이동(로터·제목 탐색)용 머리글
+                Expanded(
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      header!,
+                      style: PassqlTypography.footnote.copyWith(
+                        color: colors.secondaryLabel,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                ?headerTrailing,
+              ],
             ),
           ),
         ClipRRect(

@@ -5,7 +5,7 @@ import 'source_scan.dart';
 /// 디자인 시스템 우회 금지 규칙: 화면 코드(pages·widgets·flows)는 토큰과 공통 컴포넌트만 쓴다.
 /// 원본: lib/presentation/design (tokens, components). 새 예외는 [_allowedUsages] 에 이유와 함께 추가
 
-/// 금지 패턴 11종 > 대신 쓸 공통 지점
+/// 금지 패턴 12종 > 대신 쓸 공통 지점
 final _bannedPatterns = <String, (RegExp, String)>{
   'Color(0x': (RegExp(r'Color\(0x'), 'PassqlColors 토큰 (context.passqlColors)'),
   'Colors.white/black': (
@@ -37,6 +37,10 @@ final _bannedPatterns = <String, (RegExp, String)>{
   'ImageFilter.blur(': (
     RegExp(r'ImageFilter\.blur\('),
     'PassqlLockedPreview(잠금 흐림) · PassqlGlass(고정 크롬 흐림)',
+  ),
+  '투명도 숫자 리터럴': (
+    RegExp(r'(withValues\(\s*alpha:|withOpacity\()\s*[0-9.]'),
+    'PassqlOpacity 투명도 토큰',
   ),
   '라우트 문자열 리터럴': (
     RegExp(r'''\.(go|push|pushReplacement|replace)\s*(<[^>]*>)?\(\s*['"]/'''),
@@ -95,7 +99,7 @@ const _screenCodeDirectories = [
 ];
 
 void main() {
-  test('화면 코드는 색·자산·시트·대화상자·로딩·모션·라우트를 공통 지점으로만 쓴다', () {
+  test('화면 코드는 색·투명도·자산·시트·대화상자·로딩·모션·라우트를 공통 지점으로만 쓴다', () {
     final violations = <String>[];
     for (final directory in _screenCodeDirectories) {
       for (final file in handWrittenDartFiles(directory)) {

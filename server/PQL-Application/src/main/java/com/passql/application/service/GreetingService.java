@@ -73,19 +73,19 @@ public class GreetingService {
         } else if (dDay >= 1 && dDay <= 3) {
             return new GreetingResponse(
                     nickname,
-                    weightedPick(urgentMessages(certType, dDay), 70, generalMessages(now), 30),
+                    weightedPick(urgentMessages(certType), 70, generalMessages(now), 30),
                     GreetingMessageType.URGENT
             );
         } else if (dDay >= 4 && dDay <= 7) {
             return new GreetingResponse(
                     nickname,
-                    weightedPick(urgentMessages(certType, dDay), 50, generalMessages(now), 50),
+                    weightedPick(urgentMessages(certType), 50, generalMessages(now), 50),
                     GreetingMessageType.URGENT
             );
         } else if (dDay >= 8 && dDay <= 30) {
             return new GreetingResponse(
                     nickname,
-                    weightedPick(countdownMessages(certType, dDay), 40, generalMessages(now), 60),
+                    weightedPick(countdownMessages(certType), 40, generalMessages(now), 60),
                     GreetingMessageType.COUNTDOWN
             );
         } else {
@@ -109,24 +109,25 @@ public class GreetingService {
         );
     }
 
-    private List<String> urgentMessages(String certType, long dDay) {
+    // 남은 날 숫자는 앱 상단 D-day 배지 한 곳에만 (인사말은 응원 문구만, #995)
+    private List<String> urgentMessages(String certType) {
         return List.of(
-                certType + " D-" + dDay + ", 마지막 스퍼트!\n{nickname}님 파이팅!",
-                "{nickname}님,\n" + certType + " D-" + dDay + "! 지금이 골든타임이에요",
-                "D-" + dDay + "! {nickname}님\n" + certType + " 마무리 잘 하고 계시죠?",
-                certType + " D-" + dDay + "!\n{nickname}님 오늘도 한 문제씩 착착",
-                "{nickname}님,\n" + certType + " D-" + dDay + "! 오답노트 한 번 더 보고 가세요"
+                certType + " 마지막 스퍼트!\n{nickname}님 파이팅!",
+                "{nickname}님,\n지금이 " + certType + " 골든타임이에요",
+                "{nickname}님,\n" + certType + " 마무리 잘 하고 계시죠?",
+                certType + " 막바지!\n{nickname}님 오늘도 한 문제씩 착착",
+                "{nickname}님,\n오답노트 한 번 더 보고 가세요"
         );
     }
 
-    private List<String> countdownMessages(String certType, long dDay) {
+    private List<String> countdownMessages(String certType) {
         return List.of(
-                "{nickname}님,\n" + certType + " 시험까지 " + dDay + "일 남았어요! 꾸준히 가봐요",
-                certType + " D-" + dDay + ",\n{nickname}님 오늘도 한 걸음씩 나아가고 있어요",
-                "{nickname}님!\n" + certType + " 시험 " + dDay + "일 전, 지금 페이스 유지가 중요해요",
-                "D-" + dDay + " " + certType + " 시험!\n{nickname}님 매일 조금씩이 쌓여요",
-                "{nickname}님,\n" + certType + " 시험 " + dDay + "일 남았네요. 오늘도 화이팅!",
-                certType + " 준비 중인 {nickname}님,\nD-" + dDay + "! 포기하지 말고 달려봐요"
+                "{nickname}님,\n" + certType + "까지 꾸준히 가봐요",
+                certType + " 준비 중인 {nickname}님,\n오늘도 한 걸음씩 나아가고 있어요",
+                "{nickname}님!\n" + certType + " 준비는 지금 페이스 유지가 중요해요",
+                "{nickname}님,\n매일 조금씩이 쌓여요",
+                "{nickname}님,\n" + certType + " 준비 오늘도 화이팅!",
+                certType + " 준비 중인 {nickname}님,\n포기하지 말고 달려봐요"
         );
     }
 

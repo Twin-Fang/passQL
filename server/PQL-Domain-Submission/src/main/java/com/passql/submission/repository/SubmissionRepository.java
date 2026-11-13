@@ -2,6 +2,7 @@ package com.passql.submission.repository;
 
 import com.passql.submission.dto.RecentAttemptProjection;
 import com.passql.submission.dto.SolvedQuestionProjection;
+import com.passql.submission.dto.SubmittedQuestionProjection;
 import com.passql.submission.entity.Submission;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,29 +46,18 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     boolean existsOutsideMockExam(@Param("memberUuid") UUID memberUuid, @Param("questionUuid") UUID questionUuid);
 
     /**
-     * 기간 [from, to) 안에 제출한 서로 다른 문제 수 (하루 문제 수 제한용, 같은 문제 재제출은 1건)
+     * 기간 [from, to) 안 제출의 문제·제출 시각 (날짜별 하루 문제 수 제한용, 서로 다른 문제 수는 호출부가 날짜별로 셈)
      * 모의고사 응시 세션 제출은 제외 (모의고사를 본 날 무료 한도를 잃지 않게, #866)
      */
     @Query("""
-            SELECT COUNT(DISTINCT s.questionUuid) FROM Submission s
+            SELECT new com.passql.submission.dto.SubmittedQuestionProjection(s.questionUuid, s.submittedAt)
+            FROM Submission s
             WHERE s.memberUuid = :memberUuid AND s.submittedAt >= :from AND s.submittedAt < :to
               AND NOT EXISTS (SELECT 1 FROM MockExamAttempt a WHERE a.mockExamAttemptUuid = s.sessionUuid)
             """)
-    long countDistinctQuestionsSubmittedBetween(@Param("memberUuid") UUID memberUuid,
-                                                @Param("from") LocalDateTime from,
-                                                @Param("to") LocalDateTime to);
-
-    /** 위와 같되 제외 문제(오늘의 문제 배정분)는 뺀다. 제외 목록이 비면 호출하지 말 것(빈 NOT IN 방지) */
-    @Query("""
-            SELECT COUNT(DISTINCT s.questionUuid) FROM Submission s
-            WHERE s.memberUuid = :memberUuid AND s.submittedAt >= :from AND s.submittedAt < :to
-              AND s.questionUuid NOT IN :excludedQuestionUuids
-              AND NOT EXISTS (SELECT 1 FROM MockExamAttempt a WHERE a.mockExamAttemptUuid = s.sessionUuid)
-            """)
-    long countDistinctQuestionsSubmittedBetweenExcluding(@Param("memberUuid") UUID memberUuid,
-                                                         @Param("from") LocalDateTime from,
-                                                         @Param("to") LocalDateTime to,
-                                                         @Param("excludedQuestionUuids") java.util.Collection<UUID> excludedQuestionUuids);
+    List<SubmittedQuestionProjection> findQuestionsSubmittedBetween(@Param("memberUuid") UUID memberUuid,
+                                                                    @Param("from") LocalDateTime from,
+                                                                    @Param("to") LocalDateTime to);
 
     /** 커뮤니티 풀이 스냅샷: 이 문제 제출을 시간순으로 */
     List<Submission> findByMemberUuidAndQuestionUuidOrderBySubmittedAtAsc(UUID memberUuid, UUID questionUuid);

@@ -1,5 +1,6 @@
 package com.passql.question.repository;
 
+import com.passql.question.constant.ChoiceSetSource;
 import com.passql.question.constant.ExecutionMode;
 import com.passql.question.entity.Question;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +46,21 @@ public interface QuestionRepository extends JpaRepository<Question, UUID>, JpaSp
             + "AND NOT EXISTS (SELECT 1 FROM question_choice_set o WHERE o.question_uuid = question.question_uuid AND o.status = 'OK'))",
             nativeQuery = true)
     List<String> findPlayableActiveQuestionUuids();
+
+    /**
+     * 생성 대기 없이 바로 열 수 있는 활성 문제 uuid (#990): OK 세트 3가지(검증 통과, CONCEPT_ONLY, 고정 보기) = ChoiceSetResolver 연습 모드 재사용 조건
+     * isExecutableExcluded=true 면 EXECUTABLE 제외, HYBRID 는 출제 미지원이라 항상 제외
+     */
+    @Query("SELECT q.questionUuid FROM Question q WHERE q.isActive = true"
+            + " AND q.choiceSetPolicy <> com.passql.question.constant.ChoiceSetPolicy.HYBRID"
+            + " AND (:isExecutableExcluded = false OR q.executionMode <> com.passql.question.constant.ExecutionMode.EXECUTABLE)"
+            + " AND EXISTS (SELECT 1 FROM QuestionChoiceSet s WHERE s.questionUuid = q.questionUuid"
+            + "   AND s.status = com.passql.question.constant.ChoiceSetStatus.OK"
+            + "   AND (s.sandboxValidationPassed = true"
+            + "     OR q.executionMode = com.passql.question.constant.ExecutionMode.CONCEPT_ONLY"
+            + "     OR (q.choiceSetPolicy = com.passql.question.constant.ChoiceSetPolicy.CURATED_ONLY AND s.source IN :curatedSources)))")
+    List<UUID> findReadyActiveQuestionUuids(@Param("isExecutableExcluded") boolean isExecutableExcluded,
+                                            @Param("curatedSources") Collection<ChoiceSetSource> curatedSources);
 
     /** 대시보드 집계용 — 전체 활성 문제 수 count 쿼리 */
     long countByIsActiveTrue();

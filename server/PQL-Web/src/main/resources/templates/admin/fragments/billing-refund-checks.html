@@ -1,0 +1,33 @@
+<!doctype html>
+<!-- 결제 관리 > 환불 점검 탭 App Store 영역 (#1032): 동작은 static/js/admin/billing-app-store.js (Play 영역은 subscriptions.html) -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="app-store-refund-check-panel">
+<section id="appStoreRefundCheckBlock" data-tab-panel="refund-checks" hidden class="card bg-base-100 shadow-sm">
+    <div class="card-body p-4 gap-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+                <h2 class="font-bold">App Store 환불 확인 <span class="text-xs font-normal text-base-content/50">매일 04:55 자동, 최근 180일 구매를 Apple 에 조회 (환불 알림 누락 대비)</span></h2>
+                <p class="text-xs text-base-content/60 mt-1 flex flex-wrap gap-1 items-center">
+                    인앱 결제 키 <span id="appStoreKeyBadge" class="badge badge-sm badge-ghost">-</span>
+                    · 샌드박스 재조회 <span id="appStoreSandboxBadge" class="badge badge-sm badge-ghost">-</span>
+                    · 환불 요청 소비 정보 자동 응답 <span id="appStoreConsumptionBadge" class="badge badge-sm badge-ghost">-</span>
+                </p>
+                <p id="appStoreKeyMissingNotice" class="text-xs text-warning mt-1" hidden>
+                    키 미설정: 서버 설정 passql.billing.app-store.server-api.* (GitHub Secret APP_STORE_IAP_*) 을 넣으면 확인을 시작합니다. 그동안은 Apple 환불 알림으로만 회수합니다.
+                </p>
+            </div>
+            <button type="button" id="appStoreRefundCheckRunButton" class="btn btn-sm btn-primary">지금 확인</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="table table-sm">
+                <thead><tr>
+                    <th>시각</th><th>실행 방식</th><th class="text-right">확인 거래</th>
+                    <th class="text-right">Apple 환불 표시</th><th class="text-right">회수</th><th>결과</th>
+                </tr></thead>
+                <tbody id="appStoreRefundCheckRunBody"></tbody>
+            </table>
+        </div>
+    </div>
+</section>
+</th:block>
+</html>

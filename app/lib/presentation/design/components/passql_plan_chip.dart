@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../passql_theme.dart';
 import '../tokens/passql_tokens.dart';
 import 'passql_pressable.dart';
 
-/// 등급 칩: 무료는 회색 FREE (누르면 [onTap]), 프로는 보라로 꽉 찬 PRO (누를 수 없음)
+/// 등급 칩: 무료는 회색 FREE (누르면 [onTap]), 프로는 보라로 꽉 찬 반짝임 아이콘 + PRO (누를 수 없음)
 class PassqlPlanChip extends StatelessWidget {
   const PassqlPlanChip({super.key, required this.isPro, this.onTap});
 
@@ -34,11 +34,25 @@ class PassqlPlanChip extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(PassqlRadius.capsule),
       ),
-      child: Text(
-        label,
-        style: PassqlTypography.captionSemibold.copyWith(
-          color: foregroundColor,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 프로일 때만 왼쪽에 반짝임 아이콘 (꽉 찬 강조색 위라 이미지 마크 대신 글자색 아이콘, #963)
+          if (isPro) ...[
+            Icon(
+              CupertinoIcons.sparkles,
+              size: PassqlIconSize.xs,
+              color: foregroundColor,
+            ),
+            const SizedBox(width: PassqlSpacing.hairlineGap),
+          ],
+          Text(
+            label,
+            style: PassqlTypography.captionSemibold.copyWith(
+              color: foregroundColor,
+            ),
+          ),
+        ],
       ),
     );
     final tapHandler = isPro ? null : onTap;

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 
@@ -21,7 +22,8 @@ part 'memo/memo_tool_icon.dart';
 
 /// 풀이 화면 메모 틀: 끔이면 오른쪽 아래 펜 버튼, 켬이면 아래 도구 막대 + 위 안내를 문항 영역 위에 띄움
 /// 안쪽 [PassqlMemoCanvas] 가 이 상태로 그림. 화면은 컨트롤러를 State 에 두고(응시 동안 유지) 문항 영역을 감싸기만 함
-class PassqlMemoScope extends StatelessWidget {
+/// 펜 버튼은 내용을 아래로 읽는 동안 숨김 > 위로 올리거나 맨 위·맨 아래면 다시 보임 (보기 카드 가림 방지, #995)
+class PassqlMemoScope extends StatefulWidget {
   const PassqlMemoScope({
     super.key,
     required this.controller,
@@ -47,6 +49,45 @@ class PassqlMemoScope extends StatelessWidget {
           .dependOnInheritedWidgetOfExactType<_PassqlMemoInheritedController>()
           ?.notifier;
 
+  @override
+  State<PassqlMemoScope> createState() => _PassqlMemoScopeState();
+}
+
+class _PassqlMemoScopeState extends State<PassqlMemoScope> {
+  /// 아래로 읽는 중이라 펜 버튼을 숨겼는지
+  bool _isToggleButtonHidden = false;
+
+  PassqlMemoController get controller => widget.controller;
+
+  @override
+  void didUpdateWidget(PassqlMemoScope oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 다음 문항은 맨 위부터 > 펜 버튼 다시 보임
+    if (oldWidget.activePageKey != widget.activePageKey) {
+      _isToggleButtonHidden = false;
+    }
+  }
+
+  /// 세로 스크롤 > 펜 버튼 숨김·보임 (가로 스크롤 표는 무시, 끝을 알리지 않음)
+  bool _onScrollNotification(ScrollNotification notification) {
+    final metrics = notification.metrics;
+    if (metrics.axis != Axis.vertical) return false;
+    final isAtEdge = metrics.extentBefore <= 0 || metrics.extentAfter <= 0;
+    var shouldHide = _isToggleButtonHidden;
+    if (isAtEdge) {
+      // 맨 아래는 메모 층이 버튼 높이만큼 비워 둬 가리지 않음
+      shouldHide = false;
+    } else if (notification is UserScrollNotification) {
+      // reverse = 손가락을 올려 내용을 아래로 읽는 중
+      if (notification.direction == ScrollDirection.reverse) shouldHide = true;
+      if (notification.direction == ScrollDirection.forward) shouldHide = false;
+    }
+    if (shouldHide != _isToggleButtonHidden) {
+      setState(() => _isToggleButtonHidden = shouldHide);
+    }
+    return false;
+  }
+
   /// 켬·끔 전환 + 햅틱, 켤 때 스크린리더에 안내 문구
   void _toggleMemoMode(BuildContext context) {
     PassqlHaptics.playSelection();
@@ -54,7 +95,7 @@ class PassqlMemoScope extends StatelessWidget {
     if (controller.isMemoMode) {
       SemanticsService.sendAnnouncement(
         View.of(context),
-        memoModeHint,
+        PassqlMemoScope.memoModeHint,
         TextDirection.ltr,
       );
     }
@@ -70,7 +111,10 @@ class PassqlMemoScope extends StatelessWidget {
       child: Stack(
         fit: StackFit.passthrough,
         children: [
-          child,
+          NotificationListener<ScrollNotification>(
+            onNotification: _onScrollNotification,
+            child: widget.child,
+          ),
           Positioned.fill(
             child: ListenableBuilder(
               listenable: controller,
@@ -108,15 +152,41 @@ class PassqlMemoScope extends StatelessWidget {
                     ? _PassqlMemoToolbar(
                         key: const ValueKey('memoToolbar'),
                         controller: controller,
-                        activePageKey: activePageKey,
+                        activePageKey: widget.activePageKey,
                         onDone: () => _toggleMemoMode(context),
                       )
                     : Align(
                         key: const ValueKey('memoToggleButton'),
                         alignment: Alignment.bottomRight,
-                        child: _PassqlMemoToggleButton(
-                          hasMemo: controller.hasStrokesOn(activePageKey),
-                          onTap: () => _toggleMemoMode(context),
+                        // 숨김: 아래로 밀려 사라짐 + 터치 없음 (스크린리더에서도 빠짐)
+                        child: IgnorePointer(
+                          ignoring: _isToggleButtonHidden,
+                          child: ExcludeSemantics(
+                            excluding: _isToggleButtonHidden,
+                            child: AnimatedSlide(
+                              offset: _isToggleButtonHidden
+                                  ? _hiddenToggleButtonOffset
+                                  : Offset.zero,
+                              duration: PassqlMotion.durationOf(
+                                context,
+                                PassqlMotion.fast,
+                              ),
+                              curve: PassqlMotion.curve,
+                              child: AnimatedOpacity(
+                                opacity: _isToggleButtonHidden ? 0 : 1,
+                                duration: PassqlMotion.durationOf(
+                                  context,
+                                  PassqlMotion.fast,
+                                ),
+                                child: _PassqlMemoToggleButton(
+                                  hasMemo: controller.hasStrokesOn(
+                                    widget.activePageKey,
+                                  ),
+                                  onTap: () => _toggleMemoMode(context),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
               ),
@@ -205,3 +275,5 @@ class _PassqlMemoFloatingSurface extends StatelessWidget {
 
 // 펜 버튼 지름 (시안 48: 최소 터치 44 보다 조금 크게)
 const double _toggleButtonSize = 48;
+// 숨긴 펜 버튼 위치: 자기 높이 1.5배 아래로 (아래 여백 밖으로 빠짐)
+const Offset _hiddenToggleButtonOffset = Offset(0, 1.5);

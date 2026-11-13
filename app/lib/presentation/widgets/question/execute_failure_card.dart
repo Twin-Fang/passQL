@@ -37,7 +37,7 @@ class ExecuteFailureCard extends StatelessWidget {
             ),
             const SizedBox(height: PassqlSpacing.xs),
             PassqlButton(
-              label: '다시 시도',
+              label: PassqlLoadFailureCopy.retryLabel,
               onPressed: onRetry,
               variant: PassqlButtonVariant.plain,
               size: PassqlButtonSize.small,

@@ -4,8 +4,6 @@ import '../../../core/utils/profile_pass_values.dart';
 import '../../../data/models/progress/ai_comment_response.dart';
 import '../../../data/models/progress/ai_stats_analysis.dart';
 import '../../design/design.dart';
-import '../pro/locked_preview_samples.dart';
-import '../pro/pro_locked_section.dart';
 import '../question/markdown_lite_text.dart';
 import 'ai_analysis_action_buttons.dart';
 import 'ai_analysis_finding_row.dart';
@@ -89,7 +87,7 @@ class _AiStatsAnalysisBody extends StatelessWidget {
       if (strength != null)
         _AiAnalysisNoteLine(
           icon: CupertinoIcons.star,
-          text: '강점 · ${strength.topicName} ${strength.correctRatePercent}%',
+          text: '강점 | ${strength.topicName} ${strength.correctRatePercent}%',
         ),
       if (analysis.nextGoal case final nextGoal?)
         _AiAnalysisNoteLine(icon: CupertinoIcons.scope, text: nextGoal),
@@ -161,28 +159,6 @@ class _AiAnalysisNoteLine extends StatelessWidget {
   }
 }
 
-/// 무료(결제 켜짐) AI 분석 자리: 같은 머리 + 잠금 미리보기 (AI 코멘트 프로 전용, #860)
-class AiAnalysisLockedSection extends StatelessWidget {
-  const AiAnalysisLockedSection({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const PassqlSection(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          PassqlAiHeader(title: 'AI 분석'),
-          SizedBox(height: PassqlSpacing.sm),
-          ProLockedSection(
-            preview: AiAnalysisLockedSample(),
-            caption: LockedPreviewCaptions.aiAnalysis,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// AI 분석 실패 자리 (#862): 같은 머리 + 안내 한 줄 + 다시 시도 (조용히 사라지면 프로 기능이 없는 줄 앎)
 class AiAnalysisErrorSection extends StatelessWidget {
   const AiAnalysisErrorSection({super.key, required this.onRetry});
@@ -208,14 +184,14 @@ class AiAnalysisErrorSection extends StatelessWidget {
               const SizedBox(width: PassqlSpacing.xxs),
               Expanded(
                 child: Text(
-                  '분석을 불러오지 못했어요',
+                  PassqlLoadFailureCopy.messageOf('분석을'),
                   style: PassqlTypography.subheadline.copyWith(
                     color: colors.secondaryLabel,
                   ),
                 ),
               ),
               PassqlButton(
-                label: '다시 시도',
+                label: PassqlLoadFailureCopy.retryLabel,
                 onPressed: onRetry,
                 variant: PassqlButtonVariant.tinted,
                 size: PassqlButtonSize.small,

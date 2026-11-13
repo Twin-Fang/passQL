@@ -54,9 +54,10 @@ class ProfileAccountRow extends StatelessWidget {
     if (hasError) {
       return PassqlPressable(
         onTap: onRetry,
-        semanticLabel: '정보를 불러오지 못했어요, 다시 시도',
+        semanticLabel:
+            '${PassqlLoadFailureCopy.messageOf('정보를')}, ${PassqlLoadFailureCopy.retryLabel}',
         child: Text(
-          '정보를 불러오지 못했어요 · 다시 시도',
+          '${PassqlLoadFailureCopy.messageOf('정보를')} | ${PassqlLoadFailureCopy.retryLabel}',
           style: PassqlTypography.footnote.copyWith(
             color: colors.secondaryLabel,
           ),
@@ -89,18 +90,17 @@ class ProfileAccountRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: PassqlSpacing.xs),
-          // 줄 전체가 눌림 > 진입 표시 글자만 (누르는 영역 44 높이 유지)
+          // 줄 전체가 눌림 > 진입 표시는 목록 행과 같은 화살표 (누르는 영역 44 높이 유지)
           ConstrainedBox(
             constraints: const BoxConstraints(
               minHeight: PassqlSize.minTouchTarget,
             ),
             child: Center(
               widthFactor: 1,
-              child: Text(
-                '관리',
-                style: PassqlTypography.subheadlineSemibold.copyWith(
-                  color: colors.accentText,
-                ),
+              child: Icon(
+                CupertinoIcons.chevron_forward,
+                size: PassqlIconSize.md,
+                color: colors.tertiaryLabel,
               ),
             ),
           ),

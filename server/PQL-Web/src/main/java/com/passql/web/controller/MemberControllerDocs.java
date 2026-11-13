@@ -6,6 +6,7 @@ import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.member.dto.ChoiceGenerationModeUpdateRequest;
 import com.passql.member.dto.ChoiceGenerationModeUpdateResponse;
 import com.passql.application.entitlement.AdBonusRequest;
+import com.passql.application.entitlement.CreditHistoryResponse;
 import com.passql.application.entitlement.MemberPlanResponse;
 import com.passql.application.entitlement.PurchaseHistoryEntryResponse;
 import com.passql.member.dto.MemberMeResponse;
@@ -92,7 +93,7 @@ public interface MemberControllerDocs {
           - **`dailyBonus`**: 오늘 받은 무료 한도 보너스
             - `isDailySetCompletionEarned`: 오늘의 세트 완료(배정 문제 전부 제출) +5
             - `isDailySetAccuracyEarned`: 오늘의 세트 정답 80% 이상 +5
-            - `adBonusUsedCount` / `adBonusMaxCount`: 광고 보너스 받은 횟수 / 하루 최대 (2)
+            - `adBonusUsedCount` / `adBonusMaxCount`: 광고 보너스 받은 횟수 / 하루 최대 (횟수 제한 없음, 받은 횟수 + 1 을 내려줌)
             - `bonusQuestionCount`: 보너스 1회분 문제 수 (5)
           """
   )
@@ -125,8 +126,48 @@ public interface MemberControllerDocs {
   List<PurchaseHistoryEntryResponse> getMyPurchases(@AuthMember LoginMember loginMember);
 
   @ApiLogs({
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 974, description = "내 크레딧 사용 내역 조회 API 추가 (날짜별 받은 수·쓴 수·남은 수)"),
+  })
+  @Operation(
+      summary = "내 크레딧 사용 내역 조회",
+      description = """
+          ## 인증(JWT): **필요**
+
+          ## 요청 헤더
+          - **`Authorization`**: Bearer {accessToken}
+
+          ## 요청 파라미터
+          - **`days`** (선택): 조회 일수, 오늘 포함 (기본 14, 1 ~ 30)
+
+          ## 반환값 (CreditHistoryResponse)
+          - **`days`**: 날짜별 내역, 오늘 먼저 (크레딧 1개 = 랜덤 풀기 1문제)
+            - `date`: 날짜 KST (`yyyy-MM-dd`)
+            - `baseCredits`: 하루 기본 크레딧 (10)
+            - `dailySetCompletionCredits`: 오늘의 세트 완료 보너스로 받은 크레딧 (5 또는 0)
+            - `dailySetAccuracyCredits`: 오늘의 세트 정답 80% 보너스로 받은 크레딧 (5 또는 0)
+            - `adBonusCount` / `adBonusCredits`: 광고 보너스 받은 횟수 / 받은 크레딧 (횟수 x 5)
+            - `usedCredits`: 그날 쓴 크레딧 (랜덤 풀기로 제출한 서로 다른 문제 수, `todayRandomSolvedCount` 와 같은 기준)
+            - `remainingCredits`: 남은 크레딧 (받은 합 - 쓴 수, 0 미만은 0, 지난 날짜는 그날이 끝난 시점 값)
+
+          ## 설명
+          - 오늘은 항상 들어가고, 받은 보너스도 쓴 것도 없는 지난 날짜는 목록에서 빠진다
+          - 결제 꺼짐·프로 회원은 크레딧을 쓰지 않으므로 빈 목록 (지금 등급 기준, 과거에 프로였던 날은 따지지 않음)
+          - 제출·세트 완료·광고 보너스 기록에서 내 등급 조회의 오늘 값과 같은 규칙으로 날짜별 계산한다 (오늘 값은 `todayFreeLimit`·`todayRandomSolvedCount`·`dailyBonus` 와 일치)
+          - `baseCredits` 는 지금 기본 한도 (과거 설정값 이력 없음). 예전에 푼 문제를 다시 풀어도 `usedCredits` 에 들어가므로 받은 합보다 클 수 있다
+
+          ## 에러코드
+          - **`INVALID_INPUT_VALUE`** (400): `days` 가 1 ~ 30 밖
+          """
+  )
+  CreditHistoryResponse getMyCreditHistory(
+      @AuthMember LoginMember loginMember,
+      @RequestParam(required = false) Integer days
+  );
+
+  @ApiLogs({
       @ApiLog(date = "2026.11.04", author = Author.SUHSAECHAN, issueNumber = 808, description = "무료 한도 광고 보너스 받기 API 추가"),
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 860, description = "선택 본문 rewardNonce 추가, AdMob 서버 검증(ads.reward.ssv_required) 켜짐이면 콜백 기록 확인만 (409 AD_BONUS_VERIFICATION_PENDING, 426 AD_BONUS_APP_UPDATE_REQUIRED)"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 963, description = "광고 보너스 횟수 제한 없앰, 하루 200 공정 사용 상한"),
   })
   @Operation(
       summary = "무료 한도 광고 보너스 받기",
@@ -143,13 +184,13 @@ public interface MemberControllerDocs {
           - 보너스를 반영한 내 등급 (`todayFreeLimit` +5, `dailyBonus.adBonusUsedCount` +1)
 
           ## 설명
-          - 앱이 보상형 광고 보상 콜백 뒤에 호출한다 (하루 2회 상한)
+          - 앱이 보상형 광고 보상 콜백 뒤에 호출한다 (횟수 제한 없음, 하루 200 공정 사용 상한)
           - 같은 `rewardNonce` 가 이미 기록됐으면(서버 검증 콜백 포함) 다시 쌓지 않고 현재 등급 반환
           - `ads.reward.ssv_required` 꺼짐: 이 호출로 기록 / 켜짐: 기록하지 않고 AdMob 서버 검증 콜백 기록만 확인
           - 결제 꺼짐·프로 회원은 쌓지 않고 현재 등급을 그대로 반환한다
 
           ## 에러코드
-          - **`AD_BONUS_DAILY_LIMIT_REACHED`** (409): 오늘 광고 보너스를 모두 받음
+          - **`FAIR_USE_DAILY_LIMIT_REACHED`** (429): 오늘 하루 200 공정 사용 상한에 도달
           - **`AD_BONUS_VERIFICATION_PENDING`** (409): 검증 필수인데 콜백이 아직 안 옴 (잠시 뒤 다시 호출)
           - **`AD_BONUS_APP_UPDATE_REQUIRED`** (426): 검증 필수인데 `rewardNonce` 없음 (옛 앱)
           """

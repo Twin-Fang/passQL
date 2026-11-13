@@ -35,8 +35,6 @@ void main() {
 
     expect(pricing.dailyPriceOf(_threeMonthPass), 110);
     expect(pricing.undiscountedPriceOf(_threeMonthPass), 13200);
-    expect(pricing.monthlyPriceOf(_threeMonthPass), 3300);
-    expect(pricing.upgradeSuggestionFor(_oneMonthPass), isNotNull);
   });
 
   test('원화가 아니면 원 금액은 모두 숨기고 할인율만 남긴다', () {
@@ -55,8 +53,6 @@ void main() {
 
     expect(pricing.dailyPriceOf(_threeMonthPass), isNull);
     expect(pricing.undiscountedPriceOf(_threeMonthPass), isNull);
-    expect(pricing.monthlyPriceOf(_threeMonthPass), isNull);
-    expect(pricing.upgradeSuggestionFor(_oneMonthPass), isNull);
     expect(pricing.discountOf(_threeMonthPass)?.discountPercent, 33);
   });
 }

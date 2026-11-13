@@ -26,6 +26,7 @@ const Map<String, String> screenNameByRoutePattern = {
   '${AppRoutes.questionDetailPattern}/${AppRoutes.resultSubPath}':
       'question_result',
   AppRoutes.chapterResult: 'chapter_result',
+  AppRoutes.randomPracticeSummary: 'random_practice_summary',
 };
 
 /// 라우터 위치 변화 > 화면 조회 기록 (go·push·pop 공통, 같은 화면 연속은 1회)

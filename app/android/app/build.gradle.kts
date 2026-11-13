@@ -78,6 +78,8 @@ android {
         release {
             // 릴리스는 항상 릴리스 키로 서명 (키가 없으면 아래 검사 작업이 빌드를 멈춤)
             signingConfig = signingConfigs.getByName("release")
+            // 앱 R8 규칙 (네이버 플러그인의 옛 SDK 참조 경고, #942)
+            proguardFiles("proguard-rules.pro")
         }
     }
 }
@@ -105,6 +107,8 @@ tasks.matching { it.name == "preReleaseBuild" }.configureEach {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // 네이버 SDK 5.12.0 으로 올림: 폴더블·창 크기 바뀜 대응(5.11.2, SDK 이슈 #144), 플러그인 2.1.1 의 5.10.0 보다 우선 적용 + 로그인 방식 지정용 (#942)
+    implementation("com.navercorp.nid:oauth:5.12.0")
 }
 
 flutter {

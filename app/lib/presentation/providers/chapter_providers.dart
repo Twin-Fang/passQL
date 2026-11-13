@@ -194,6 +194,14 @@ class ChapterNotifier extends AutoDisposeFamilyNotifier<ChapterState, String> {
     );
   }
 
+  /// 이어 풀 문제를 목록 끝에 덧붙임 (연속 흐름, #963). 마지막 문제 여부는 길이로 다시 계산됨
+  void appendQuestionUuids(List<String> questionUuids) {
+    if (questionUuids.isEmpty) return;
+    state = state.copyWith(
+      questionUuids: [...state.questionUuids, ...questionUuids],
+    );
+  }
+
   /// 완료 요약: 지금까지의 결과 + 총 소요 시간
   ChapterSummary buildSummary(String topicName) => ChapterSummary(
     topicName: topicName,

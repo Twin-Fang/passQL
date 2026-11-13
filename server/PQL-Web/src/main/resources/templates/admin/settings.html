@@ -70,20 +70,35 @@
                                            th:id="'val_' + ${setting.settingKey}"
                                            th:checked="${#strings.equalsIgnoreCase(setting.valueText, 'true')}"
                                            disabled/>
-                                    <!-- INT: 정수 범위(int32)만 허용 -->
+                                    <!-- INT: 키별 허용 범위(AppSettingValueRanges), 범위 없는 키는 int32 전체 -->
                                     <input th:if="${!setting.sensitive and setting.valueType == 'INT'}"
-                                           type="number" step="1" min="-2147483648" max="2147483647"
+                                           type="number" step="1"
+                                           th:min="${setting.minimumValue ?: '-2147483648'}"
+                                           th:max="${setting.maximumValue ?: '2147483647'}"
                                            class="input input-bordered input-xs w-40 font-mono"
                                            th:id="'val_' + ${setting.settingKey}"
                                            th:value="${setting.valueText}"
                                            readonly/>
+                                    <!-- FLOAT: 범위 없는 키는 min·max 속성 생략 (null) -->
                                     <input th:if="${!setting.sensitive and setting.valueType == 'FLOAT'}"
                                            type="number" step="any"
+                                           th:min="${setting.minimumValue}"
+                                           th:max="${setting.maximumValue}"
                                            class="input input-bordered input-xs w-40 font-mono"
                                            th:id="'val_' + ${setting.settingKey}"
                                            th:value="${setting.valueText}"
                                            readonly/>
-                                    <input th:if="${setting.sensitive or (setting.valueType != 'BOOLEAN' and setting.valueType != 'INT' and setting.valueType != 'FLOAT')}"
+                                    <!-- SECRET: 상태 배지만 (값은 내려오지 않음), 입력칸은 변경할 때만 표시 -->
+                                    <span th:if="${setting.valueType == 'SECRET'}"
+                                          th:id="'secret_badge_' + ${setting.settingKey}"
+                                          class="badge badge-sm"
+                                          th:classappend="${setting.isSecretConfigured()} ? 'badge-success' : 'badge-ghost'"
+                                          th:text="${setting.isSecretConfigured()} ? '설정됨' : '미설정'">미설정</span>
+                                    <input th:if="${setting.valueType == 'SECRET'}"
+                                           type="password" autocomplete="new-password" placeholder="새 값 입력"
+                                           class="input input-bordered input-xs w-40 font-mono hidden"
+                                           th:id="'val_' + ${setting.settingKey}"/>
+                                    <input th:if="${setting.valueType != 'SECRET' and (setting.sensitive or (setting.valueType != 'BOOLEAN' and setting.valueType != 'INT' and setting.valueType != 'FLOAT'))}"
                                            type="text"
                                            th:id="'val_' + ${setting.settingKey}"
                                            th:value="${setting.valueText}"
@@ -123,17 +138,24 @@
                                         <i data-lucide="x" class="size-3 text-error"></i>
                                     </button>
                                 </div>
-                                <!-- 저장 실패 사유 (서버 형식 검사 메시지) -->
+                                <!-- 허용 범위 안내 (범위 있는 키만) -->
+                                <p th:if="${setting.minimumValue != null}"
+                                   class="text-xs text-base-content/50 mt-1"
+                                   th:text="|허용 범위 ${setting.minimumValue} ~ ${setting.maximumValue}|">허용 범위 1 ~ 100</p>
+                                <!-- 저장 실패 사유 (서버 형식·범위 검사 메시지) -->
                                 <p class="text-xs text-error mt-1 hidden" th:id="'err_' + ${setting.settingKey}"></p>
                             </td>
                             <td class="text-xs text-base-content/60" th:text="${setting.description}">SQL 최대 길이 제한</td>
                             <td class="whitespace-nowrap">
-                                <button th:if="${!setting.sensitive}"
+                                <button th:if="${!setting.sensitive and !setting.isManagedByAppOperation()}"
                                         class="btn btn-xs btn-ghost"
                                         th:data-key="${setting.settingKey}"
                                         onclick="startEdit(this.dataset.key)">
                                     <i data-lucide="pencil" class="size-3"></i>
                                 </button>
+                                <!-- 앱 운영 화면 전용 키: 여기서는 읽기 전용 (확인 창·점검표를 거치게) -->
+                                <a th:if="${setting.isManagedByAppOperation()}"
+                                   class="link link-primary text-xs" th:href="@{/admin/app-operation}">앱 운영 화면에서 수정</a>
                                 <!-- 변경 이력·롤백 -->
                                 <button class="btn btn-xs btn-ghost"
                                         th:data-key="${setting.settingKey}"
@@ -270,6 +292,8 @@
         async function saveSetting(key, isRestartRequired) {
             const input = document.getElementById('val_' + key);
             const errorText = document.getElementById('err_' + key);
+            // 숫자 입력 min·max 사전 확인 (서버가 같은 범위로 다시 검사)
+            if (input.type === 'number' && !input.reportValidity()) return;
             try {
                 await AdminApi.put('/admin/settings/' + encodeURIComponent(key), {value: readSettingValue(input)});
             } catch (error) {
@@ -286,33 +310,29 @@
                 isRestartRequired ? 'warning' : 'success');
         }
 
-        // 비밀값 변경: 기존 키는 화면에 내려오지 않으므로 빈 비밀번호 칸으로 새 키를 입력
+        // 비밀값 변경: 기존 값은 화면에 내려오지 않으므로 상태 배지를 숨기고 빈 비밀번호 칸에 새 값을 입력
         function startSecretEdit(key) {
             const input = document.getElementById('val_' + key);
-            input.dataset.original = input.value;
-            input.type = 'password';
-            input.autocomplete = 'new-password';
+            document.getElementById('secret_badge_' + key)?.classList.add('hidden');
             input.value = '';
-            input.placeholder = '새 키 입력';
-            input.classList.remove('opacity-60', 'cursor-not-allowed');
-            input.removeAttribute('readonly');
+            input.classList.remove('hidden');
             input.focus();
             document.getElementById('btn_save_' + key)?.classList.remove('hidden');
             document.getElementById('btn_cancel_' + key)?.classList.remove('hidden');
         }
 
+        // 비밀값 편집 종료: 입력값 비움 > 입력칸 숨김 > 상태 배지 복귀
         function endSecretEdit(key) {
             const input = document.getElementById('val_' + key);
-            input.type = 'text';
-            input.placeholder = '';
-            input.classList.add('opacity-60', 'cursor-not-allowed');
-            input.setAttribute('readonly', true);
+            input.value = '';
+            input.classList.add('hidden');
+            document.getElementById('secret_badge_' + key)?.classList.remove('hidden');
             document.getElementById('err_' + key)?.classList.add('hidden');
             document.getElementById('btn_save_' + key)?.classList.add('hidden');
             document.getElementById('btn_cancel_' + key)?.classList.add('hidden');
         }
 
-        // 저장: 성공하면 마스킹된 새 값을 보려고 새로고침, 실패 사유는 입력칸 아래 표시
+        // 저장: 성공하면 바뀐 상태 배지를 보려고 새로고침, 실패 사유는 입력칸 아래 표시
         async function saveSecretSetting(key) {
             const input = document.getElementById('val_' + key);
             const errorText = document.getElementById('err_' + key);
@@ -324,15 +344,12 @@
                 AdminUi.showError(error);
                 return;
             }
-            input.value = '';
             endSecretEdit(key);
             AdminUi.toast('저장했습니다. 다음 호출부터 새 값이 적용됩니다.', 'success');
             setTimeout(() => location.reload(), 800);
         }
 
         function cancelSecretEdit(key) {
-            const input = document.getElementById('val_' + key);
-            input.value = input.dataset.original ?? '';
             endSecretEdit(key);
         }
 

@@ -6,14 +6,18 @@ import '../../../router/app_routes.dart';
 import '../../../core/auth/social_sign_in.dart';
 import '../../../core/error/app_exception.dart';
 import '../../../core/monitoring/crash_reporter.dart';
+import '../../../core/utils/exam_dday.dart';
 import '../../../data/models/legal/legal_models.dart';
 import '../../design/design.dart';
 import '../../providers/app_config_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_preference_providers.dart';
+import '../../providers/plan_providers.dart';
+import '../../providers/pro_ui_providers.dart';
 import '../../providers/settings_providers.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/settings/choice_mode_tile.dart';
+import '../../widgets/settings/lock_screen_settings_tiles.dart';
 import '../../widgets/settings/notification_preference_tiles.dart';
 import '../../widgets/settings/push_notification_tile.dart';
 import '../../widgets/settings/theme_mode_tile.dart';
@@ -24,11 +28,17 @@ class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
   /// 되돌릴 수 없는 작업이라 안내 후 한 번 더 확인받는다. 실패하면 사유를 알리고 계정은 그대로 둔다.
-  Future<void> _confirmWithdraw(BuildContext context, WidgetRef ref) async {
+  Future<void> _confirmWithdraw(
+    BuildContext context,
+    WidgetRef ref, {
+    required String remainingPassNotice,
+  }) async {
     final isConfirmed = await showPassqlConfirmDialog(
       context,
       title: '정말 탈퇴할까요?',
-      message: '계정과 개인정보가 삭제되고 되돌릴 수 없어요.\n같은 계정으로 다시 가입하면 새 계정으로 시작해요.',
+      message:
+          '계정과 개인정보가 삭제되고 되돌릴 수 없어요.\n같은 계정으로 다시 가입하면 새 계정으로 시작해요.'
+          '$remainingPassNotice',
       confirmLabel: '탈퇴하기',
       requiredText: '탈퇴하기',
     );
@@ -59,6 +69,16 @@ class SettingsPage extends ConsumerWidget {
     }
   }
 
+  /// 프로 이용 중이면 탈퇴 확인 문구에 붙일 이용권 소멸 안내 (모르면 빈 문자열)
+  static String _remainingPassNoticeOf({
+    required bool isPro,
+    required DateTime? expiresAt,
+  }) {
+    if (!isPro) return '';
+    if (expiresAt == null) return '\n남은 이용권이 사라지고 환불되지 않아요.';
+    return '\n남은 이용권 ${daysUntilDate(expiresAt)}일이 사라지고 환불되지 않아요.';
+  }
+
   /// 실수로 누르는 것을 막기 위해 한 번 확인한 뒤 로그아웃한다.
   /// 로그아웃되면 라우터가 자동으로 로그인 화면으로 보낸다.
   Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
@@ -82,6 +102,11 @@ class SettingsPage extends ConsumerWidget {
     // 알림 종류 줄은 설정을 읽었을 때만 묶음에 넣는다. 빈 줄을 넣으면 그 앞에 구분선이 남는다 (#774)
     final hasNotificationPreference =
         ref.watch(notificationPreferenceProvider).valueOrNull != null;
+    // 탈퇴 확인 창의 이용권 소멸 안내 (등급은 미리 구독해 창을 열 때 값이 있게)
+    final remainingPassNotice = _remainingPassNoticeOf(
+      isPro: ref.watch(shouldShowProBadgeProvider),
+      expiresAt: ref.watch(knownPlanProvider)?.proExpiresAt,
+    );
 
     return Scaffold(
       body: PassqlLargeTitleScrollView(
@@ -96,7 +121,14 @@ class SettingsPage extends ConsumerWidget {
             ),
             sliver: SliverList.list(
               children: passqlRevealInOrder([
-                const SettingsGroup(title: '학습', children: [ChoiceModeTile()]),
+                // 학습: 보기 방식 + 잠금화면 문제 (Android + 서버 스위치, #990)
+                SettingsGroup(
+                  title: '학습',
+                  children: [
+                    const ChoiceModeTile(),
+                    ...buildLockScreenSettingsRows(ref),
+                  ],
+                ),
                 const SizedBox(height: PassqlSpacing.xl),
                 const SettingsGroup(title: '화면', children: [ThemeModeTile()]),
                 const SizedBox(height: PassqlSpacing.xl),
@@ -116,7 +148,7 @@ class SettingsPage extends ConsumerWidget {
                   title: '토론',
                   children: [
                     SettingsRow(
-                      icon: CupertinoIcons.person_crop_circle_badge_xmark,
+                      icon: CupertinoIcons.hand_raised,
                       title: '차단한 사용자 관리',
                       onTap: () => context.push(AppRoutes.blockedMembers),
                     ),
@@ -128,7 +160,7 @@ class SettingsPage extends ConsumerWidget {
                   children: [
                     SettingsRow(
                       icon: CupertinoIcons.chat_bubble,
-                      title: '의견 보내기',
+                      title: '문의, 제안 보내기',
                       onTap: () => context.push(AppRoutes.feedback),
                     ),
                     SettingsRow(
@@ -170,7 +202,11 @@ class SettingsPage extends ConsumerWidget {
                       title: '회원 탈퇴',
                       isDestructive: true,
                       shouldShowChevron: false,
-                      onTap: () => _confirmWithdraw(context, ref),
+                      onTap: () => _confirmWithdraw(
+                        context,
+                        ref,
+                        remainingPassNotice: remainingPassNotice,
+                      ),
                     ),
                   ],
                 ),

@@ -6,6 +6,7 @@ import '../../../core/error/app_exception.dart';
 import '../../../data/models/community/community_models.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../common/load_more_status_sliver.dart';
 import '../../../router/questions_tab_view.dart';
 import '../../providers/community_providers.dart';
 import 'community_feed_card_tile.dart';
@@ -108,17 +109,16 @@ class CommunityFeedList extends ConsumerWidget {
             );
           },
         ),
-        if (feedState.isLoadingMore)
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(PassqlSpacing.md),
-              child: Center(child: PassqlLoadingIndicator()),
-            ),
-          ),
+        LoadMoreStatusSliver(
+          isLoadingMore: feedState.isLoadingMore,
+          hasLoadMoreFailed: feedState.hasLoadMoreFailed,
+          onRetry: ref.read(communityFeedProvider(source).notifier).loadMore,
+        ),
       ],
     );
   }
 
-  static String _errorMessageOf(Object error) =>
-      error is AppException ? error.message : '토론을 불러오지 못했어요.';
+  static String _errorMessageOf(Object error) => error is AppException
+      ? error.message
+      : PassqlLoadFailureCopy.messageOf('토론을');
 }

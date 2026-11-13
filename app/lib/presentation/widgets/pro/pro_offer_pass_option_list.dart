@@ -12,7 +12,10 @@ import 'pro_pass_option_tile.dart';
 String passMonthsLabelOf(PassOption option) =>
     '${toPassMonths(option.durationDays)}개월';
 
-/// 이용권 고르기: 서버 순서대로 칸 > 기준(1개월) 칸을 골랐으면 긴 이용권 권유 줄
+// 원화 기호 (스토어 가격 문자열이 이 기호로 시작하면 정가도 같은 모양으로)
+const String _wonSign = '₩';
+
+/// 이용권 고르기: 서버 순서대로 카드를 나란히 (#966)
 class ProOfferPassOptionList extends StatelessWidget {
   const ProOfferPassOptionList({
     super.key,
@@ -25,112 +28,50 @@ class ProOfferPassOptionList extends StatelessWidget {
   final PassOptionPricing<PassOption> pricing;
   final PassOption? selectedOption;
 
-  /// 칸·권유 줄 탭 (결제 중이면 null > 바꿀 수 없음)
+  /// 칸 탭 (결제 중이면 null > 바꿀 수 없음)
   final ValueChanged<PassOption>? onSelect;
 
   @override
   Widget build(BuildContext context) {
-    final upgrade = pricing.upgradeSuggestionFor(selectedOption);
-    final onSelect = this.onSelect;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final option in pricing.options) ...[
-          _buildOptionTile(option),
-          const SizedBox(height: PassqlSpacing.xs),
+    final options = pricing.options;
+    // 카드 높이를 가장 큰 카드에 맞춤
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var index = 0; index < options.length; index++) ...[
+            if (index > 0) const SizedBox(width: PassqlSpacing.sm),
+            Expanded(child: _buildOptionTile(options[index])),
+          ],
         ],
-        if (upgrade != null)
-          _UpgradeSuggestion(
-            savings: upgrade.savings,
-            monthlyShare: upgrade.monthlyShare,
-            longLabel: passMonthsLabelOf(upgrade.longOption),
-            onTap: onSelect == null ? null : () => onSelect(upgrade.longOption),
-          ),
-      ],
+      ),
     );
   }
 
-  /// 이용권 1칸: 할인 있으면 리본·할인 전 값·월 환산, 가격 있으면 하루 가격 (#816, 원 금액은 원화일 때만 #867)
-  /// 할인이 가장 큰 칸 리본에만 `가장 많이 골라요`를 붙임
+  /// 할인 전 값 문구: 스토어 가격과 같은 모양 (₩13,200 또는 13,200원)
+  String? _originalPriceLabelOf(PassOption option, String? displayPrice) {
+    final undiscountedPrice = pricing.undiscountedPriceOf(option);
+    if (undiscountedPrice == null) return null;
+    final amount = formatThousands(undiscountedPrice);
+    return (displayPrice?.startsWith(_wonSign) ?? false)
+        ? '$_wonSign$amount'
+        : '$amount원';
+  }
+
+  /// 이용권 카드 1장: 기간, 가격, 줄 그은 정가 + 할인율, 만료일
   Widget _buildOptionTile(PassOption option) {
     final discount = pricing.discountOf(option);
-    final undiscountedPrice = pricing.undiscountedPriceOf(option);
-    final dailyPrice = pricing.dailyPriceOf(option);
-    final monthlyPrice = pricing.monthlyPriceOf(option);
-    final isRecommended = option == pricing.bestDiscountOption;
     final onSelect = this.onSelect;
+    final displayPrice =
+        pricing.priceByProductId[option.productId]?.displayPrice;
     return ProPassOptionTile(
       label: passMonthsLabelOf(option),
-      displayPrice: pricing.priceByProductId[option.productId]?.displayPrice,
-      ribbonLabel: discount == null
-          ? null
-          : isRecommended
-          ? '${discount.discountPercent}% 할인 · 가장 많이 골라요'
-          : '${discount.discountPercent}% 할인',
-      dailyPriceLabel: dailyPrice == null
-          ? null
-          : '하루 약 ${formatThousands(dailyPrice)}원',
-      undiscountedPrice: undiscountedPrice == null
-          ? null
-          : '${formatThousands(undiscountedPrice)}원',
-      monthlyLabel: monthlyPrice == null
-          ? null
-          : '월 ${formatThousands(monthlyPrice)}원',
+      displayPrice: displayPrice,
+      originalPriceLabel: _originalPriceLabelOf(option, displayPrice),
+      discountPercent: discount?.discountPercent,
       expiryLabel: '${formatDottedDate(option.expiresAtIfPurchased)}까지',
       isSelected: option == selectedOption,
       onTap: onSelect == null ? null : () => onSelect(option),
-    );
-  }
-}
-
-/// 1개월을 골랐을 때 긴 이용권 권유 한 줄 (막지 않고 아끼는 금액만 보여 준다)
-class _UpgradeSuggestion extends StatelessWidget {
-  const _UpgradeSuggestion({
-    required this.savings,
-    required this.monthlyShare,
-    required this.longLabel,
-    required this.onTap,
-  });
-
-  final int savings;
-  final int monthlyShare;
-  final String longLabel;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final message =
-        '$longLabel로 바꾸면 ${formatThousands(savings)}원 아껴요 (월 ${formatThousands(monthlyShare)}원씩)';
-    return PassqlPressable(
-      onTap: onTap,
-      semanticLabel: '$message, $longLabel로 바꾸기',
-      child: Container(
-        padding: const EdgeInsets.all(PassqlSpacing.sm),
-        decoration: BoxDecoration(
-          color: colors.accentTint,
-          borderRadius: BorderRadius.circular(PassqlRadius.md),
-        ),
-        child: Row(
-          children: [
-            // 단어 단위 줄바꿈 (좁은 폭에서 '씩)'만 다음 줄로 떨어지지 않게)
-            Expanded(
-              child: PassqlKeepAllText(
-                message,
-                style: PassqlTypography.footnote.copyWith(color: colors.label),
-              ),
-            ),
-            const SizedBox(width: PassqlSpacing.xs),
-            Text(
-              '$longLabel로 바꾸기 ›',
-              style: PassqlTypography.footnoteSemibold.copyWith(
-                color: colors.accentText,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

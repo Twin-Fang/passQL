@@ -4,17 +4,31 @@ import '../../design/design.dart';
 
 /// 잠금 자리별 가운데 한 줄 (스펙 4-1, 화면은 이 상수만 씀)
 abstract final class LockedPreviewCaptions {
-  static const String explanation = '보기별 해설 · 함정 · 시험 팁';
-  static const String executionResult = '보기 SQL을 직접 실행해 결과 비교';
-  static const String practiceModes = '토픽 골라 풀기 · 새 보기로 풀기 · 약점 추천';
-  static const String examTrend = '최근 기출 토픽 비중 · 이번 회차 예상';
-  static const String freshChoices = '풀 때마다 AI가 만드는 새 보기';
-  static const String conceptTopics = '3단원부터 모든 개념과 확인 문제';
-  static const String aiAnalysis = 'AI 약점 분석 · 다음 공부 추천';
-  static const String mockExamDetail = '과목별 점수 · 토픽별 약점 · 다음에 할 일';
-  static const String mockExamReview = '문항별 정답과 보기 해설';
-  static const String mockExamTrend = '회차별 점수 추이';
-  static const String accuracyDetail = '어느 난이도에서 틀리는지, 오답이 줄고 있는지';
+  // 무료 해설 아래 상세 해설 자리 (#999)
+  static const String explanation = 'PRO 상세 답안지로 보기마다 왜 맞고 틀린지 봐요';
+  static const String executionResult = '보기 SQL을 직접 실행해 결과를 비교해요';
+  static const String practiceModes = '토픽을 골라 풀고 약점 추천도 받아요';
+  static const String examTrend = '최근 기출 비중과 이번 회차 예상을 봐요';
+  static const String conceptTopics = '3단원부터 모든 개념과 확인 문제를 봐요';
+  static const String mockExamDetail = '과목별 점수와 약점, 다음에 할 일을 봐요';
+  static const String mockExamReview = '문항별 정답과 보기 해설을 봐요';
+  static const String mockExamResult = '과목별 약점과 문항별 보기 해설을 봐요';
+  static const String mockExamTrend = '회차별 점수 변화를 봐요';
+  // 잠금화면 실행형 문제 결과 자리 (#990)
+  static const String lockScreenExecutionResult = '내 답과 정답 SQL을 실행해 비교해요';
+  static const String proAnalysis = 'AI 분석과 영역, 난이도별 약점, 오답 정리를 봐요';
+}
+
+/// 잠긴 상세 해설 자리 글: 뜻 없는 한국어 음절 묶음, 길이만 서버 구성에 맞춤 (#999)
+abstract final class LockedPreviewPlaceholder {
+  static const String _repeatedText = '가나다라 마바사 아자차카 타파하 거너더 러머버서 어저처 커터퍼허 ';
+
+  /// [characterCount] 글자 자리 글 (반복해 자르고 끝 공백 제거)
+  static String textOfLength(int characterCount) {
+    if (characterCount <= 0) return '';
+    final repeatCount = characterCount ~/ _repeatedText.length + 1;
+    return (_repeatedText * repeatCount).substring(0, characterCount).trimRight();
+  }
 }
 
 // 가짜 미리보기: 서버의 잠긴 내용이 아니라 모양만 그럴듯한 고정 예시 (통신을 가로채도 얻을 것이 없게)
@@ -29,15 +43,15 @@ class ExplanationLockedSample extends StatelessWidget {
       children: [
         _SampleSection(
           title: '정답 근거',
-          body: 'GROUP BY 절에 없는 컬럼은 집계 함수 없이 SELECT 에 쓸 수 없어요.',
+          body: 'GROUP BY 절에 없는 컬럼은 집계 함수 없이 SELECT에 쓸 수 없어요.',
         ),
         _SampleSection(
           title: '핵심 개념',
-          body: 'WHERE 는 그룹으로 묶기 전에, HAVING 은 묶은 뒤에 조건을 걸어요.',
+          body: 'WHERE는 그룹으로 묶기 전에, HAVING은 묶은 뒤에 조건을 걸어요.',
         ),
         _SampleSection(
           title: '헷갈리는 지점',
-          body: 'COUNT(*) 는 NULL 도 세고, COUNT(컬럼) 은 NULL 을 빼고 세요.',
+          body: 'COUNT(*)는 NULL도 세고, COUNT(컬럼)은 NULL을 빼고 세요.',
         ),
         _SampleSection(title: '시험 팁', body: '보기마다 실행 순서를 한 줄씩 적어 보면 함정이 보여요.'),
       ],
@@ -93,7 +107,7 @@ class ExamTrendLockedSample extends StatelessWidget {
       children: [
         _SampleSection(
           title: '최근 기출 토픽 비중',
-          body: 'SQL 기본 및 활용 42% · SQL 최적화 기본 원리 18% · 관리 구문 14%',
+          body: 'SQL 기본 및 활용 42% | SQL 최적화 기본 원리 18% | 관리 구문 14%',
         ),
         _SampleSection(
           title: '이번 회차 예상',
@@ -116,9 +130,12 @@ class ConceptTopicsLockedSample extends StatelessWidget {
   Widget build(BuildContext context) {
     return const _SampleCard(
       children: [
-        _SampleSection(title: '3. DDL / DML / TCL', body: '개념 7개 · 데이터 타입, 제약조건, MERGE'),
-        _SampleSection(title: '4. SQL 함수', body: '개념 6개 · 문자, 숫자, 날짜, NULL 함수'),
-        _SampleSection(title: '5. 조인', body: '개념 6개 · INNER, OUTER, SELF 조인'),
+        _SampleSection(
+          title: '3. DDL / DML / TCL',
+          body: '개념 7개 | 데이터 타입, 제약조건, MERGE',
+        ),
+        _SampleSection(title: '4. SQL 함수', body: '개념 6개 | 문자, 숫자, 날짜, NULL 함수'),
+        _SampleSection(title: '5. 조인', body: '개념 6개 | INNER, OUTER, SELF 조인'),
       ],
     );
   }
@@ -133,8 +150,8 @@ class AiAnalysisLockedSample extends StatelessWidget {
     return const _SampleCard(
       children: [
         _SampleSection(
-          title: '예상 점수 64점 · 합격선 근처',
-          body: '1과목 예상 6/10 · 2과목 예상 26/40',
+          title: '예상 점수 64점 | 합격선 근처',
+          body: '1과목 예상 6/10 | 2과목 예상 26/40',
         ),
         _SampleSection(
           title: '약한 영역',
@@ -159,11 +176,11 @@ class MockExamDetailLockedSample extends StatelessWidget {
       children: [
         _SampleSection(
           title: '1과목 데이터 모델링',
-          body: '14점 / 20점 · 정규화와 식별자에서 2문제를 놓쳤어요.',
+          body: '14점 / 20점 | 정규화와 식별자에서 2문제를 놓쳤어요.',
         ),
         _SampleSection(
           title: '2과목 SQL',
-          body: '52점 / 80점 · 윈도우 함수 정답률이 가장 낮아요.',
+          body: '52점 / 80점 | 윈도우 함수 정답률이 가장 낮아요.',
         ),
         _SampleSection(title: '다음에 할 일', body: '윈도우 함수 문제부터 다시 풀어 보세요.'),
       ],
@@ -180,8 +197,8 @@ class MockExamReviewLockedSample extends StatelessWidget {
     return const _SampleCard(
       children: [
         _SampleSection(
-          title: '23번 · 정답 C',
-          body: 'GROUP BY 가 없으면 조건이 거짓이어도 COUNT 는 0 한 행을 돌려줘요.',
+          title: '23번 | 정답 C',
+          body: 'GROUP BY가 없으면 조건이 거짓이어도 COUNT는 0 한 행을 돌려줘요.',
         ),
         _SampleSection(title: '내가 고른 B', body: '공집합으로 착각하기 쉬운 함정이에요.'),
       ],
@@ -198,35 +215,6 @@ class MockExamTrendLockedSample extends StatelessWidget {
     return const _SampleCard(
       children: [
         _SampleSection(title: '제1회 → 제3회', body: '54점 → 62점 → 70점, 합격선을 넘었어요.'),
-      ],
-    );
-  }
-}
-
-/// 프로필 난이도별 정답률·오답 정리 자리 (#909)
-class AccuracyDetailLockedSample extends StatelessWidget {
-  const AccuracyDetailLockedSample({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _SampleCard(
-      children: [
-        _SampleSection(title: '난이도별 정답률', body: '쉬움 92%, 보통 74%, 어려움 48%'),
-        _SampleSection(title: '오답 정리', body: '틀린 문제 24개 중 15개를 다시 맞혔어요.'),
-      ],
-    );
-  }
-}
-
-/// 새 보기로 풀기 선택 자리 (설정·풀이 화면 보기 방식 시트)
-class FreshChoicesLockedSample extends StatelessWidget {
-  const FreshChoicesLockedSample({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _SampleCard(
-      children: [
-        _SampleSection(title: 'AI 새 보기', body: '같은 문제도 매번 다른 함정 보기로 다시 풀어요.'),
       ],
     );
   }

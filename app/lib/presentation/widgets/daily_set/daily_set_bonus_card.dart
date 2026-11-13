@@ -3,17 +3,25 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/daily_set_bonus_rule.dart';
 import '../../../data/models/member/member_plan_response.dart';
 import '../../design/design.dart';
 import '../../providers/plan_providers.dart';
-
-// 정답률 보너스 기준 (%, 서버 DailyFreeBonusRule.ACCURACY_PERCENT_THRESHOLD 와 같은 값)
-const int _accuracyBonusPercentThreshold = 80;
+import '../practice/open_random_practice.dart';
+import 'daily_set_bonus_check_rows.dart';
 
 /// 오늘의 세트 결과 보너스 카드 (#808): 결제 UI 대상 무료 회원 + 받은 보너스 있을 때만
-/// 진입 시 등급 다시 받기(방금 완료 반영) > 받은 합계 + 이유 줄, 정답률 미달이면 다음 기준 안내
+/// 진입 시 등급 다시 받기(방금 완료 반영) > 보상 연출(방금 완료 진입만) + 카드(머리 합계 +N > 받은 보너스 체크 줄 > 랜덤 풀기 보조 버튼)
+/// 정답률 미달이면 다음 세트 기준 한 줄
 class DailySetBonusCard extends ConsumerStatefulWidget {
-  const DailySetBonusCard({super.key, required this.assignedQuestionCount});
+  const DailySetBonusCard({
+    super.key,
+    required this.assignedQuestionCount,
+    this.shouldCelebrate = false,
+  });
+
+  /// 풀이를 막 끝낸 진입이면 true (기록에서 다시 열면 카드만)
+  final bool shouldCelebrate;
 
   /// 오늘 배정된 세트 문제 수 (정답률 기준 개수 계산)
   final int assignedQuestionCount;
@@ -27,13 +35,39 @@ class _DailySetBonusCardState extends ConsumerState<DailySetBonusCard> {
   void initState() {
     super.initState();
     // 완료 기록 직후라 보너스가 아직 반영 안 된 등급일 수 있음
-    unawaited(ref.read(planProvider.notifier).refresh());
+    unawaited(_refreshThenCelebrate());
   }
 
-  /// 정답률 보너스에 필요한 맞힌 수 (배정 수의 80% 올림)
+  /// 등급 갱신 > 받은 보상이 있으면 연출 1회 (이유 문구는 받은 보상 종류대로)
+  Future<void> _refreshThenCelebrate() async {
+    await ref.read(planProvider.notifier).refresh();
+    if (!mounted || !widget.shouldCelebrate) return;
+    // 기다리는 사이 다른 창(광고 안내·잠금 창 등)이 떴거나 화면을 떠났으면 연출 생략 (창 위에 쌓지 않음, #963)
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+    final knownPlan = ref.read(knownPlanProvider);
+    final dailyBonus = knownPlan?.dailyBonus;
+    if (!ref.read(shouldShowProUiProvider) || dailyBonus == null) return;
+    final earnedQuestionCount = _earnedDailySetQuestionCountOf(dailyBonus);
+    if (earnedQuestionCount == 0) return;
+    await showPassqlRewardCelebration(
+      context,
+      bonusQuestionCount: earnedQuestionCount,
+      reasonText: [
+        if (dailyBonus.isDailySetCompletionEarned)
+          PassqlRewardReason.dailySetCompleted,
+        if (dailyBonus.isDailySetAccuracyEarned)
+          PassqlRewardReason.dailySetAccurateOf(widget.assignedQuestionCount),
+      ].join('\n'),
+      remainingAfter: ref.read(freeRemainingSolvesProvider) ?? 0,
+      dailyBaseCreditCount: knownPlan?.dailyFreeLimit,
+      todayBonusCreditCount: knownPlan?.todayBonusFreeLimit,
+      actionLabel: '확인',
+    );
+  }
+
+  /// 정답률 보너스에 필요한 맞힌 수
   int get _accuracyBonusCorrectCount =>
-      (widget.assignedQuestionCount * _accuracyBonusPercentThreshold + 99) ~/
-      100;
+      DailySetBonusRule.accuracyCorrectCountOf(widget.assignedQuestionCount);
 
   @override
   Widget build(BuildContext context) {
@@ -45,28 +79,65 @@ class _DailySetBonusCardState extends ConsumerState<DailySetBonusCard> {
     if (earnedQuestionCount == 0) return const SizedBox.shrink();
     final colors = context.passqlColors;
     final bonusQuestionCount = dailyBonus.bonusQuestionCount;
-    final reasonLines = [
-      if (dailyBonus.isDailySetCompletionEarned) '세트 완료 +$bonusQuestionCount',
-      if (dailyBonus.isDailySetAccuracyEarned)
-        '정답 $_accuracyBonusCorrectCount개 이상 +$bonusQuestionCount'
-      else
-        '$_accuracyBonusCorrectCount개 이상 맞히면 +$bonusQuestionCount 더',
-    ];
     return PassqlCard(
-      title: '랜덤 풀기 +$earnedQuestionCount문제 열렸어요',
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final reasonLine in reasonLines)
-            Padding(
-              padding: const EdgeInsets.only(top: PassqlSpacing.xxs),
-              child: Text(
-                reasonLine,
-                style: PassqlTypography.subheadline.copyWith(
-                  color: colors.secondaryLabel,
+          // 머리: 제목 + 오늘 세트로 받은 합계 강조
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '오늘의 세트 보너스',
+                  style: PassqlTypography.headline.copyWith(
+                    color: colors.label,
+                  ),
                 ),
               ),
+              const PassqlCreditIcon(size: PassqlIconSize.xl),
+              const SizedBox(width: PassqlSpacing.xxs),
+              Text(
+                '+$earnedQuestionCount',
+                style: PassqlTypography.title3.copyWith(
+                  color: colors.correctText,
+                  fontFeatures: PassqlTypography.tabular,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: PassqlSpacing.md),
+          // 받은 줄만 (못 받은 보너스를 흐린 줄로 늘어놓지 않음)
+          DailySetBonusCheckRows(
+            dailyBonus: dailyBonus,
+            bonusQuestionCount: bonusQuestionCount,
+            shouldShowEarnedOnly: true,
+          ),
+          // 못 받은 정답률 보너스는 다음 세트 기준 한 줄 (긍정형)
+          if (!dailyBonus.isDailySetAccuracyEarned) ...[
+            const SizedBox(height: PassqlSpacing.sm),
+            Text.rich(
+              TextSpan(
+                text: '다음 세트에서 $_accuracyBonusCorrectCount개 이상 맞히면 ',
+                children: [
+                  const WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: PassqlCreditIcon(size: PassqlIconSize.xs),
+                  ),
+                  TextSpan(text: '+$bonusQuestionCount 더'),
+                ],
+              ),
+              style: PassqlTypography.footnote.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
+          ],
+          const SizedBox(height: PassqlSpacing.md),
+          // 결과 화면의 채운 버튼은 아래 닫기 하나라 보조 모양
+          PassqlButton(
+            label: '랜덤 풀기로 이어 가기',
+            variant: PassqlButtonVariant.tinted,
+            onPressed: () => openRandomPractice(context, ref),
+          ),
         ],
       ),
     );

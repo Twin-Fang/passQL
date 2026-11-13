@@ -2,7 +2,7 @@
 type: cluster
 topic: store-release
 created: 2026-10-29
-members: 65
+members: 71
 status: active
 related: []
 ---
@@ -13,9 +13,12 @@ related: []
 스토어 심사·출시·스토어 문구·법적 고지
 
 ## 현재 상태 요약
-(2026-11-04, 자동 생성) 활성 결정 18개, 열린 이슈 5개. 앱 아이콘이 시안 8번으로 바뀌었다 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]]: 사용자 기기에는 스토어 새 버전에서 바뀌고, Play 스토어 목록 아이콘(512px)은 Play Console에서 따로 올려야 한다. 프로모션 코드는 스토어 코드(App Store 오퍼 코드, Play 프로모 코드)만 쓴다 — [[DEC-0244-promo-code-store-codes-only]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다.
+(2026-11-12, 자동 생성) 활성 결정 18개, 열린 이슈 5개. 앱 아이콘이 시안 8번으로 바뀌었다 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]]: 사용자 기기에는 스토어 새 버전에서 바뀌고, Play 스토어 목록 아이콘(512px)은 Play Console에서 따로 올려야 한다. 프로모션 코드는 스토어 코드(App Store 오퍼 코드, Play 프로모 코드)만 쓴다 — [[DEC-0244-promo-code-store-codes-only]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 잠금화면 문제(#990)는 특수 용도 포그라운드 서비스 권한 신고 전까지 배포 앱에서 숨김 — [[DEC-0290-lock-screen-question-policy]], [[ISS-0499-play-fgs-declaration-lock-screen]]. (2026-11-12) 소개 사이트·약관 공개 주소는 passql.suhsaechan.kr — [[DEC-0294-intro-site-self-hosted-own-domain]](DEC-0119 대체), 검색 노출 원칙은 [[DEC-0295-seo-public-exam-info-no-hidden-text]]. 스토어 문구 반영 2건(Play 검토 제출, App Store 이름·부제·키워드)이 남아 [[ISS-0508-search-visibility-site-domain-aso]] 열림.
 
 ## 활성 결정
+- [[DEC-0294-intro-site-self-hosted-own-domain]] — 소개 사이트·약관 공개 주소는 passql.suhsaechan.kr(시놀로지 직접 서빙), github.io는 경로별 이동 페이지 (#1027, DEC-0119 대체)
+- [[DEC-0295-seo-public-exam-info-no-hidden-text]] — 검색 노출은 공개 시험 정보 페이지로, 숨긴 글씨·키워드 나열·학습 콘텐츠 원문 공개는 안 함 (#1027)
+- [[DEC-0290-lock-screen-question-policy]] — 잠금화면 문제(Android): 무료도 하루 크레딧 공유, 프로 한 문제 더, 광고·결제는 잠금 풀고 앱에서 (#990, 현재 배포 앱은 #1002로 숨김)
 - [[DEC-0280-ios-deploy-skip-app-store-step-while-in-review]] — 심사 대기·심사 중 버전이 있거나 확인 불가면 iOS 배포는 TestFlight 업로드만
 - [[DEC-0065-source-available-license-no-commercial]] — 저장소 라이선스를 MIT에서 자체 Source-Available License 1.0으로 — 상업적 이용 영구 금지
 - [[DEC-0082-legal-table-separate-from-app-setting]] — 약관(이용약관·개인정보처리방침)은 `AppSetting`이 아닌 독립 `legal` 테이블에서 관리한다
@@ -25,7 +28,6 @@ related: []
 - [[DEC-0105-legal-docs-single-source-server-db]] — 약관·개인정보처리방침 원본은 서버 DB(관리자 `/admin/legal`) 하나
 - [[DEC-0112-web-app-core-feature-parity]] — 웹(React)·앱(Flutter) 투트랙 유지, 화면 1:1이 아니라 핵심 기능 동등성을 맞춘다
 - [[DEC-0115-android-play-build-from-main]] — Android Play 워크플로의 빌드 기준을 `deploy`에서 `main`으로 바꾼다 (iOS와 동일)
-- [[DEC-0119-legal-urls-on-github-pages]] — 약관 공개 URL은 GitHub Pages(twin-fang.github.io/passQL)를 남기고 웹 `/legal/*`은 그쪽으로 리다이렉트
 - [[DEC-0132-push-permission-pre-prompt-sheet]] — 알림 권한은 앱 안내 시트 뒤 "알림 받기"를 눌렀을 때만 시스템 창으로 요청, "나중에"는 7일간 다시 묻지 않음
 - [[DEC-0139-intro-site-generated-from-src]] — 소개 사이트(gh-pages)는 `_src/` 생성 스크립트로만 만들고 HTML을 손으로 고치지 않는다
 - [[DEC-0140-no-spa-prerender-web-app]] — 웹 앱은 SPA 사전 렌더링을 하지 않고 `index.html` 정적 태그로만 검색 노출을 맞춘다
@@ -40,10 +42,14 @@ related: []
 - [[DEC-0248-site-icons-generated-from-brand]] — 소개 사이트 아이콘·OG와 Play 등록정보 아이콘 512는 앱 아이콘 원본에서 생성
 
 ## 대체된 결정 (역사)
+- [[DEC-0119-legal-urls-on-github-pages]] — 약관 공개 URL은 GitHub Pages에 두고 웹 `/legal/*`은 그쪽으로 리다이렉트 (대체: DEC-0294)
 - [[DEC-0233-store-images-accent-keyword-style]] — 스토어 홍보 이미지는 앱 토큰의 `accent` 단색 바탕과 큰 SQL 키워드로 만들고, 한국어와 `scenes.json` 렌더 방식은 유지한다 (대체: DEC-0235)
 - [[DEC-0169-store-listing-korean-only]] — 스토어 홍보 이미지·설명은 한국어만 만들고, 문구는 `scenes.json`에서 도구로 렌더링한다 (대체: DEC-0233)
 
 ## 관련 이슈
+- [[ISS-0508-search-visibility-site-domain-aso]] (open, #1027): 소개 사이트 개편·passql.suhsaechan.kr 이전·스토어 검색 최적화, Play 검토 제출·App Store 이름/부제/키워드 남음
+- [[ISS-0501-lock-screen-question-android]] (resolved, #990): 잠금화면 위 SQLD 문제 1개(Android), 서버 출제 API·운영 설정 3개
+- [[ISS-0499-play-fgs-declaration-lock-screen]] (open, #1002): Play 포그라운드 서비스 권한 미신고 업로드 거절, 잠금화면 임시 제외
 - [[ISS-0485-billing-test-setup-e2e]] (open, GitHub #941): 결제 시험 환경 세팅과 결제 E2E (Play 서비스 계정·SSV 설정 비어 있음)
 - [[ISS-0484-ios-deploy-mutates-version-in-review]] (resolved, GitHub #939): 심사 대기 중 iOS 배포가 대기 버전 표기·메타데이터를 바꾸고 실패 > TestFlight 만
 - [[ISS-0452-server-only-release-triggers-store-submit]] (resolved, GitHub #840) — 서버만 바꾼 릴리스에도 버전 줄 변경으로 스토어 심사 제출 자동 실행 > pubspec 제외

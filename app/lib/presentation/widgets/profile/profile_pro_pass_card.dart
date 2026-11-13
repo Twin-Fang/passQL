@@ -13,12 +13,12 @@ import '../account/purchase_history_labels.dart';
 import '../pro/pro_benefits.dart';
 import '../pro/pro_info_sheet.dart';
 
-/// 프로 이용권 카드 (#816 A안): 보라 탑승권에 남은 날 큰 숫자 + 승객·만료일·이용권 이름, 누르면 이용권 정보 시트
+/// 프로 이용권 카드 (#816 A안): 보라 탑승권에 남은 날 큰 숫자 + 수험생·만료일·이용권 이름, 누르면 이용권 정보 시트
 /// 구매 직후 연출 대기 표시는 이 카드가 보이면 지움 (연출 없이 바로 보라 탑승권)
 class ProfileProPassCard extends ConsumerStatefulWidget {
   const ProfileProPassCard({super.key, required this.nickname});
 
-  /// 승객 칸 (닉네임을 아직 모르면 빈칸)
+  /// 수험생 칸 (닉네임을 아직 모르면 빈칸)
   final String nickname;
 
   @override
@@ -62,7 +62,7 @@ class _ProfileProPassCardState extends ConsumerState<ProfileProPassCard> {
           ? 'SQLD'
           : '${schedule.certType} ${schedule.round}회',
       fields: [
-        PassqlPassTicketField('승객', widget.nickname),
+        PassqlPassTicketField('수험생', widget.nickname),
         if (expiresAt != null)
           PassqlPassTicketField('만료일', formatDottedDate(expiresAt)),
         if (passName != null) PassqlPassTicketField('이용권', passName),
@@ -71,7 +71,7 @@ class _ProfileProPassCardState extends ConsumerState<ProfileProPassCard> {
         for (final benefit in proBenefits(
           dailyFreeLimit: plan?.dailyFreeLimit ?? 0,
         ))
-          (icon: benefit.icon, color: benefitColorOf(context, benefit)),
+          benefit.icon,
       ],
       stubLabel: '사용 중',
       hasSweep: true,

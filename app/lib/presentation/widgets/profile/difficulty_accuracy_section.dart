@@ -1,13 +1,12 @@
 import 'package:flutter/cupertino.dart';
 
-import '../../../core/utils/question_difficulty.dart';
 import '../../../data/models/progress/difficulty_stat.dart';
 import '../../design/design.dart';
 import 'topic_accuracy_rows.dart';
 
 // 정답률 숫자 칸 폭 (100% 까지 오른쪽 맞춤)
 const double _percentColumnWidth = 44;
-// 별 글자 칸 폭 (★★★★★ 다섯 개가 한 줄)
+// 별 칸 폭 (별 아이콘 다섯 개가 한 줄)
 const double _starColumnWidth = 72;
 
 /// 난이도별 정답률 (#909, 프로): 단계마다 별 + 막대 + 정답률 + 푼 문제 수, 약한 단계(60% 미만)는 빨강.
@@ -23,6 +22,12 @@ class DifficultyAccuracySection extends StatelessWidget {
     final colors = context.passqlColors;
     return PassqlSection(
       title: '난이도별 정답률',
+      // 구간 제목 앞 아이콘: 프로필 구간 모두 같은 모양 (#971)
+      leading: PassqlIconTile(
+        icon: CupertinoIcons.chart_bar_fill,
+        color: context.passqlColors.accent,
+        isCompact: true,
+      ),
       trailing: Text(
         '전체 기록',
         style: PassqlTypography.footnote.copyWith(color: colors.secondaryLabel),
@@ -64,11 +69,9 @@ class _DifficultyRow extends StatelessWidget {
             children: [
               SizedBox(
                 width: _starColumnWidth,
-                child: Text(
-                  toDifficultyStarText(stat.difficulty),
-                  style: PassqlTypography.footnote.copyWith(
-                    color: colors.warningText,
-                  ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: PassqlDifficultyStars(difficulty: stat.difficulty),
                 ),
               ),
               Expanded(

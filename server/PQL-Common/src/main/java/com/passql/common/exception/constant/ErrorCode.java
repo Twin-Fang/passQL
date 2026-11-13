@@ -215,6 +215,7 @@ public enum ErrorCode {
     FREE_DAILY_LIMIT_REACHED(HttpStatus.FORBIDDEN, "오늘 무료 문제를 다 풀었어요"),
     FAIR_USE_DAILY_LIMIT_REACHED(HttpStatus.TOO_MANY_REQUESTS, "오늘 풀 수 있는 문제를 모두 풀었어요"),
     // 무료 한도 광고 보너스 하루 횟수 소진 (#808)
+    // 옛 앱 호환, 더는 내지 않음
     AD_BONUS_DAILY_LIMIT_REACHED(HttpStatus.CONFLICT, "오늘 광고 보너스를 모두 받았어요"),
     // 광고 보너스 서버 검증 콜백 도착 전 (앱이 잠시 뒤 다시 확인, #860)
     AD_BONUS_VERIFICATION_PENDING(HttpStatus.CONFLICT, "광고 시청을 확인하고 있어요. 잠시 뒤 다시 확인해 주세요"),

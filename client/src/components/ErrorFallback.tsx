@@ -17,23 +17,23 @@ const ERROR_META: Record<ErrorType, {
 }> = {
   network: {
     icon: <WifiOff size={28} className="text-text-caption" />,
-    title: "인터넷 연결을 확인해주세요",
-    description: "네트워크가 불안정합니다. 연결 상태를 확인한 뒤 다시 시도해보세요.",
+    title: "인터넷 연결을 확인해 주세요",
+    description: "네트워크가 불안정해요. 연결 상태를 확인한 뒤 다시 시도해 보세요.",
   },
   server: {
     icon: <ServerCrash size={28} className="text-text-caption" />,
     title: "서버에 문제가 생겼어요",
-    description: "일시적인 서버 오류입니다. 잠시 후 다시 시도하면 해결될 수 있어요.",
+    description: "일시적인 서버 오류예요. 잠시 후 다시 시도하면 해결될 수 있어요.",
   },
   auth: {
     icon: <ShieldAlert size={28} className="text-text-caption" />,
-    title: "인증이 필요해요",
-    description: "세션이 만료됐거나 권한이 없습니다. 페이지를 새로고침해 주세요.",
+    title: "다시 로그인해 주세요",
+    description: "로그인이 만료됐어요. 다시 로그인하면 이어서 볼 수 있어요.",
   },
   generic: {
     icon: <AlertCircle size={28} className="text-text-caption" />,
-    title: "데이터를 불러올 수 없어요",
-    description: "잠시 후 다시 시도해보세요. 문제가 반복되면 페이지를 새로고침해 주세요.",
+    title: "데이터를 불러오지 못했어요",
+    description: "잠시 후 다시 시도해 보세요. 문제가 반복되면 페이지를 새로고침해 주세요.",
   },
 };
 

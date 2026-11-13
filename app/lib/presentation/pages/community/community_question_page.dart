@@ -8,6 +8,7 @@ import '../../../core/error/error_code.dart';
 import '../../../data/models/community/community_models.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../widgets/common/load_more_status_sliver.dart';
 import '../../providers/community_providers.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/common/load_more_scroll_metrics.dart';
@@ -111,7 +112,9 @@ class _CommunityQuestionPageState extends ConsumerState<CommunityQuestionPage> {
       return error == null
           ? const PassqlStatusView.loading()
           : PassqlStatusView.error(
-              message: error is AppException ? error.message : '의견을 불러오지 못했어요.',
+              message: error is AppException
+                  ? error.message
+                  : PassqlLoadFailureCopy.messageOf('의견을'),
               onRetry: () =>
                   ref.invalidate(communityQuestionPostsProvider(_query)),
             );
@@ -158,13 +161,11 @@ class _CommunityQuestionPageState extends ConsumerState<CommunityQuestionPage> {
               );
             },
           ),
-        if (postsState.isLoadingMore)
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(PassqlSpacing.md),
-              child: Center(child: PassqlLoadingIndicator()),
-            ),
-          ),
+        LoadMoreStatusSliver(
+          isLoadingMore: postsState.isLoadingMore,
+          hasLoadMoreFailed: postsState.hasLoadMoreFailed,
+          onRetry: _notifier.loadMore,
+        ),
         SliverToBoxAdapter(
           child: SizedBox(
             height: MediaQuery.paddingOf(context).bottom + PassqlSpacing.xl,

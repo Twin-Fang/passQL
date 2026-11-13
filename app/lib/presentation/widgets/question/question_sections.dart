@@ -33,24 +33,9 @@ class QuestionHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              // 난이도 표시는 색만이 아니라 채움 여부(별 모양)로도 구분된다.
-              Semantics(
-                label: '난이도 $difficulty / $maximumQuestionDifficulty',
-                excludeSemantics: true,
-                child: Row(
-                  children: List.generate(
-                    maximumQuestionDifficulty,
-                    (i) => Icon(
-                      i < difficulty
-                          ? CupertinoIcons.star_fill
-                          : CupertinoIcons.star,
-                      size: PassqlIconSize.sm,
-                      color: i < difficulty
-                          ? colors.warning
-                          : colors.tertiaryLabel,
-                    ),
-                  ),
-                ),
+              PassqlDifficultyStars(
+                difficulty: difficulty,
+                size: PassqlIconSize.sm,
               ),
               const SizedBox(width: PassqlSpacing.xs),
               PassqlBadge(
@@ -129,7 +114,7 @@ class QuestionSseError extends StatelessWidget {
             ),
             if (onRetry != null)
               PassqlButton(
-                label: '다시 시도',
+                label: PassqlLoadFailureCopy.retryLabel,
                 onPressed: onRetry,
                 variant: PassqlButtonVariant.plain,
                 size: PassqlButtonSize.small,

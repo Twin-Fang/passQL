@@ -7,10 +7,11 @@ import '../../../presentation/providers/learning_refresh.dart';
 import '../../../presentation/providers/question_providers.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
-import '../../widgets/common/app_toast.dart';
+import '../../widgets/practice/daily_limit_reward_view.dart';
 import '../../widgets/pro/pro_access_feedback.dart';
 import '../../widgets/question/question_sections.dart';
 import '../../widgets/question/question_load_error_view.dart';
+import '../../widgets/question/question_pro_access_notice.dart';
 import '../../widgets/question/question_solving_body.dart';
 import '../../widgets/question/question_solving_skeleton.dart';
 import '../../widgets/question/choice_display_label.dart';
@@ -44,18 +45,42 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
   /// 이번 로드 실패의 프로 접근 안내를 띄웠는지 (다시 시도하면 내림)
   late bool _isProAccessNoticed = widget.isPushEntry;
 
-  /// 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 시트로 열렸을 때만(프로 전환·광고 보너스) 다시 받기
+  /// 상세 실패 1회 안내: 프로 접근 오류면 시트·토스트 > 시트로 열렸을 때만(프로 전환) 다시 받기
+  /// 무료 하루 한도는 본문 한도 화면이 맡음 (#963)
   void _showProAccessFeedbackOnce(Object error) {
-    if (_isProAccessNoticed) return;
+    if (_isProAccessNoticed || isFreeDailyLimitError(error)) return;
     _isProAccessNoticed = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final feedbackResult = await showProAccessFeedback(context, ref, error);
-      if (feedbackResult == ProAccessFeedbackResult.sheetUnlocked &&
-          mounted) {
+      if (feedbackResult == ProAccessFeedbackResult.sheetUnlocked && mounted) {
         _retryQuestionDetail();
       }
     });
+  }
+
+  /// 선택지 생성 실패 안내 (챕터 풀이와 같은 공통 지점, #995)
+  final QuestionProAccessNotice _proAccessNotice = QuestionProAccessNotice();
+
+  /// 알림 진입 첫 선택지 실패 이벤트: 시트 없이 본문 안내만 (§4-5), 다시 시도한 실패부터 시트
+  Object? _pushEntryChoiceFailure;
+
+  void _noticeChoiceGenerationFailureOnce(
+    QuestionInteractionState interaction,
+    QuestionInteractionNotifier notifier,
+  ) {
+    final sseError = interaction.sseError;
+    if (sseError == null) return;
+    if (widget.isPushEntry && _pushEntryChoiceFailure == null) {
+      _pushEntryChoiceFailure = sseError;
+    }
+    if (identical(sseError, _pushEntryChoiceFailure)) return;
+    _proAccessNotice.showOnceForChoiceGeneration(
+      context,
+      ref,
+      interaction,
+      notifier,
+    );
   }
 
   /// 문제 상세 다시 받기 (오류 안내도 다시 가능)
@@ -73,6 +98,9 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
     final notifier = ref.read(
       questionInteractionProvider(widget.questionUuid).notifier,
     );
+    _noticeChoiceGenerationFailureOnce(interaction, notifier);
+    // 선택지 받기가 하루 한도로 막힘 > 본문은 한도 화면, 하단 바 없음
+    final choiceLimitFailure = dailyLimitFailureOfChoiceGeneration(interaction);
 
     return Scaffold(
       // 하단 제출 바(글래스) 뒤로 본문이 비쳐 보이도록 body 를 바 아래까지 확장한다.
@@ -108,6 +136,13 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
               });
             }
 
+            if (choiceLimitFailure != null) {
+              return QuestionLoadErrorView(
+                key: const ValueKey('limit'),
+                error: choiceLimitFailure,
+                onRetry: notifier.startSseGeneration,
+              );
+            }
             return QuestionSolvingBody(
               key: const ValueKey('data'),
               questionUuid: widget.questionUuid,
@@ -115,11 +150,13 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
               interaction: interaction,
               notifier: notifier,
               shouldShowChoiceModeIndicator: !widget.isWrongNoteRetry,
+              // 재시도가 소용없는 오류여도 다시 눌러 볼 수 있게 (막다른 길 방지)
+              shouldAlwaysAllowRetry: true,
             );
           },
         ),
       ),
-      bottomNavigationBar: detailAsync.hasValue
+      bottomNavigationBar: detailAsync.hasValue && choiceLimitFailure == null
           ? QuestionSubmitBar(
               interaction: interaction,
               onSubmit: () => _submitAnswer(context, notifier),
@@ -137,23 +174,14 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
       submitResult = await notifier.submit();
     } on AppException catch (exception) {
       if (!context.mounted) return;
-      // 제출 시점 하루 한도·프로 필요 > 사유 시트(광고 보너스·이용권), 시트로 열리면 다시 제출 (#867)
-      final feedbackResult = await showProAccessFeedback(
+      // 제출 시점 하루 한도·프로 필요 > 한도 시트(광고·세트)·이용권 시트, 풀리면 다시 제출 (#867·#963)
+      final shouldResubmit = await showSubmitFailureFeedback(
         context,
         ref,
         exception,
       );
-      if (!context.mounted) return;
-      switch (feedbackResult) {
-        case ProAccessFeedbackResult.sheetUnlocked:
-          return _submitAnswer(context, notifier);
-        case ProAccessFeedbackResult.shown:
-          return;
-        case ProAccessFeedbackResult.notHandled:
-          // 실패 원인별 문구 (네트워크, 서버 오류, 입력 오류 등)
-          showAppToast(context, exception.message);
-          return;
-      }
+      if (!shouldResubmit || !context.mounted) return;
+      return _submitAnswer(context, notifier);
     }
     if (!context.mounted || submitResult == null) return;
     // 풀이 결과가 홈과 통계에 반영되도록 캐시를 비운다.
@@ -166,6 +194,10 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
       extra: QuestionResultArguments(
         result: submitResult,
         correctDisplayLabel: findChoiceDisplayLabel(
+          interaction.activeChoices,
+          submitResult.correctKey,
+        ),
+        correctChoiceBody: findChoiceBody(
           interaction.activeChoices,
           submitResult.correctKey,
         ),

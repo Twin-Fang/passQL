@@ -2,6 +2,7 @@ package com.passql.web.controller;
 
 import com.passql.meta.constant.CertType;
 import com.passql.meta.dto.ExamScheduleResponse;
+import com.passql.meta.dto.SqldExamScheduleOverviewResponse;
 import com.passql.meta.service.ExamScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,12 @@ public class ExamScheduleController implements ExamScheduleControllerDocs {
             @RequestParam(value = "certType", required = false) String certType) {
         CertType type = (certType != null) ? CertType.fromRequestValue(certType) : null;
         return ResponseEntity.ok(examScheduleService.getAllSchedules(type));
+    }
+
+    @GetMapping("/sqld")
+    public ResponseEntity<SqldExamScheduleOverviewResponse> getSqldOverview(
+            @RequestParam(value = "year", required = false) Integer year) {
+        return ResponseEntity.ok(examScheduleService.getSqldOverview(year));
     }
 
     @GetMapping("/selected")

@@ -29,6 +29,12 @@ _$ChoiceExplanationResponseImpl _$$ChoiceExplanationResponseImplFromJson(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  basicExplanation: json['basicExplanation'] as String?,
+  lockedExplanationOutline: json['lockedExplanationOutline'] == null
+      ? null
+      : ExplanationOutline.fromJson(
+          json['lockedExplanationOutline'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$$ChoiceExplanationResponseImplToJson(
@@ -42,6 +48,8 @@ Map<String, dynamic> _$$ChoiceExplanationResponseImplToJson(
   'retryAfterMilliseconds': instance.retryAfterMilliseconds,
   'promptVersion': instance.promptVersion,
   'lockedSections': instance.lockedSections,
+  'basicExplanation': instance.basicExplanation,
+  'lockedExplanationOutline': instance.lockedExplanationOutline,
 };
 
 const _$ChoiceExplanationStatusEnumMap = {

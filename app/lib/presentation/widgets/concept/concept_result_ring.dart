@@ -228,9 +228,9 @@ class _RingPainter extends CustomPainter {
       Paint()
         ..shader = LinearGradient(
           colors: [
-            shineColor.withValues(alpha: 0),
+            shineColor.withValues(alpha: PassqlOpacity.transparent),
             shineColor.withValues(alpha: _shineAlpha),
-            shineColor.withValues(alpha: 0),
+            shineColor.withValues(alpha: PassqlOpacity.transparent),
           ],
         ).createShader(bandRect),
     );

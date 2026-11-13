@@ -39,7 +39,8 @@ mixin _$MockExamResultResponse {
   int get questionCount => throw _privateConstructorUsedError;
   bool get isPassed => throw _privateConstructorUsedError;
   @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
-  MockExamFailReason get failReason => throw _privateConstructorUsedError;
+  MockExamFailReason get failReason => throw _privateConstructorUsedError; // 같은 회차 응시자 중 내 위치 (응시자 10명 미만이면 null, #1041)
+  MockExamRanking? get ranking => throw _privateConstructorUsedError;
   List<MockExamSubjectResult> get subjects =>
       throw _privateConstructorUsedError;
   List<MockExamTopicResult> get topics => throw _privateConstructorUsedError;
@@ -85,6 +86,7 @@ abstract class $MockExamResultResponseCopyWith<$Res> {
     bool isPassed,
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     MockExamFailReason failReason,
+    MockExamRanking? ranking,
     List<MockExamSubjectResult> subjects,
     List<MockExamTopicResult> topics,
     List<MockExamQuestionMark> questionMarks,
@@ -93,6 +95,7 @@ abstract class $MockExamResultResponseCopyWith<$Res> {
     List<String> lockedSections,
   });
 
+  $MockExamRankingCopyWith<$Res>? get ranking;
   $MockExamNextStepCopyWith<$Res>? get nextStep;
 }
 
@@ -129,6 +132,7 @@ class _$MockExamResultResponseCopyWithImpl<
     Object? questionCount = null,
     Object? isPassed = null,
     Object? failReason = null,
+    Object? ranking = freezed,
     Object? subjects = null,
     Object? topics = null,
     Object? questionMarks = null,
@@ -198,6 +202,10 @@ class _$MockExamResultResponseCopyWithImpl<
                 ? _value.failReason
                 : failReason // ignore: cast_nullable_to_non_nullable
                       as MockExamFailReason,
+            ranking: freezed == ranking
+                ? _value.ranking
+                : ranking // ignore: cast_nullable_to_non_nullable
+                      as MockExamRanking?,
             subjects: null == subjects
                 ? _value.subjects
                 : subjects // ignore: cast_nullable_to_non_nullable
@@ -225,6 +233,20 @@ class _$MockExamResultResponseCopyWithImpl<
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of MockExamResultResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $MockExamRankingCopyWith<$Res>? get ranking {
+    if (_value.ranking == null) {
+      return null;
+    }
+
+    return $MockExamRankingCopyWith<$Res>(_value.ranking!, (value) {
+      return _then(_value.copyWith(ranking: value) as $Val);
+    });
   }
 
   /// Create a copy of MockExamResultResponse
@@ -269,6 +291,7 @@ abstract class _$$MockExamResultResponseImplCopyWith<$Res>
     bool isPassed,
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     MockExamFailReason failReason,
+    MockExamRanking? ranking,
     List<MockExamSubjectResult> subjects,
     List<MockExamTopicResult> topics,
     List<MockExamQuestionMark> questionMarks,
@@ -277,6 +300,8 @@ abstract class _$$MockExamResultResponseImplCopyWith<$Res>
     List<String> lockedSections,
   });
 
+  @override
+  $MockExamRankingCopyWith<$Res>? get ranking;
   @override
   $MockExamNextStepCopyWith<$Res>? get nextStep;
 }
@@ -311,6 +336,7 @@ class __$$MockExamResultResponseImplCopyWithImpl<$Res>
     Object? questionCount = null,
     Object? isPassed = null,
     Object? failReason = null,
+    Object? ranking = freezed,
     Object? subjects = null,
     Object? topics = null,
     Object? questionMarks = null,
@@ -380,6 +406,10 @@ class __$$MockExamResultResponseImplCopyWithImpl<$Res>
             ? _value.failReason
             : failReason // ignore: cast_nullable_to_non_nullable
                   as MockExamFailReason,
+        ranking: freezed == ranking
+            ? _value.ranking
+            : ranking // ignore: cast_nullable_to_non_nullable
+                  as MockExamRanking?,
         subjects: null == subjects
             ? _value._subjects
             : subjects // ignore: cast_nullable_to_non_nullable
@@ -430,6 +460,7 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
     required this.isPassed,
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     required this.failReason,
+    this.ranking,
     final List<MockExamSubjectResult> subjects = const [],
     final List<MockExamTopicResult> topics = const [],
     final List<MockExamQuestionMark> questionMarks = const [],
@@ -477,6 +508,9 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
   @override
   @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
   final MockExamFailReason failReason;
+  // 같은 회차 응시자 중 내 위치 (응시자 10명 미만이면 null, #1041)
+  @override
+  final MockExamRanking? ranking;
   final List<MockExamSubjectResult> _subjects;
   @override
   @JsonKey()
@@ -526,7 +560,7 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
 
   @override
   String toString() {
-    return 'MockExamResultResponse(attemptUuid: $attemptUuid, roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, submitReason: $submitReason, startedAt: $startedAt, submittedAt: $submittedAt, elapsedSeconds: $elapsedSeconds, totalScore: $totalScore, maxScore: $maxScore, passScore: $passScore, correctCount: $correctCount, questionCount: $questionCount, isPassed: $isPassed, failReason: $failReason, subjects: $subjects, topics: $topics, questionMarks: $questionMarks, reviews: $reviews, nextStep: $nextStep, lockedSections: $lockedSections)';
+    return 'MockExamResultResponse(attemptUuid: $attemptUuid, roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, submitReason: $submitReason, startedAt: $startedAt, submittedAt: $submittedAt, elapsedSeconds: $elapsedSeconds, totalScore: $totalScore, maxScore: $maxScore, passScore: $passScore, correctCount: $correctCount, questionCount: $questionCount, isPassed: $isPassed, failReason: $failReason, ranking: $ranking, subjects: $subjects, topics: $topics, questionMarks: $questionMarks, reviews: $reviews, nextStep: $nextStep, lockedSections: $lockedSections)';
   }
 
   @override
@@ -563,6 +597,7 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
                 other.isPassed == isPassed) &&
             (identical(other.failReason, failReason) ||
                 other.failReason == failReason) &&
+            (identical(other.ranking, ranking) || other.ranking == ranking) &&
             const DeepCollectionEquality().equals(other._subjects, _subjects) &&
             const DeepCollectionEquality().equals(other._topics, _topics) &&
             const DeepCollectionEquality().equals(
@@ -597,6 +632,7 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
     questionCount,
     isPassed,
     failReason,
+    ranking,
     const DeepCollectionEquality().hash(_subjects),
     const DeepCollectionEquality().hash(_topics),
     const DeepCollectionEquality().hash(_questionMarks),
@@ -642,6 +678,7 @@ abstract class _MockExamResultResponse implements MockExamResultResponse {
     required final bool isPassed,
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     required final MockExamFailReason failReason,
+    final MockExamRanking? ranking,
     final List<MockExamSubjectResult> subjects,
     final List<MockExamTopicResult> topics,
     final List<MockExamQuestionMark> questionMarks,
@@ -684,7 +721,9 @@ abstract class _MockExamResultResponse implements MockExamResultResponse {
   bool get isPassed;
   @override
   @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
-  MockExamFailReason get failReason;
+  MockExamFailReason get failReason; // 같은 회차 응시자 중 내 위치 (응시자 10명 미만이면 null, #1041)
+  @override
+  MockExamRanking? get ranking;
   @override
   List<MockExamSubjectResult> get subjects;
   @override
@@ -704,6 +743,213 @@ abstract class _MockExamResultResponse implements MockExamResultResponse {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$MockExamResultResponseImplCopyWith<_$MockExamResultResponseImpl>
   get copyWith => throw _privateConstructorUsedError;
+}
+
+MockExamRanking _$MockExamRankingFromJson(Map<String, dynamic> json) {
+  return _MockExamRanking.fromJson(json);
+}
+
+/// @nodoc
+mixin _$MockExamRanking {
+  // 내 순위 (1부터, 동점은 같은 순위)
+  int get rankPosition => throw _privateConstructorUsedError; // 순위 계산에 든 응시자 수
+  int get takerCount => throw _privateConstructorUsedError; // 상위 퍼센트 (1~100)
+  int get topPercent => throw _privateConstructorUsedError;
+
+  /// Serializes this MockExamRanking to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of MockExamRanking
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $MockExamRankingCopyWith<MockExamRanking> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $MockExamRankingCopyWith<$Res> {
+  factory $MockExamRankingCopyWith(
+    MockExamRanking value,
+    $Res Function(MockExamRanking) then,
+  ) = _$MockExamRankingCopyWithImpl<$Res, MockExamRanking>;
+  @useResult
+  $Res call({int rankPosition, int takerCount, int topPercent});
+}
+
+/// @nodoc
+class _$MockExamRankingCopyWithImpl<$Res, $Val extends MockExamRanking>
+    implements $MockExamRankingCopyWith<$Res> {
+  _$MockExamRankingCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of MockExamRanking
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? rankPosition = null,
+    Object? takerCount = null,
+    Object? topPercent = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            rankPosition: null == rankPosition
+                ? _value.rankPosition
+                : rankPosition // ignore: cast_nullable_to_non_nullable
+                      as int,
+            takerCount: null == takerCount
+                ? _value.takerCount
+                : takerCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            topPercent: null == topPercent
+                ? _value.topPercent
+                : topPercent // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$MockExamRankingImplCopyWith<$Res>
+    implements $MockExamRankingCopyWith<$Res> {
+  factory _$$MockExamRankingImplCopyWith(
+    _$MockExamRankingImpl value,
+    $Res Function(_$MockExamRankingImpl) then,
+  ) = __$$MockExamRankingImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int rankPosition, int takerCount, int topPercent});
+}
+
+/// @nodoc
+class __$$MockExamRankingImplCopyWithImpl<$Res>
+    extends _$MockExamRankingCopyWithImpl<$Res, _$MockExamRankingImpl>
+    implements _$$MockExamRankingImplCopyWith<$Res> {
+  __$$MockExamRankingImplCopyWithImpl(
+    _$MockExamRankingImpl _value,
+    $Res Function(_$MockExamRankingImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of MockExamRanking
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? rankPosition = null,
+    Object? takerCount = null,
+    Object? topPercent = null,
+  }) {
+    return _then(
+      _$MockExamRankingImpl(
+        rankPosition: null == rankPosition
+            ? _value.rankPosition
+            : rankPosition // ignore: cast_nullable_to_non_nullable
+                  as int,
+        takerCount: null == takerCount
+            ? _value.takerCount
+            : takerCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        topPercent: null == topPercent
+            ? _value.topPercent
+            : topPercent // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$MockExamRankingImpl implements _MockExamRanking {
+  const _$MockExamRankingImpl({
+    required this.rankPosition,
+    required this.takerCount,
+    required this.topPercent,
+  });
+
+  factory _$MockExamRankingImpl.fromJson(Map<String, dynamic> json) =>
+      _$$MockExamRankingImplFromJson(json);
+
+  // 내 순위 (1부터, 동점은 같은 순위)
+  @override
+  final int rankPosition;
+  // 순위 계산에 든 응시자 수
+  @override
+  final int takerCount;
+  // 상위 퍼센트 (1~100)
+  @override
+  final int topPercent;
+
+  @override
+  String toString() {
+    return 'MockExamRanking(rankPosition: $rankPosition, takerCount: $takerCount, topPercent: $topPercent)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$MockExamRankingImpl &&
+            (identical(other.rankPosition, rankPosition) ||
+                other.rankPosition == rankPosition) &&
+            (identical(other.takerCount, takerCount) ||
+                other.takerCount == takerCount) &&
+            (identical(other.topPercent, topPercent) ||
+                other.topPercent == topPercent));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, rankPosition, takerCount, topPercent);
+
+  /// Create a copy of MockExamRanking
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$MockExamRankingImplCopyWith<_$MockExamRankingImpl> get copyWith =>
+      __$$MockExamRankingImplCopyWithImpl<_$MockExamRankingImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$MockExamRankingImplToJson(this);
+  }
+}
+
+abstract class _MockExamRanking implements MockExamRanking {
+  const factory _MockExamRanking({
+    required final int rankPosition,
+    required final int takerCount,
+    required final int topPercent,
+  }) = _$MockExamRankingImpl;
+
+  factory _MockExamRanking.fromJson(Map<String, dynamic> json) =
+      _$MockExamRankingImpl.fromJson;
+
+  // 내 순위 (1부터, 동점은 같은 순위)
+  @override
+  int get rankPosition; // 순위 계산에 든 응시자 수
+  @override
+  int get takerCount; // 상위 퍼센트 (1~100)
+  @override
+  int get topPercent;
+
+  /// Create a copy of MockExamRanking
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$MockExamRankingImplCopyWith<_$MockExamRankingImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 MockExamSubjectResult _$MockExamSubjectResultFromJson(

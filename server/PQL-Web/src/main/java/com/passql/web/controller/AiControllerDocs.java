@@ -28,6 +28,7 @@ public interface AiControllerDocs {
       @ApiLog(date = "2026.04.08", author = Author.SUHSAECHAN, issueNumber = 22, description = "Header: X-User-UUID(String) → X-Member-UUID(UUID). Body 내 questionId(Long) → questionUuid(UUID)"),
       @ApiLog(date = "2026.04.19", author = Author.SUHSAECHAN, issueNumber = 120, description = "X-Member-UUID 헤더 → @AuthMember JWT 인증 전환"),
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879, description = "본문 Map → ExplainErrorRequest(필드 이름 그대로), questionUuid 누락·형식 오류는 500 대신 400"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 992, description = "결제 켜짐 무료 회원도 오늘의 세트 문제는 사용 (그 외 403 PRO_REQUIRED)"),
   })
   @Operation(summary = "SQL 에러 해설")
   ResponseEntity<AiResult> explainError(
@@ -41,6 +42,7 @@ public interface AiControllerDocs {
       @ApiLog(date = "2026.04.19", author = Author.SUHSAECHAN, issueNumber = 120, description = "X-Member-UUID 헤더 → @AuthMember JWT 인증 전환"),
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 521, description = "text 를 세트 구조화 해설의 마크다운으로 교체(판정·정답 근거·핵심 개념·헷갈리는 지점·보기별 판단·시험 팁). 출시 앱 호환용 동기 경로, 새 화면은 GET /api/ai/choice-explanation 사용"),
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879, description = "본문 Map → DiffExplainRequest(필드 이름 그대로), questionUuid 누락·형식 오류는 500 대신 400"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 992, description = "결제 켜짐 무료 회원도 오늘의 세트 문제는 사용 (그 외 403 PRO_REQUIRED)"),
   })
   @Operation(
       summary = "선택지 해설 (동기, 출시 앱 호환)",
@@ -64,6 +66,8 @@ public interface AiControllerDocs {
 
   @ApiLogs({
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 521, description = "선택지 구조화 해설 조회 API 추가 (기다리지 않고 READY/GENERATING/FAILED 상태 반환, 생성 중이면 재조회)"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 992, description = "오늘의 세트 문제는 무료 회원도 전체 해설 (lockedSections 에 FULL_EXPLANATION 없음)"),
+      @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 999, description = "FULL_EXPLANATION 잠긴 응답: basicExplanation·lockedExplanationOutline 추가, 생성 중·실패도 READY (무료 몫은 기다릴 AI 글 없음)"),
   })
   @Operation(
       summary = "선택지 구조화 해설 조회",

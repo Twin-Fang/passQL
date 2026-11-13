@@ -2,7 +2,7 @@
 type: cluster
 topic: ai
 created: 2026-10-29
-members: 120
+members: 121
 status: active
 related: []
 ---
@@ -73,6 +73,7 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0261-real-mode-renamed-new-choices]] → DEC-0275
 
 ## 관련 이슈
+- [[ISS-0496-daily-set-free-trial-sql-ai]] (resolved, #992): 무료 회원 세트 문제 AI 해설 허용
 - [[ISS-0479-sqld-real-format-trap-questions]] (resolved, GitHub #834): 실제 SQLD 출제 형식(결과 행 수, 오류 나는 SQL) 과 함정 문제 92개 등록, 결과 표 해설 지시문 교체, 개념형 AI 세트 8개 내림
 - [[ISS-0478-web-solving-ignores-fresh-choice-mode]] (resolved, GitHub #913): 웹 풀이가 AI 새 보기 설정을 무시함, 설정 이름 옛 표기, 칩 없음
 - [[ISS-0475-choice-mode-switch-current-question]] (resolved, GitHub #907): 보기 방식 바꾸면 지금 문제부터 바로 적용, 오답 노트에서는 칩 숨김

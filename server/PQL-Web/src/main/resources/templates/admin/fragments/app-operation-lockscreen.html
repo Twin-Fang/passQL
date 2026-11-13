@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 잠금화면 문제 (#990): 전체 스위치, 기본 표시 간격, 실행형 포함 — 동작은 static/js/admin/app-operation-lockscreen.js -->
+<div th:fragment="lockscreen-card" class="card bg-base-100 shadow">
+    <div class="card-body p-4 space-y-4">
+        <h3 class="card-title text-base">
+            <i data-lucide="smartphone" class="size-5"></i>
+            잠금화면 문제 (Android)
+            <span th:if="${lockScreenSettings.isEnabled}" class="badge badge-success badge-sm">켜짐</span>
+            <span th:unless="${lockScreenSettings.isEnabled}" class="badge badge-ghost badge-sm">꺼짐</span>
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <label class="flex items-center gap-3">
+                <input type="checkbox" id="lockScreenEnabled" class="toggle toggle-primary"
+                       th:checked="${lockScreenSettings.isEnabled}"/>
+                <span class="font-semibold">전체 사용</span>
+            </label>
+            <label class="form-control">
+                <span class="label-text">기본 표시 간격 (분, 0 은 화면 켤 때마다)</span>
+                <input type="number" id="lockScreenDefaultIntervalMinutes" class="input input-bordered input-sm w-32"
+                       min="0" max="1440" th:value="${lockScreenSettings.defaultIntervalMinutes}"/>
+            </label>
+            <label class="flex items-center gap-3">
+                <input type="checkbox" id="lockScreenExecutableIncluded" class="toggle"
+                       th:checked="${lockScreenSettings.isExecutableIncluded}"/>
+                <span class="font-semibold">실행형 SQL 문제 포함</span>
+            </label>
+        </div>
+
+        <p class="text-xs text-base-content/60">
+            끄면 앱에서 잠금화면 메뉴가 숨겨지고 출제 API 가 문제를 내려주지 않습니다.
+            간격은 사용자가 앱에서 바꾸기 전 기본값입니다. 실행형을 빼면 객관식만 출제합니다.
+        </p>
+
+        <div class="flex justify-end">
+            <button class="btn btn-primary btn-sm" onclick="saveLockScreenSettings()">
+                <i data-lucide="save" class="size-4"></i>
+                저장
+            </button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

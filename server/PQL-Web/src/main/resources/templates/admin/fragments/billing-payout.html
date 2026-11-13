@@ -1,0 +1,93 @@
+<!doctype html>
+<!-- 결제 관리 > 실수령액 탭 (#1032): 동작은 static/js/admin/billing-payout.js, 계산 원본은 서버 StorePayoutCalculator -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="payout-panel">
+<section data-tab-panel="payout" class="space-y-5">
+    <!-- 기간: 프리셋 4개 + 직접 지정 -->
+    <div class="flex flex-wrap items-end gap-3" id="payoutPeriodFilter">
+        <div class="join" role="group" aria-label="기간 프리셋">
+            <button type="button" class="btn btn-xs join-item" data-payout-preset="THIS_MONTH">이번 달</button>
+            <button type="button" class="btn btn-xs join-item" data-payout-preset="LAST_MONTH">지난달</button>
+            <button type="button" class="btn btn-xs join-item" data-payout-preset="LAST_30">최근 30일</button>
+            <button type="button" class="btn btn-xs join-item" data-payout-preset="ALL">전체</button>
+        </div>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">시작일</span>
+            <input type="date" id="payoutFromDate" class="input input-sm input-bordered w-40"/>
+        </label>
+        <label class="form-control">
+            <span class="label-text text-xs mb-1">종료일</span>
+            <input type="date" id="payoutToDate" class="input input-sm input-bordered w-40"/>
+        </label>
+        <button type="button" id="payoutApplyButton" class="btn btn-sm btn-primary">조회</button>
+    </div>
+
+    <div id="payoutBlock" class="space-y-5">
+        <!-- 설정값: 수수료율·부가세율 (수정은 쓰기 권한 계정만) -->
+        <div class="alert alert-info alert-soft text-sm items-start">
+            <i data-lucide="calculator" class="size-5"></i>
+            <div class="space-y-1">
+                <p>
+                    <b>예상 실수령</b> = 판매 총액 − 환불 − 부가세(원화 판매가 포함분) − 스토어 수수료
+                    <span class="text-xs text-base-content/60">(구매 시각 기준, 테스트 계정 제외, 실제 정산과 다를 수 있음)</span>
+                </p>
+                <p class="text-xs">
+                    설정값: Google Play 수수료 <b id="payoutPlayFeeRate">-</b> · App Store 수수료 <b id="payoutAppStoreFeeRate">-</b>
+                    · 원화 부가세 <b id="payoutKrwVatRate">-</b>
+                    <button type="button" id="payoutSettingsEditButton" class="link link-primary ml-2" hidden>수정</button>
+                </p>
+                <form id="payoutSettingsForm" class="flex flex-wrap items-end gap-2 pt-1" hidden>
+                    <label class="form-control"><span class="label-text text-xs">Play 수수료 (%)</span>
+                        <input type="number" step="0.1" min="0" max="100" name="playFeeRatePercent" class="input input-xs input-bordered w-24" required/></label>
+                    <label class="form-control"><span class="label-text text-xs">App Store 수수료 (%)</span>
+                        <input type="number" step="0.1" min="0" max="100" name="appStoreFeeRatePercent" class="input input-xs input-bordered w-24" required/></label>
+                    <label class="form-control"><span class="label-text text-xs">원화 부가세 (%)</span>
+                        <input type="number" step="0.1" min="0" max="100" name="krwVatRatePercent" class="input input-xs input-bordered w-24" required/></label>
+                    <button type="submit" class="btn btn-xs btn-primary">저장</button>
+                    <button type="button" id="payoutSettingsCancelButton" class="btn btn-xs btn-ghost">취소</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 통화별 합계 카드 (원화 먼저) -->
+        <div id="payoutCurrencyCards" class="grid grid-cols-1 xl:grid-cols-2 gap-3"></div>
+        <p id="payoutAmountUnknownNotice" class="text-xs text-warning" hidden></p>
+
+        <!-- 월별 추이 (원화) -->
+        <section class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="font-bold">월별 추이 <span class="text-xs font-normal text-base-content/50">원화, 최근 12개월, 구매 월 기준</span></h2>
+                <div class="relative h-60"><canvas id="payoutMonthlyChart" aria-label="월별 실수령 차트"></canvas></div>
+            </div>
+        </section>
+
+        <!-- 스토어별·상품별 -->
+        <section class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="font-bold">스토어별</h2>
+                <div class="overflow-x-auto">
+                    <table class="table table-sm">
+                        <thead><tr>
+                            <th>스토어</th><th>통화</th><th class="text-right">판매</th><th class="text-right">판매 총액</th>
+                            <th class="text-right">환불</th><th class="text-right">부가세</th><th class="text-right">수수료</th>
+                            <th class="text-right">예상 실수령</th>
+                        </tr></thead>
+                        <tbody id="payoutStoreBody"></tbody>
+                    </table>
+                </div>
+                <h2 class="font-bold mt-4">상품별</h2>
+                <div class="overflow-x-auto">
+                    <table class="table table-sm">
+                        <thead><tr>
+                            <th>상품</th><th>스토어</th><th>통화</th><th class="text-right">판매</th><th class="text-right">판매 총액</th>
+                            <th class="text-right">환불</th><th class="text-right">예상 실수령</th>
+                        </tr></thead>
+                        <tbody id="payoutProductBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</section>
+</th:block>
+</html>

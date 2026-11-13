@@ -8,13 +8,12 @@ import '../../design/design.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/settings_providers.dart';
 import 'profile_account_row.dart';
-import 'profile_plan_area.dart';
 
 // 누르는 영역 44 안에서 이니셜 원 위아래로 생기는 빈 공간
 const double _nameRowVerticalSlack =
     (PassqlSize.minTouchTarget - profileAccountAvatarSize) / 2;
 
-/// 내 프로필 첫 구간 (#749, #816 A안): 계정 줄 > 내 정답률 큰 숫자 + 푼 문제·연속 학습 한 줄 > 이용권 자리.
+/// 내 프로필 첫 구간 (#749, #816 A안, #971): 계정 줄 > 통계 3칸(정답률·푼 문제·연속 학습). 크레딧·이용권은 다음 구간(ProfilePlanSection)
 /// 푼 문제가 0개면 큰 숫자 대신 안내 + 버튼 하나 (지금 빈 상태 카드와 같은 분기)
 class ProfileStatusSection extends ConsumerWidget {
   const ProfileStatusSection({super.key, required this.progress});
@@ -23,7 +22,6 @@ class ProfileStatusSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.passqlColors;
     final settings = ref.watch(settingsDataProvider);
     final nickname =
         ref.watch(nicknameNotifierProvider).valueOrNull ??
@@ -56,46 +54,72 @@ class ProfileStatusSection extends ConsumerWidget {
           if (isEmpty || progressValue == null)
             const _EmptyStatus()
           else ...[
-            Text(
-              '내 정답률',
-              style: PassqlTypography.subheadline.copyWith(
-                color: colors.secondaryLabel,
-              ),
-            ),
-            const SizedBox(height: PassqlSpacing.hairlineGap),
-            Text(
-              '${(progressValue.correctRate * 100).round()}%',
-              style: PassqlTypography.largeTitle.copyWith(color: colors.label),
-            ),
-            const SizedBox(height: PassqlSpacing.xxs),
-            Text.rich(
-              TextSpan(
-                style: PassqlTypography.subheadline.copyWith(
-                  color: colors.secondaryLabel,
+            // 통계 3칸: 정답률 · 푼 문제 · 연속 학습 (세로 구분선)
+            _StatColumns(
+              stats: [
+                (
+                  value: '${(progressValue.correctRate * 100).round()}%',
+                  label: '정답률',
                 ),
+                (value: '${progressValue.solvedCount}', label: '푼 문제'),
+                (value: '${progressValue.streakDays}일', label: '연속 학습'),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// 통계 칸 묶음: 값(큰 글자) + 이름, 칸 사이 세로 구분선. 스크린리더는 `정답률 62%` 처럼 이름 먼저
+class _StatColumns extends StatelessWidget {
+  const _StatColumns({required this.stats});
+
+  final List<({String value, String label})> stats;
+
+  // 세로 구분선 높이·두께
+  static const double _dividerHeight = 28;
+  static const double _dividerWidth = 0.5;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    return Row(
+      children: [
+        for (var index = 0; index < stats.length; index++) ...[
+          if (index > 0)
+            Container(
+              width: _dividerWidth,
+              height: _dividerHeight,
+              color: colors.separator,
+            ),
+          Expanded(
+            child: Semantics(
+              label: '${stats[index].label} ${stats[index].value}',
+              excludeSemantics: true,
+              child: Column(
                 children: [
-                  TextSpan(
-                    text: '${progressValue.solvedCount}문제',
-                    style: PassqlTypography.subheadlineSemibold.copyWith(
+                  Text(
+                    stats[index].value,
+                    style: PassqlTypography.title2.copyWith(
                       color: colors.label,
+                      fontFeatures: PassqlTypography.tabular,
                     ),
                   ),
-                  const TextSpan(text: ' 풀었어요 · '),
-                  TextSpan(
-                    text: '${progressValue.streakDays}일',
-                    style: PassqlTypography.subheadlineSemibold.copyWith(
-                      color: colors.label,
+                  const SizedBox(height: PassqlSpacing.hairlineGap),
+                  Text(
+                    stats[index].label,
+                    style: PassqlTypography.footnote.copyWith(
+                      color: colors.secondaryLabel,
                     ),
                   ),
-                  const TextSpan(text: ' 연속 학습'),
                 ],
               ),
             ),
-          ],
-          const SizedBox(height: PassqlSpacing.md),
-          ProfilePlanArea(nickname: nickname),
+          ),
         ],
-      ),
+      ],
     );
   }
 }

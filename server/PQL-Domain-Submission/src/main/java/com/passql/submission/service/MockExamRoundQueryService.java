@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -90,16 +89,26 @@ public class MockExamRoundQueryService {
         List<MockExamAttempt> submittedAttempts = roundAttempts.stream()
             .filter(attempt -> attempt.getStatus() == MockExamAttemptStatus.SUBMITTED)
             .toList();
-        Integer bestScore = submittedAttempts.stream().map(MockExamAttempt::getTotalScore).filter(Objects::nonNull)
-            .max(Comparator.naturalOrder()).orElse(null);
+        MockExamAttempt bestAttempt = findBestAttempt(submittedAttempts);
         MockExamAttempt lastAttempt = roundAttempts.isEmpty() ? null : roundAttempts.get(roundAttempts.size() - 1);
 
         var startBlockReason = MockExamAccessRule.findStartBlockReason(isPro, isFreeTrialRound, hasAnyAttempt, roundUuid,
             inProgressAttempt != null ? inProgressAttempt.getMockExamRoundUuid() : null);
         return new MockExamRoundListResponse.RoundSummary(roundUuid, round.getRoundNumber(), round.getTitle(),
-            isFreeTrialRound, startBlockReason == null, startBlockReason, submittedAttempts.size(), bestScore,
+            isFreeTrialRound, startBlockReason == null, startBlockReason, submittedAttempts.size(),
+            bestAttempt == null ? null : bestAttempt.getTotalScore(),
+            bestAttempt == null ? null : bestAttempt.getIsPassed(),
+            bestAttempt == null ? null : bestAttempt.getFailReason(),
             lastAttempt == null ? null : new MockExamRoundListResponse.LastAttempt(lastAttempt.getMockExamAttemptUuid(),
                 lastAttempt.getStatus(), lastAttempt.getTotalScore(), lastAttempt.getIsPassed(), lastAttempt.getSubmittedAt()));
+    }
+
+    /** 최고 점수 응시 (동점이면 나중 응시, 시작 시간순 목록 기준) */
+    private MockExamAttempt findBestAttempt(List<MockExamAttempt> submittedAttempts) {
+        return submittedAttempts.stream()
+            .filter(attempt -> attempt.getTotalScore() != null)
+            .reduce((best, next) -> next.getTotalScore() >= best.getTotalScore() ? next : best)
+            .orElse(null);
     }
 
     private MockExamRoundListResponse.InProgressAttempt toInProgressAttempt(MockExamAttempt inProgressAttempt,

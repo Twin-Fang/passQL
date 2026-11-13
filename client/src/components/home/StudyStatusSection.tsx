@@ -43,7 +43,7 @@ export default function StudyStatusSection({
       ) : isHeatmapError ? (
         /* 히트맵 영역만 실패 — 카드 구조는 유지하고 영역 안에서 재시도 유도 */
         <div className="flex flex-col items-center gap-2 py-4 text-center">
-          <p className="text-sm text-text-caption">히트맵을 불러올 수 없습니다</p>
+          <p className="text-sm text-text-caption">히트맵을 불러오지 못했어요</p>
           <HomeRetryButton onRetry={onRetryHeatmap} />
         </div>
       ) : heatmap ? (

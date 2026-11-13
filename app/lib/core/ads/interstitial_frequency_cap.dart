@@ -1,5 +1,8 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../storage/device_preferences.dart';
 import '../storage/storage_keys.dart';
+import '../utils/date_format.dart';
 
 /// 전면 광고 노출 기록 4개: 마지막 노출 시각, 기록한 날짜, 그날 노출 횟수, 결과 화면 진입 누적 횟수
 class InterstitialShowHistory {
@@ -87,7 +90,8 @@ class SharedPreferencesInterstitialShowHistoryStore
   }
 }
 
-/// 전면 광고 빈도 제한 3개: 설치 후 첫 결과 1회는 광고 없음, 노출 간격 3분 이상, 하루 최대 5회 (기기 현지 날짜 기준, #787)
+/// 결과 화면 전면 광고 빈도 제한 3개: 설치 후 첫 결과 1회는 광고 없음, 노출 간격 3분 이상, 하루 최대 5회 (기기 현지 날짜 기준, #787)
+/// 보상형 전면(#963)은 안내 대화상자를 띄운 때를 노출로 셈 (건너뛰어도 1회)
 class InterstitialFrequencyCap {
   InterstitialFrequencyCap(this._store);
 
@@ -143,14 +147,15 @@ class InterstitialFrequencyCap {
   }
 
   /// 시각 > 현지 날짜 키 (yyyy-MM-dd)
-  static String dayKeyOf(DateTime time) {
-    final local = time.toLocal();
-    final month = local.month.toString().padLeft(2, '0');
-    final day = local.day.toString().padLeft(2, '0');
-    return '${local.year}-$month-$day';
-  }
+  static String dayKeyOf(DateTime time) => formatIsoDate(time.toLocal());
 
   // 기록 날짜가 오늘이 아니면 0회
   static int _shownCountOn(InterstitialShowHistory history, DateTime now) =>
       history.shownDayKey == dayKeyOf(now) ? history.shownCountOfDay : 0;
 }
+
+/// 앱 전체에서 하나 (챕터 결과·오늘의 세트 결과가 같은 기록을 공유)
+final interstitialFrequencyCapProvider = Provider<InterstitialFrequencyCap>(
+  (ref) =>
+      InterstitialFrequencyCap(SharedPreferencesInterstitialShowHistoryStore()),
+);

@@ -9,10 +9,9 @@ import com.passql.member.constant.AutoNotificationRuleType;
 import com.passql.member.constant.MemberNotificationType;
 import com.passql.member.constant.PushLinkTarget;
 import com.passql.member.entity.AutoNotificationRule;
+import com.passql.member.entity.MemberNotification;
 import com.passql.member.entity.PushSendHistory;
 import com.passql.member.repository.AutoNotificationRuleRepository;
-import com.passql.meta.entity.ExamSchedule;
-import com.passql.meta.repository.ExamScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,15 +21,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 /**
  * 재방문 자동 알림: 규칙 조회·수정(관리자), 대상 수 미리보기, 시각이 된 규칙 발송
- * 발송 = 규칙별 대상 조회 > 회원당 하루 1건 선점 > 알림함 저장·푸시 (기존 MemberNotificationService 재사용)
+ * 발송 = 규칙별 대상 조회 > 회원당 하루 상한(app_setting, 기본 1건) 선점 > 알림함 저장·푸시 > 기록에 알림 연결
  */
 @Slf4j
 @Service
@@ -38,29 +37,40 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class AutoNotificationService {
 
-    // 시험 D-day 알림을 보내는 남은 일수 3종
-    private static final Set<Integer> EXAM_COUNTDOWN_DAYS = Set.of(30, 7, 1);
     // 최근 발송 건수 집계 기간 (일)
     public static final int RECENT_SENT_DAYS = 7;
-    // 제목·본문의 일수 치환 자리
+    // 제목·본문의 미접속 일수 치환 자리
     private static final String DAYS_PLACEHOLDER = "{days}";
 
     private final AutoNotificationRuleRepository autoNotificationRuleRepository;
     private final AutoNotificationTargetQueryRepository autoNotificationTargetQueryRepository;
-    private final ExamScheduleRepository examScheduleRepository;
+    private final ExamNotificationOccasionFinder examNotificationOccasionFinder;
     private final MemberNotificationService memberNotificationService;
+    private final NotificationSettingService notificationSettingService;
     private final ApplicationEventPublisher eventPublisher;
 
-    /** 관리자 화면 한 줄: 규칙 + 최근 7일 발송 건수 */
-    public record RuleView(AutoNotificationRule rule, int recentSentCount) {
+    /** 관리자 화면 한 줄: 규칙 + 최근 7일 발송·열람·복귀 */
+    public record RuleView(AutoNotificationRule rule, AutoNotificationTargetQueryRepository.DeliveryStats recentStats) {
     }
 
     public List<RuleView> findRuleViews(LocalDate today) {
         LocalDate sinceDate = today.minusDays(RECENT_SENT_DAYS - 1L);
         return autoNotificationRuleRepository.findAllByOrderByRuleTypeAsc().stream()
                 .map(rule -> new RuleView(rule,
-                        autoNotificationTargetQueryRepository.countSentSince(rule.getRuleType(), sinceDate)))
+                        autoNotificationTargetQueryRepository.summarizeDeliverySince(rule.getRuleType(), sinceDate)))
                 .toList();
+    }
+
+    /** 회원당 하루 자동 알림 상한 (관리자 화면 표시·발송 공통) */
+    public int getDailyLimitPerMember() {
+        return notificationSettingService.getAutoDailyLimitPerMember();
+    }
+
+    /** 하루 상한 저장 (범위 검증·감사 로그는 NotificationSettingService > AppSettingService) */
+    @Transactional
+    public void updateDailyLimitPerMember(Integer dailyLimitPerMember) {
+        notificationSettingService.updateAutoDailyLimitPerMember(dailyLimitPerMember);
+        log.info("[auto notification] daily limit updated : limit={}", dailyLimitPerMember);
     }
 
     /** 수정: 값 검증 > 반영 > 감사 로그 */
@@ -84,14 +94,15 @@ public class AutoNotificationService {
         return rule;
     }
 
-    /** 지금 기준 대상 수 (발송 없음). 시험 규칙은 오늘이 D-30·7·1 이 아니면 0 */
+    /** 지금 기준 대상 수 (발송 없음). 시험 규칙은 오늘이 발송일(D-30·7·1, 접수·수험표·발표일 등)이 아니면 0 */
     public int countTargets(AutoNotificationRuleType ruleType, LocalDate today) {
         AutoNotificationRule rule = autoNotificationRuleRepository.findByRuleType(ruleType)
                 .orElseThrow(() -> new CustomException(ErrorCode.RESOURCE_NOT_FOUND));
-        if (ruleType == AutoNotificationRuleType.EXAM_COUNTDOWN && findExamDaysLeftToday(today).isEmpty()) {
+        if (examNotificationOccasionFinder.findTodayOccasion(ruleType, today).isEmpty()) {
             return 0;
         }
-        return autoNotificationTargetQueryRepository.findTargetMemberUuids(ruleType, today, rule.getThresholdDays()).size();
+        return autoNotificationTargetQueryRepository
+                .findTargetMemberUuids(ruleType, today, rule.getThresholdDays(), getDailyLimitPerMember()).size();
     }
 
     /**
@@ -114,48 +125,51 @@ public class AutoNotificationService {
 
     private int dispatchRule(AutoNotificationRule rule, LocalDate today) {
         AutoNotificationRuleType ruleType = rule.getRuleType();
-        // 문구에 넣을 일수: 미접속 규칙 = 설정 일수, 시험 규칙 = 남은 일수 (오늘이 대상일이 아니면 건너뜀)
-        Integer days = rule.getThresholdDays();
-        if (ruleType == AutoNotificationRuleType.EXAM_COUNTDOWN) {
-            Optional<Integer> examDaysLeft = findExamDaysLeftToday(today);
-            if (examDaysLeft.isEmpty()) {
-                log.info("[auto notification] skipped : type={}, reason=not an exam countdown day", ruleType);
-                return 0;
-            }
-            days = examDaysLeft.get();
+        // 시험 규칙은 오늘이 발송일일 때만 (문구 치환 값: 남은 일수·회차·날짜·연도), 그 외 규칙은 항상
+        Optional<ExamNotificationOccasionFinder.Occasion> occasion = examNotificationOccasionFinder.findTodayOccasion(ruleType, today);
+        if (occasion.isEmpty()) {
+            log.info("[auto notification] skipped : type={}, reason=not a dispatch day", ruleType);
+            return 0;
         }
-        String title = fillDays(rule.getTitle(), days);
-        String body = fillDays(rule.getBody(), days);
+        Map<String, String> placeholderValues = new HashMap<>(occasion.get().placeholderValues());
+        if (rule.getThresholdDays() != null) {
+            placeholderValues.putIfAbsent(DAYS_PLACEHOLDER, String.valueOf(rule.getThresholdDays()));
+        }
+        String title = fillPlaceholders(rule.getTitle(), placeholderValues);
+        String body = fillPlaceholders(rule.getBody(), placeholderValues);
 
+        int dailyLimit = getDailyLimitPerMember();
         List<UUID> targetMemberUuids = autoNotificationTargetQueryRepository
-                .findTargetMemberUuids(ruleType, today, rule.getThresholdDays());
+                .findTargetMemberUuids(ruleType, today, rule.getThresholdDays(), dailyLimit);
         int sentCount = 0;
         for (UUID memberUuid : targetMemberUuids) {
             try {
-                if (!autoNotificationTargetQueryRepository.tryClaim(memberUuid, ruleType, today)) {
+                // 선점 > 저장·푸시 > 기록에 알림 연결 (열람·복귀 통계)
+                UUID autoNotificationLogUuid = UUID.randomUUID();
+                if (!autoNotificationTargetQueryRepository.tryClaim(autoNotificationLogUuid, memberUuid, ruleType, today, dailyLimit)) {
                     continue;
                 }
-                memberNotificationService.notifyMember(memberUuid, MemberNotificationType.DAILY_SET_REMINDER,
-                        title, body, rule.getLinkTarget(), null);
+                MemberNotification notification = memberNotificationService.notifyMember(memberUuid,
+                        MemberNotificationType.DAILY_SET_REMINDER, title, body, rule.getLinkTarget(), null);
                 sentCount++;
+                autoNotificationTargetQueryRepository.linkMemberNotification(autoNotificationLogUuid,
+                        notification.getMemberNotificationUuid());
             } catch (Exception e) {
                 log.warn("[auto notification] member failed : type={}, cause={}", ruleType, e.getClass().getSimpleName());
             }
         }
+        examNotificationOccasionFinder.markDispatched(occasion.get());
         log.info("[auto notification] dispatched : type={}, targets={}, sent={}", ruleType, targetMemberUuids.size(), sentCount);
         return sentCount;
     }
 
-    /** 오늘이 가장 가까운 시험의 D-30·D-7·D-1 이면 남은 일수 */
-    private Optional<Integer> findExamDaysLeftToday(LocalDate today) {
-        return examScheduleRepository.findFirstByExamDateGreaterThanEqualOrderByExamDateAsc(today)
-                .map(ExamSchedule::getExamDate)
-                .map(examDate -> (int) ChronoUnit.DAYS.between(today, examDate))
-                .filter(EXAM_COUNTDOWN_DAYS::contains);
-    }
-
-    private static String fillDays(String text, Integer days) {
-        return days == null ? text : text.replace(DAYS_PLACEHOLDER, String.valueOf(days));
+    // 치환 자리("{round}" 등) > 값
+    private static String fillPlaceholders(String text, Map<String, String> placeholderValues) {
+        String filledText = text;
+        for (Map.Entry<String, String> placeholder : placeholderValues.entrySet()) {
+            filledText = filledText.replace(placeholder.getKey(), placeholder.getValue());
+        }
+        return filledText;
     }
 
     private static int requireSendHour(Integer sendHour) {

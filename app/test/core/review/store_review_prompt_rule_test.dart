@@ -95,17 +95,17 @@ void main() {
     );
   });
 
-  test('오늘의 세트 좋은 결과는 정답률 60% 이상', () {
+  test('오늘의 세트 좋은 결과는 정답률 80% 이상 (5문제 중 4개)', () {
     expect(
       StoreReviewPromptRule.isGoodDailySetScore(
-        correctCount: 3,
+        correctCount: 4,
         questionCount: 5,
       ),
       isTrue,
     );
     expect(
       StoreReviewPromptRule.isGoodDailySetScore(
-        correctCount: 2,
+        correctCount: 3,
         questionCount: 5,
       ),
       isFalse,

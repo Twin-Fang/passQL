@@ -8,9 +8,11 @@ import '../tokens/passql_tokens.dart';
 /// 모달 시트 공통 모양: 손잡이 + 가운데 제목. 긴 본문 가독성을 위해 글래스 대신 불투명 배경을 쓴다.
 /// 닫기 X 는 두지 않음 (손잡이 드래그·바깥 탭·뒤로가기·본문 버튼으로 닫힘)
 /// [title] 없음 > 머리 줄 없이 본문만 (본문이 제목을 직접 그리는 안내 시트용)
+/// [isDragDismissible] false > 손잡이·끌어내려 닫기 없음 (작성 중 이탈 확인을 거치게, DraftDiscardGuard)
 Future<T?> showPassqlSheet<T>(
   BuildContext context, {
   String? title,
+  bool isDragDismissible = true,
   required WidgetBuilder builder,
 }) {
   return showModalBottomSheet<T>(
@@ -19,7 +21,8 @@ Future<T?> showPassqlSheet<T>(
     useRootNavigator: true,
     isScrollControlled: true,
     useSafeArea: true,
-    showDragHandle: true,
+    enableDrag: isDragDismissible,
+    showDragHandle: isDragDismissible,
     // 배경색은 bottomSheetTheme (passql_theme.dart), 여기서 고정하면 열 때 색에 묶임
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
@@ -34,9 +37,10 @@ Future<T?> showPassqlSheet<T>(
         children: [
           if (title != null)
             Padding(
-              padding: const EdgeInsets.fromLTRB(
+              // 손잡이가 없으면 제목 위 여백을 직접 둠
+              padding: EdgeInsets.fromLTRB(
                 PassqlSpacing.md,
-                0,
+                isDragDismissible ? 0 : PassqlSpacing.lg,
                 PassqlSpacing.md,
                 PassqlSpacing.sm,
               ),

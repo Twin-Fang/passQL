@@ -10,6 +10,7 @@
                   choice_verifier.py    보기 expect 판정, pick max|min
                   verification_runner.py 캐시 조회 > 미스분만 병렬 실행
 (d) 품질 점검     quality_linter.py     함정 타당성·길이 균형·지문 체크리스트·표<->데이터·정답 위치 분포
+                  table_reference_linter.py 언급 표 존재·같은 이름 표 중복·이름 다른 같은 컬럼 표
                   oracle_compatibility.py 23ai 전용 문법 탐지 (시험 기준 19c 와 다른 동작)
                   duplicate_detector.py 묶음 안·기존 풀 대비 중복
 (e) 해설 초안     explanation_hook.py   #521 구조화 해설 5필드 초안 + 검증 (생성기 교체 가능)
@@ -102,6 +103,9 @@ v1 문제(`schemaVersion` 없음)는 그대로 동작한다. v2 는 `schemaVersi
 | `stem.sql-hidden` | warning | answerSql 은 있는데 displaySql·SQL 보기 없음 |
 | `data.table-shape` | error | 표 행이 리스트가 아니거나 컬럼 수 불일치 (문자열 행은 글자 단위로 쪼개져 렌더링됨) |
 | `data.table-mismatch` | error | 지문 표와 실제 INSERT 데이터 불일치 (단순 `INSERT INTO t VALUES (...)` 만 비교) |
+| `stem.table-reference-missing` | error | 지문 글("EMP 테이블")·지문 SQL·displaySql 이 언급한 표가 tables·ddl·지문 `[이름]` 표에 없음 (제공 표가 하나도 없는 개념형은 생략, SQL 안 CREATE·WITH 이름 제외, #1017) |
+| `stem.table-duplicate-name` | error | 같은 출처(tables, ddl, 지문 `[이름]` 표) 안 같은 이름 표 2개 |
+| `stem.same-columns-different-name` | warning | 이름 다른 표의 컬럼 구성이 같음 (EMP·PROJ 둘 다 ID, DEPT_NO). 이름 없는 지문 표는 화면이 컬럼으로 자리를 맞춰 표가 뒤바뀌거나 사라질 수 있음. 의도면 지문 표마다 `[이름]` 머리말 확인 |
 | `expect.order-dependent` | warning | ORDER BY 없는 결과를 순서 있는 rows 로 비교 |
 | `distribution.answer-position` | warning | 8문항 이상에서 한 정답 위치가 40% 초과 |
 | `duplicate.identical` / `duplicate.similar` | error / warning | 같은 정답 SQL·보기 / 정규화 유사도 0.9 이상 (묶음 안, `--against` 기존 풀) |

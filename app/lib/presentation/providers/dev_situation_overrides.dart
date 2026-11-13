@@ -37,6 +37,23 @@ class DevExamDdaySimulationNotifier extends Notifier<DevExamDdaySimulation> {
   }
 }
 
+/// 잠금화면 강제 켜기 (#990): 서버 스위치가 꺼져도 설정 행·소개·홈 카드를 보이게 (출제 API·크레딧은 서버 그대로)
+final devLockScreenForcedProvider =
+    NotifierProvider<DevLockScreenForcedNotifier, bool>(
+      DevLockScreenForcedNotifier.new,
+    );
+
+class DevLockScreenForcedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  /// 켜고 끄기 (운영 빌드는 무시)
+  void toggle() {
+    if (!AppBuildFlavor.canUseDevTools) return;
+    state = !state;
+  }
+}
+
 // 선택한 시험이 없을 때 흉내 일정 값 (서버에 없는 가짜 일정)
 const String _simulatedExamScheduleUuid = 'dev-simulated-exam';
 const String _simulatedCertType = 'SQLD';

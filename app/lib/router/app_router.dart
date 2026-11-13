@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../data/models/community/community_models.dart';
 import '../presentation/flows/daily_set_flow.dart';
+import '../presentation/flows/daily_set_retry_flow.dart';
 import '../presentation/flows/question_flow.dart';
 import '../presentation/flows/concept_related_flow.dart';
 import '../presentation/flows/random_practice_flow.dart';
@@ -20,6 +21,9 @@ import '../presentation/pages/app_gate/maintenance_page.dart';
 import '../presentation/pages/feedback/feedback_page.dart';
 import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
+import '../presentation/pages/lock_screen/lock_screen_permission_page.dart';
+import '../presentation/pages/lock_screen/lock_screen_preview_page.dart';
+import '../presentation/pages/exam_schedule/exam_schedule_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_guide_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_result_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_review_page.dart';
@@ -34,11 +38,13 @@ import '../presentation/pages/notification/notification_inbox_page.dart';
 import '../presentation/pages/questions/topic_list_page.dart';
 import '../presentation/pages/questions/chapter_page.dart';
 import '../presentation/pages/questions/chapter_result_page.dart';
+import '../presentation/pages/questions/random_practice_summary_page.dart';
 import '../presentation/pages/questions/question_detail_page.dart';
 import '../presentation/pages/result/result_page.dart';
 import '../presentation/pages/profile/profile_page.dart';
 import '../presentation/pages/settings/settings_page.dart';
 import '../presentation/pages/account/account_page.dart';
+import '../presentation/pages/account/credit_history_page.dart';
 import '../presentation/pages/questions/wrong_notes_page.dart';
 import '../presentation/widgets/app_shell.dart';
 import 'app_launch_gate_routing.dart';
@@ -304,6 +310,13 @@ abstract final class AppRouter {
         builder: (_, _) => const AccountPage(),
       ),
 
+      // 풀스크린: 크레딧 내역 (#974, 프로필 오늘 크레딧 `내역`에서 진입)
+      GoRoute(
+        path: AppRoutes.creditHistory,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const CreditHistoryPage(),
+      ),
+
       // 풀스크린: 챕터 플로우 (/questions/chapter?topic=CODE&topicName=NAME)
       // 반드시 /questions/:questionUuid 보다 먼저 정의 (정적 경로 우선)
       GoRoute(
@@ -347,9 +360,16 @@ abstract final class AppRouter {
       GoRoute(
         path: AppRoutes.onboardingCelebration,
         parentNavigatorKey: _rootKey,
-        builder: (_, state) => OnboardingCelebrationPage(
-          isLastQuestion: state.extra is bool && state.extra! as bool,
-        ),
+        builder: (_, state) {
+          // 인자가 없으면(복원 등) 1문제 세트로 보고 진행 바 1/1
+          final arguments = state.extra is OnboardingCelebrationArguments
+              ? state.extra! as OnboardingCelebrationArguments
+              : (isLastQuestion: false, setQuestionCount: 1);
+          return OnboardingCelebrationPage(
+            isLastQuestion: arguments.isLastQuestion,
+            setQuestionCount: arguments.setQuestionCount,
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.dailySetResult,
@@ -358,10 +378,45 @@ abstract final class AppRouter {
           outcome: ResultRouteArguments.dailySetOutcomeOf(state.extra),
         ),
       ),
+      // 세트 결과에서 틀린 문제 차례로 다시 풀기 (#1035)
+      GoRoute(
+        path: AppRoutes.dailySetRetry,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => ChapterPage(
+          flow: DailySetRetryFlow(
+            questionUuids:
+                (state.uri.queryParameters[AppRoutes
+                            .dailySetRetryQuestionsQuery] ??
+                        '')
+                    .split(AppRoutes.dailySetRetryQuestionDelimiter)
+                    .where((questionUuid) => questionUuid.isNotEmpty)
+                    .toList(),
+          ),
+        ),
+      ),
       GoRoute(
         path: AppRoutes.leaderboard,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const LeaderboardPage(),
+      ),
+
+      // 잠금화면 문제 (#990, Android): 미리 풀어 보기 > 권한 단계
+      GoRoute(
+        path: AppRoutes.lockScreenPreview,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const LockScreenPreviewPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.lockScreenPermission,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const LockScreenPermissionPage(),
+      ),
+
+      // 풀스크린: SQLD 시험 일정 (#991, 홈 D-day 배지·푸시에서 진입)
+      GoRoute(
+        path: AppRoutes.examSchedule,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const ExamSchedulePage(),
       ),
 
       // SQLD 모의고사 (#866): 목록 > 안내 > 풀이 > 결과 > 문항 해설
@@ -440,6 +495,14 @@ abstract final class AppRouter {
         path: AppRoutes.chapterResult,
         parentNavigatorKey: _rootKey,
         builder: (_, state) => ChapterResultPage(
+          summary: ResultRouteArguments.chapterSummaryOf(state.extra),
+        ),
+      ),
+      // 풀스크린: 랜덤 풀기 요약 (랜덤 풀이 화면을 대신해 열림, #963)
+      GoRoute(
+        path: AppRoutes.randomPracticeSummary,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => RandomPracticeSummaryPage(
           summary: ResultRouteArguments.chapterSummaryOf(state.extra),
         ),
       ),

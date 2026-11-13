@@ -14,6 +14,24 @@ abstract final class AnalyticsEventNames {
   static const String notificationPermissionPrompt =
       'notification_permission_prompt';
   static const String storeReviewRequested = 'store_review_requested';
+
+  // 구매·광고 흐름 (#971): 시트 열림 > 이용권 선택 > 결제 시작 > 결제 결과, 한도 화면 > 광고 결과
+  static const String passSheetOpened = 'pass_sheet_opened';
+  static const String passOptionSelected = 'pass_option_selected';
+  static const String passPurchaseStarted = 'pass_purchase_started';
+  static const String passPurchaseResult = 'pass_purchase_result';
+  static const String dailyLimitSheetOpened = 'daily_limit_sheet_opened';
+  static const String adBonusResult = 'ad_bonus_result';
+
+  // 잠금화면 문제 퍼널 (#990): 소개 > 미리보기 > 권한 단계 > 켜짐 > 표시 > 풀이·닫기·소진
+  static const String lockScreenIntroShown = 'lockscreen_intro_shown';
+  static const String lockScreenPreviewAnswered = 'lockscreen_preview_answered';
+  static const String lockScreenEnabled = 'lockscreen_enabled';
+  static const String lockScreenPermissionStep = 'lockscreen_permission_step';
+  static const String lockScreenQuestionShown = 'lockscreen_question_shown';
+  static const String lockScreenAnswered = 'lockscreen_answered';
+  static const String lockScreenDismissed = 'lockscreen_dismissed';
+  static const String lockScreenExhaustedShown = 'lockscreen_exhausted_shown';
 }
 
 /// 분석 이벤트 파라미터 이름 (값은 문자열·숫자만, 이메일·닉네임·SQL 답안 원문 금지)
@@ -42,4 +60,25 @@ abstract final class AnalyticsParameterNames {
 
   /// 평가 요청을 일으킨 학습: daily_set, mock_exam
   static const String reviewTrigger = 'trigger';
+
+  /// 이용권 상품 ID: pro_pass_1m, pro_pass_3m
+  static const String productId = 'product_id';
+
+  /// 이용권 시트 종류: 1 연장(이미 프로), 0 새 구매
+  static const String isExtending = 'is_extending';
+
+  /// 이용권 시트 진입점: sql_execute (없으면 보내지 않음)
+  static const String source = 'source';
+
+  /// 결제 결과: success, pending, cancelled, failed, unavailable / 광고 결과: rewarded, dismissedWithoutReward, unavailable
+  static const String outcome = 'outcome';
+
+  /// 잠금화면 권한 단계: overlay, notification, battery, samsung_power
+  static const String permissionStep = 'step';
+
+  /// 권한 켜짐: 1 켜짐, 0 꺼짐
+  static const String isGranted = 'granted';
+
+  /// 회원 등급: free, pro
+  static const String tier = 'tier';
 }

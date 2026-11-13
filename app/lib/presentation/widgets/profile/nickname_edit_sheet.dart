@@ -207,21 +207,11 @@ class _NicknameEditSheetState extends ConsumerState<NicknameEditSheet> {
               ),
             ],
           ),
-          SizedBox(
-            height: PassqlSize.messageSlotHeight,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: hint == null
-                  ? null
-                  : Text(
-                      hint,
-                      style: PassqlTypography.caption.copyWith(
-                        color: isHintError
-                            ? colors.wrongText
-                            : colors.accentText,
-                      ),
-                    ),
-            ),
+          PassqlMessageSlot(
+            message: hint,
+            tone: isHintError
+                ? PassqlMessageSlotTone.error
+                : PassqlMessageSlotTone.positive,
           ),
           const SizedBox(height: PassqlSpacing.xs),
           // 주 버튼(저장)은 맨 아래, 보조 동작은 그 위 (#687)

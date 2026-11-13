@@ -23,8 +23,8 @@ function LockedSampleCard({ sections }: { readonly sections: readonly LockedSamp
 // 선택지 해설 묶음: 정답 근거, 핵심 개념, 헷갈리는 지점, 시험 팁
 const EXPLANATION_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
   { title: "정답 근거", body: "GROUP BY 절에 없는 컬럼은 집계 함수 없이 SELECT 에 쓸 수 없어요." },
-  { title: "핵심 개념", body: "WHERE 는 그룹으로 묶기 전에, HAVING 은 묶은 뒤에 조건을 걸어요." },
-  { title: "헷갈리는 지점", body: "COUNT(*) 는 NULL 도 세고, COUNT(컬럼) 은 NULL 을 빼고 세요." },
+  { title: "핵심 개념", body: "WHERE는 그룹으로 묶기 전에, HAVING은 묶은 뒤에 조건을 걸어요." },
+  { title: "헷갈리는 지점", body: "COUNT(*)는 NULL도 세고, COUNT(컬럼)은 NULL을 빼고 세요." },
   { title: "시험 팁", body: "보기마다 실행 순서를 한 줄씩 적어 보면 함정이 보여요." },
 ];
 
@@ -51,7 +51,7 @@ const EXAM_TREND_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
 
 // 오답 노트: 최근 틀린 문제 목록
 const WRONG_NOTES_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
-  { title: "서브쿼리", body: "급여가 부서 평균보다 높은 사원을 찾는 SQL 은?" },
+  { title: "서브쿼리", body: "급여가 부서 평균보다 높은 사원을 찾는 SQL은?" },
   { title: "윈도우 함수", body: "RANK 와 DENSE_RANK 결과가 다른 행은?" },
   { title: "조인", body: "OUTER JOIN 결과 행 수로 알맞은 것은?" },
 ];
@@ -65,7 +65,7 @@ const MOCK_EXAM_SUBJECT_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
 
 // 모의고사 문항 해설: 내 답·정답·보기 근거
 const MOCK_EXAM_REVIEW_SAMPLE_SECTIONS: readonly LockedSampleSection[] = [
-  { title: "17번 · 내 답 2 · 정답 4", body: "LEFT OUTER JOIN 은 왼쪽 행을 모두 남겨 결과가 5행이에요." },
+  { title: "17번 · 내 답 2 · 정답 4", body: "LEFT OUTER JOIN은 왼쪽 행을 모두 남겨 결과가 5행이에요." },
   { title: "보기 3 근거", body: "ON 절 조건과 WHERE 절 조건은 외부 조인에서 결과가 달라요." },
   { title: "다음에 할 일", body: "조인 결과 행 수 문제를 10개 더 풀어 보세요." },
 ];

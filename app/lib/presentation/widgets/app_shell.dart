@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../design/design.dart';
 import 'ads/ad_native_strip_slot.dart';
 import 'ads/app_open_ad_on_resume.dart';
-import 'ads/interstitial_ad_preloader.dart';
 import 'app_gate/recommended_update_prompter.dart';
 import 'common/app_lifecycle_refresher.dart';
 import 'notification/notification_permission_prompter.dart';
@@ -32,6 +31,9 @@ class AppShell extends ConsumerWidget {
   // 개념 탭 브랜치 번호
   static const int _conceptBranchIndex = 1;
 
+  // 홈 탭 브랜치 번호 (Android 뒤로가기 도착점)
+  static const int _homeBranchIndex = 0;
+
   /// 보이는 탭의 브랜치 번호 목록 (개념 이용 불가면 개념 브랜치 제외)
   static List<int> visibleBranchIndexesOf({required bool isConceptVisible}) => [
     for (var branchIndex = 0; branchIndex < _items.length; branchIndex++)
@@ -46,38 +48,44 @@ class AppShell extends ConsumerWidget {
     final visibleCurrentIndex = visibleBranchIndexes
         .indexOf(navigationShell.currentIndex)
         .clamp(0, visibleBranchIndexes.length - 1);
+    final isHomeTab = navigationShell.currentIndex == _homeBranchIndex;
     // 다음 날 복귀하면 어제 세트·인사말이 남지 않게 갱신 (#483)
     return AppLifecycleRefresher(
-      child: Scaffold(
-        extendBody: true,
-        // 탭 첫 진입 시 권장 업데이트 안내 1회 (#464)
-        // 알림 권한 안내는 홈 첫 진입 후 1회 (앱 자체 시트 > 시스템 창)
-        // 결과 화면 전면 광고는 탭 화면에 들어온 뒤 미리 불러 둠
-        // 백그라운드에서 탭 화면으로 돌아오면 앱 오프닝 광고 1회 시도 (#787)
-        body: InterstitialAdPreloader(
-          child: AppOpenAdOnResume(
+      // 홈 밖 탭 첫 화면의 Android 뒤로가기 > 앱 종료 대신 홈 탭 (#995)
+      // 탭 안에 쌓인 화면은 탭 Navigator 가 먼저 닫아 여기까지 오지 않음
+      child: PopScope<Object?>(
+        canPop: isHomeTab,
+        onPopInvokedWithResult: (isPopped, _) {
+          if (!isPopped) navigationShell.goBranch(_homeBranchIndex);
+        },
+        child: Scaffold(
+          extendBody: true,
+          // 탭 첫 진입 시 권장 업데이트 안내 1회 (#464)
+          // 알림 권한 안내는 홈 첫 진입 후 1회 (앱 자체 시트 > 시스템 창)
+          // 백그라운드에서 탭 화면으로 돌아오면 앱 오프닝 광고 1회 시도 (#787)
+          body: AppOpenAdOnResume(
             child: NotificationPermissionPrompter(
               child: RecommendedUpdatePrompter(child: navigationShell),
             ),
           ),
-        ),
-        // 탭 바 + 아래 한 줄 광고 띠(메인 탭 공통, 실패 시 높이 0). extendBody 라 본문 하단 여백에 띠 높이도 반영
-        // 전체 화면(풀이·결과)이 셸을 덮으면 Navigator 가 셸을 offstage 로 둠 > 가려진 띠는 그려지지 않음
-        bottomNavigationBar: AdNativeStripSlot(
-          tabBar: PassqlTabBar(
-            items: [
-              for (final branchIndex in visibleBranchIndexes)
-                _items[branchIndex],
-            ],
-            currentIndex: visibleCurrentIndex,
-            // 지금 탭을 다시 누르면 그 탭의 첫 화면으로
-            onTap: (visibleIndex) {
-              final branchIndex = visibleBranchIndexes[visibleIndex];
-              navigationShell.goBranch(
-                branchIndex,
-                initialLocation: branchIndex == navigationShell.currentIndex,
-              );
-            },
+          // 탭 바 + 아래 한 줄 광고 띠(메인 탭 공통, 실패 시 높이 0). extendBody 라 본문 하단 여백에 띠 높이도 반영
+          // 전체 화면(풀이·결과)이 셸을 덮으면 Navigator 가 셸을 offstage 로 둠 > 가려진 띠는 그려지지 않음
+          bottomNavigationBar: AdNativeStripSlot(
+            tabBar: PassqlTabBar(
+              items: [
+                for (final branchIndex in visibleBranchIndexes)
+                  _items[branchIndex],
+              ],
+              currentIndex: visibleCurrentIndex,
+              // 지금 탭을 다시 누르면 그 탭의 첫 화면으로
+              onTap: (visibleIndex) {
+                final branchIndex = visibleBranchIndexes[visibleIndex];
+                navigationShell.goBranch(
+                  branchIndex,
+                  initialLocation: branchIndex == navigationShell.currentIndex,
+                );
+              },
+            ),
           ),
         ),
       ),

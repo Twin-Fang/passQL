@@ -15,6 +15,7 @@ import '../../data/models/question/submit_request.dart';
 import '../../data/models/question/submit_result.dart';
 import 'choice_mode_switch_plan.dart';
 import 'plan_providers.dart';
+import 'question_feature_lock_providers.dart';
 import 'question_interaction_state.dart';
 import 'settings_providers.dart';
 
@@ -232,13 +233,15 @@ class QuestionInteractionNotifier
     state = state.copyWith(selectedChoiceKey: choiceKey);
   }
 
-  /// 보기 ▶ 실행: 무료(결제 켜짐)면 실행 없이 잠금 표시, 아니면 SQL 실행 (캐시 우선)
+  /// 보기 ▶ 실행: 무료(결제 켜짐)면 실행 없이 잠금 표시 (오늘의 세트 체험 문제 제외), 아니면 SQL 실행 (캐시 우선)
   Future<void> runChoice({
     required String choiceKey,
     required String sql,
   }) async {
     if (sql.isEmpty) return;
-    final isExecutionLocked = ref.read(shouldShowProUiProvider);
+    final isExecutionLocked = ref.read(
+      isQuestionExecutionLockedProvider(_questionUuid),
+    );
     state = state.copyWith(
       executedChoiceKey: choiceKey,
       clearExecuteResult: true,
@@ -339,10 +342,9 @@ class QuestionInteractionNotifier
   }
 
   /// 무료(결제 UI 대상) 제출 성공 > 등급 다시 받기 (홈·설정의 오늘 랜덤 n/10 갱신, 기다리지 않음)
-  /// 생략 2가지: 결제 UI 대상 아님(프로·결제 꺼짐·iOS = 사용량 표시 없음), 이미 한도(더 늘지 않음)
+  /// 생략: 결제 UI 대상 아님(프로·결제 꺼짐·iOS = 사용량 표시 없음). 한도여도 갱신(남은 수·보상 반영)
   void _refreshDailyUsageIfCounted() {
     if (!ref.read(shouldShowProUiProvider)) return;
-    if (ref.read(knownPlanProvider)?.isDailyFreeLimitReached == true) return;
     unawaited(ref.read(planProvider.notifier).refresh());
   }
 
