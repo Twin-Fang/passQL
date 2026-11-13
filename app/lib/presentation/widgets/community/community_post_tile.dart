@@ -134,7 +134,7 @@ class _SolveLine extends StatelessWidget {
   static const String _mineText = '(나)';
 
   // badgeText "정답 · 한 번에 해결" 에서 앞 단어와 나머지를 가르는 구분자
-  static const String _separator = ' · ';
+  static const String _separator = ' | ';
 
   @override
   Widget build(BuildContext context) {

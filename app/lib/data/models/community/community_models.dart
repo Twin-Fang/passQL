@@ -28,8 +28,8 @@ enum CommunityPostSort {
 
 /// 글 신고 사유 (서버 category 값과 1:1)
 enum CommunityReportCategory {
-  abuse('ABUSE', '욕설·비방이 있어요'),
-  spam('SPAM', '광고·도배예요'),
+  abuse('ABUSE', '욕설, 비방이 있어요'),
+  spam('SPAM', '광고, 도배예요'),
   answerSpoiler('ANSWER_SPOILER', '정답을 그대로 알려 줘요'),
   etc('ETC', '기타');
 
@@ -112,10 +112,10 @@ class SolveSnapshot {
 
   /// 배지 문구: "정답 · 2번째 시도에 해결", "정답 · 한 번에 해결", "오답 · 3번 시도"
   String get badgeText {
-    if (!isCorrect) return '오답 · $attemptCount번 시도';
+    if (!isCorrect) return '오답 | $attemptCount번 시도';
     return attemptCount <= 1
-        ? '정답 · 한 번에 해결'
-        : '정답 · $attemptCount번째 시도에 해결';
+        ? '정답 | 한 번에 해결'
+        : '정답 | $attemptCount번째 시도에 해결';
   }
 
   factory SolveSnapshot.fromJson(Map<String, dynamic> json) => SolveSnapshot(

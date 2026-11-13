@@ -7,7 +7,7 @@ import 'dev_situation_tools_tab.dart';
 
 /// 개발자 도구 탭 3개: 등급·결제, 상황 흉내, 진단
 enum DevToolsTab {
-  planAndBilling('등급·결제'),
+  planAndBilling('등급, 결제'),
   situation('상황 흉내'),
   diagnostics('진단');
 

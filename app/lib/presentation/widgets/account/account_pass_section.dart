@@ -78,7 +78,7 @@ class _PlanBadge extends StatelessWidget {
       child: Text(
         daysLeft == null
             ? PassqlPlanChip.proLabel
-            : '${PassqlPlanChip.proLabel} · $daysLeft일 남음',
+            : '${PassqlPlanChip.proLabel} | $daysLeft일 남음',
         style: PassqlTypography.captionSemibold.copyWith(
           color: colors.onAccent,
         ),
@@ -110,7 +110,7 @@ class _PurchaseHistoryRows extends ConsumerWidget {
               semanticLabel:
                   '${PassqlLoadFailureCopy.messageOf('구매 내역을')}, ${PassqlLoadFailureCopy.retryLabel}',
               child: Text(
-                '${PassqlLoadFailureCopy.genericMessage} · ${PassqlLoadFailureCopy.retryLabel}',
+                '${PassqlLoadFailureCopy.genericMessage} | ${PassqlLoadFailureCopy.retryLabel}',
                 style: caption,
               ),
             )

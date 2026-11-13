@@ -93,7 +93,7 @@ class _InProgressCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            '남은 시간 ${formatMockExamRemaining(inProgressAttempt.remainingSeconds)} · '
+            '남은 시간 ${formatMockExamRemaining(inProgressAttempt.remainingSeconds)} | '
             '${inProgressAttempt.answeredCount}문항 답함',
             style: PassqlTypography.subheadline.copyWith(
               color: colors.secondaryLabel,

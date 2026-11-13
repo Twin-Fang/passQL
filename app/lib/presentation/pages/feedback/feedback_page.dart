@@ -227,7 +227,7 @@ class _FeedbackPageState extends ConsumerState<FeedbackPage> {
       hasDraft: _hasDraft,
       child: Scaffold(
         appBar: PassqlNavBar(
-          title: '문의·제안 보내기',
+          title: '문의, 제안 보내기',
           leading: PassqlNavLeading.back,
         ),
         body: Column(

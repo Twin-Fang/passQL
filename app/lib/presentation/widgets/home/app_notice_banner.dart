@@ -67,7 +67,7 @@ class AppNoticeBanner extends StatelessWidget {
                             color: kindColor,
                           ),
                         ),
-                        if (elapsed.isNotEmpty) TextSpan(text: ' · $elapsed'),
+                        if (elapsed.isNotEmpty) TextSpan(text: ' | $elapsed'),
                       ],
                     ),
                     style: PassqlTypography.caption.copyWith(

@@ -67,7 +67,7 @@ class MockExamQuestionView extends StatelessWidget {
               const SizedBox(width: PassqlSpacing.xs),
               Expanded(
                 child: Text(
-                  headerParts.join(' · '),
+                  headerParts.join(' | '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: PassqlTypography.footnote.copyWith(

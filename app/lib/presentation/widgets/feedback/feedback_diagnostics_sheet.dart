@@ -53,7 +53,7 @@ class _DiagnosticsSheetBody extends StatelessWidget {
       ),
       children: [
         Text(
-          '문제를 찾는 데 필요한 기기·앱 상태만 보내요. 이메일, 닉네임, 위치는 포함하지 않아요.',
+          '문제를 찾는 데 필요한 기기, 앱 상태만 보내요. 이메일, 닉네임, 위치는 포함하지 않아요.',
           style: PassqlTypography.footnote.copyWith(
             color: colors.secondaryLabel,
           ),
