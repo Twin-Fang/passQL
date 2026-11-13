@@ -3221,7 +3221,8 @@ export interface components {
             /** Format: date-time */
             lastPurchasedAt: string | null;
             passOptions: components["schemas"]["PassOption"][];
-            plan: string;
+            /** @enum {string} */
+            plan: "FREE" | "PRO";
             /** Format: date-time */
             proExpiresAt: string | null;
             /**

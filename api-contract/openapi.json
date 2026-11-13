@@ -2109,6 +2109,7 @@
             "type" : "array"
           },
           "plan" : {
+            "enum" : [ "FREE", "PRO" ],
             "type" : "string"
           },
           "proExpiresAt" : {

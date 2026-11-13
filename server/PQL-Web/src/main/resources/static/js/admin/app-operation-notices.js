@@ -115,7 +115,7 @@
 
     // 공지 삭제: 확인 > DELETE (읽음 기록도 함께 정리, 숨기기만 원하면 비활성화)
     async function deleteNotice(noticeUuid, title) {
-        if (!confirm('"' + title + '" 공지를 삭제합니다. 되돌릴 수 없습니다. 숨기기만 원하면 비활성화를 쓰세요.')) return;
+        if (!await AdminUi.confirmDanger('"' + title + '" 공지를 삭제합니다. 되돌릴 수 없습니다. 숨기기만 원하면 비활성화를 쓰세요.', {confirmLabel: '삭제'})) return;
         const response = await fetch('/admin/app-operation/notices/' + encodeURIComponent(noticeUuid), {method: 'DELETE'});
         if (response.ok) {
             location.reload();
