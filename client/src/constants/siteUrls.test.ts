@@ -39,9 +39,17 @@ describe("운영 주소 단일 원본", () => {
     expect(redirectPage).toContain(`<link rel="canonical" href="${publicLegalPageUrl}">`);
   });
 
-  it("robots.txt·sitemap.xml 은 운영 주소를 가리킨다 (#505)", () => {
-    expect(readRepositoryFile("client/public/robots.txt")).toContain(`Sitemap: ${PRODUCTION_SITE_URL}/sitemap.xml`);
-    expect(readRepositoryFile("client/public/sitemap.xml")).toContain(`<loc>${PRODUCTION_SITE_URL}/</loc>`);
+  it("웹 지원 중지: 화면 주소는 소개 사이트로, app-ads.txt 는 남긴다 (#1044)", () => {
+    const vercelConfig = JSON.parse(readRepositoryFile("client/vercel.json")) as {
+      redirects: readonly VercelRedirect[];
+    };
+    const catchAllRedirect = vercelConfig.redirects.at(-1);
+    expect(catchAllRedirect?.destination).toBe(`${PUBLIC_LEGAL_SITE_URL}/`);
+    const catchAllPattern = new RegExp(`^${catchAllRedirect?.source}$`);
+    expect(catchAllPattern.test("/")).toBe(true);
+    expect(catchAllPattern.test("/practice/random")).toBe(true);
+    expect(catchAllPattern.test("/app-ads.txt")).toBe(false);
+    expect(readRepositoryFile("client/public/robots.txt")).toContain("Allow: /app-ads.txt");
   });
 
   it("index.html 은 운영 주소를 직접 쓰지 않고 자리표시자로 받는다", () => {
@@ -50,8 +58,9 @@ describe("운영 주소 단일 원본", () => {
     expect(indexHtml).toContain("%PASSQL_SITE_URL%/og-image.png");
   });
 
-  it("iOS 스토어 마케팅 URL 은 운영 주소와 같다", () => {
-    expect(readRepositoryFile("app/ios/fastlane/marketing_url.txt").trim()).toBe(PRODUCTION_SITE_URL);
+  it("iOS 스토어 마케팅·개인정보처리방침 URL 은 소개 사이트 주소를 가리킨다 (웹 지원 중지 후 #1057)", () => {
+    expect(readRepositoryFile("app/ios/fastlane/marketing_url.txt").trim()).toBe(PUBLIC_LEGAL_SITE_URL);
+    expect(readRepositoryFile("app/ios/fastlane/privacy_url.txt").trim()).toBe(`${PUBLIC_LEGAL_SITE_URL}/privacy.html`);
   });
 
   it("서버 소셜 로그인 콜백 허용 목록·CORS 기본값은 운영 주소를 쓴다", () => {

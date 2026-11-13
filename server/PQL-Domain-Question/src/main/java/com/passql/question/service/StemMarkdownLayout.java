@@ -15,8 +15,13 @@ final class StemMarkdownLayout {
 
     enum LineKind { PROSE, CODE, TABLE }
 
-    /** 코드 블록 1개: 언어(소문자, 없으면 빈 문자열), 본문, 지문 안 순번(1부터) */
-    record CodeBlock(String language, String content, int ordinal) {
+    /** 코드 블록 1개: 언어(소문자, 없으면 빈 문자열), 본문, 지문 안 순번(1부터), 본문 첫 줄 번호(0부터)·줄 수 */
+    record CodeBlock(String language, String content, int ordinal, int firstContentLineIndex, int contentLineCount) {
+
+        /** SQL 서식 검사·정리 대상 (sql 또는 언어 없음) */
+        boolean isSqlCode() {
+            return language.isEmpty() || SQL_LANGUAGE.equals(language);
+        }
     }
 
     /**
@@ -41,6 +46,8 @@ final class StemMarkdownLayout {
 
     // 코드 울타리 (``` 또는 ```sql)
     static final String CODE_FENCE = "```";
+    // SQL 코드 블록 언어 표시
+    private static final String SQL_LANGUAGE = "sql";
     // 표 줄 시작 기호
     static final String TABLE_ROW_PREFIX = "|";
     // 표 머리말 줄 5형태: [EMP], [EMP 테이블], EMP 테이블, <EMP>, **EMP** (뒤 쌍점 허용)
@@ -97,25 +104,30 @@ final class StemMarkdownLayout {
     private static void classifyCodeLines(List<String> lines, List<LineKind> kinds, List<CodeBlock> codeBlocks) {
         boolean isInsideCode = false;
         String language = "";
+        int contentStartIndex = 0;
         StringBuilder content = new StringBuilder();
-        for (String line : lines) {
+        for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++) {
+            String line = lines.get(lineIndex);
             boolean isFence = line.trim().startsWith(CODE_FENCE);
             if (isFence && !isInsideCode) {
                 isInsideCode = true;
                 language = line.trim().substring(CODE_FENCE.length()).trim().toLowerCase(Locale.ROOT);
+                contentStartIndex = lineIndex + 1;
                 content.setLength(0);
                 kinds.add(LineKind.CODE);
             } else if (isFence) {
                 isInsideCode = false;
-                codeBlocks.add(new CodeBlock(language, content.toString(), codeBlocks.size() + 1));
+                codeBlocks.add(new CodeBlock(language, content.toString(), codeBlocks.size() + 1,
+                        contentStartIndex, lineIndex - contentStartIndex));
                 kinds.add(LineKind.CODE);
             } else {
-                if (isInsideCode) content.append(content.isEmpty() ? "" : "\n").append(line);
+                if (isInsideCode) content.append(lineIndex == contentStartIndex ? "" : "\n").append(line);
                 kinds.add(isInsideCode ? LineKind.CODE : LineKind.PROSE);
             }
         }
         // 닫히지 않은 코드 블록도 코드로 검사
-        if (isInsideCode) codeBlocks.add(new CodeBlock(language, content.toString(), codeBlocks.size() + 1));
+        if (isInsideCode) codeBlocks.add(new CodeBlock(language, content.toString(), codeBlocks.size() + 1,
+                contentStartIndex, lines.size() - contentStartIndex));
     }
 
     // | 로 시작하는 글 줄 2줄 이상 연속 > 표 블록

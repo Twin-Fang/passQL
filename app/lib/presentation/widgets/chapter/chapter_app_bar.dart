@@ -70,7 +70,7 @@ class ChapterAppBar extends StatelessWidget implements PreferredSizeWidget {
   String get _caption {
     final area = areaName;
     if (area == null || area.isEmpty || area == flowTitle) return flowTitle;
-    return '$flowTitle · $area';
+    return '$flowTitle | $area';
   }
 
   Future<void> _onClosePressed(BuildContext context) async {

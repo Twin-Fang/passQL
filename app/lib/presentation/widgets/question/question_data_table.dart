@@ -91,7 +91,6 @@ class _ColumnHeaderCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final keyLabels = [if (column.isPrimaryKey) 'PK', if (column.isForeignKey) 'FK'];
     return _TableCellPadding(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,10 +103,16 @@ class _ColumnHeaderCell extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
               children: [
-                for (final keyLabel in keyLabels)
-                  TextSpan(
-                    text: ' $keyLabel',
-                    style: PassqlTypography.captionSemibold.copyWith(color: colors.accentText),
+                // 키 배지: 이름 글자와 떨어져 보이게 (PK 인디고, FK 주황, #1041)
+                if (column.isPrimaryKey)
+                  const WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: _ColumnKeyBadge(kind: _ColumnKeyKind.primary),
+                  ),
+                if (column.isForeignKey)
+                  const WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: _ColumnKeyBadge(kind: _ColumnKeyKind.foreign),
                   ),
               ],
             ),
@@ -118,6 +123,53 @@ class _ColumnHeaderCell extends StatelessWidget {
               style: PassqlTypography.codeCompact.copyWith(color: colors.secondaryLabel),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// 컬럼 키 종류 2개: 기본키(PK), 외래키(FK)
+enum _ColumnKeyKind { primary, foreign }
+
+/// 컬럼 키 배지: 옅은 배경 + 굵은 약어 (PK 강조색, FK 주의색)
+class _ColumnKeyBadge extends StatelessWidget {
+  const _ColumnKeyBadge({required this.kind});
+
+  final _ColumnKeyKind kind;
+
+  // 배지 안쪽 위아래 여백 (작은 글자가 배경에 붙지 않을 만큼)
+  static const double _verticalPadding = 1;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    final (fillTone, textTone) = PassqlBadge.tonesOf(
+      kind == _ColumnKeyKind.primary
+          ? PassqlBadgeKind.topic
+          : PassqlBadgeKind.warning,
+      colors,
+    );
+    return Padding(
+      padding: const EdgeInsets.only(left: PassqlSpacing.xxs),
+      child: Semantics(
+        label: kind == _ColumnKeyKind.primary ? '기본키' : '외래키',
+        excludeSemantics: true,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: fillTone.withValues(alpha: PassqlBadge.backgroundAlpha),
+            borderRadius: BorderRadius.circular(PassqlRadius.keyBadge),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: PassqlSpacing.xxs,
+              vertical: _verticalPadding,
+            ),
+            child: Text(
+              kind == _ColumnKeyKind.primary ? 'PK' : 'FK',
+              style: PassqlTypography.captionSemibold.copyWith(color: textTone),
+            ),
+          ),
+        ),
       ),
     );
   }

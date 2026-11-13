@@ -93,7 +93,7 @@ class ResultRowsTable extends StatelessWidget {
           ),
         ),
         child: Text(
-          '결과 없음 · 0행',
+          '결과 없음 | 0행',
           textAlign: TextAlign.center,
           style: PassqlTypography.subheadline.copyWith(
             color: colors.secondaryLabel,

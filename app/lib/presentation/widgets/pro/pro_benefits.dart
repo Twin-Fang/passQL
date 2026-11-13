@@ -51,7 +51,7 @@ List<ProBenefit> proBenefits({required int dailyFreeLimit}) {
       icon: CupertinoIcons.sparkles,
     ),
     const ProBenefit(
-      label: '새 보기·토픽',
+      label: '새 보기, 토픽',
       free: null,
       pro: null,
       icon: CupertinoIcons.bolt_fill,

@@ -144,7 +144,7 @@ class _ConceptStudyScaffold extends ConsumerWidget {
         : ConceptUnitProgress(
             label: topicOrder == null
                 ? topicConcepts.displayName
-                : '${topicOrder + 1}단원 · ${topicConcepts.displayName}',
+                : '${topicOrder + 1}단원 | ${topicConcepts.displayName}',
             solvedCountBefore:
                 study.topicSolvedCountAtStart ?? topicSolvedCount,
             solvedCount: topicSolvedCount,

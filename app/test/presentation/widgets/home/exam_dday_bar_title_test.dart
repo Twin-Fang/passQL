@@ -15,14 +15,14 @@ void main() {
   test('examBarSubtitle: 회차와 월·일', () {
     expect(
       examBarSubtitle(_schedule(round: 63, examDate: '2026-11-14')),
-      'SQLD 63회 · 11월 14일',
+      'SQLD 63회 | 11월 14일',
     );
   });
 
   test('examBarSubtitle: 한 자리 월·일은 0 없이', () {
     expect(
       examBarSubtitle(_schedule(round: 60, examDate: '2026-03-07')),
-      'SQLD 60회 · 3월 7일',
+      'SQLD 60회 | 3월 7일',
     );
   });
 

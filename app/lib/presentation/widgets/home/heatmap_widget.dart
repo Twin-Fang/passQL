@@ -42,9 +42,9 @@ class HeatmapWidget extends StatelessWidget {
   /// solvedCount → 히트맵 색상 (5단계). 0단계는 fill, 나머지는 accent 알파 단계.
   static Color cellColorFor(PassqlColors colors, int count) {
     if (count == 0) return colors.fill;
-    if (count <= 1) return colors.accent.withValues(alpha: 0.25);
-    if (count <= 3) return colors.accent.withValues(alpha: 0.5);
-    if (count <= 6) return colors.accent.withValues(alpha: 0.75);
+    if (count <= 1) return colors.accent.withValues(alpha: PassqlOpacity.heatmapLow);
+    if (count <= 3) return colors.accent.withValues(alpha: PassqlOpacity.heatmapMedium);
+    if (count <= 6) return colors.accent.withValues(alpha: PassqlOpacity.heatmapHigh);
     return colors.accent;
   }
 

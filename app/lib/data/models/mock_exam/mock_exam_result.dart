@@ -32,6 +32,8 @@ class MockExamResultResponse with _$MockExamResultResponse {
     required bool isPassed,
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     required MockExamFailReason failReason,
+    // 같은 회차 응시자 중 내 위치 (응시자 10명 미만이면 null, #1041)
+    MockExamRanking? ranking,
     @Default([]) List<MockExamSubjectResult> subjects,
     @Default([]) List<MockExamTopicResult> topics,
     @Default([]) List<MockExamQuestionMark> questionMarks,
@@ -42,6 +44,22 @@ class MockExamResultResponse with _$MockExamResultResponse {
 
   factory MockExamResultResponse.fromJson(Map<String, dynamic> json) =>
       _$MockExamResultResponseFromJson(json);
+}
+
+/// 회차 순위 (#1041): 회원별 그 회차 첫 응시 점수 분포에서 이번 점수 위치
+@freezed
+class MockExamRanking with _$MockExamRanking {
+  const factory MockExamRanking({
+    // 내 순위 (1부터, 동점은 같은 순위)
+    required int rankPosition,
+    // 순위 계산에 든 응시자 수
+    required int takerCount,
+    // 상위 퍼센트 (1~100)
+    required int topPercent,
+  }) = _MockExamRanking;
+
+  factory MockExamRanking.fromJson(Map<String, dynamic> json) =>
+      _$MockExamRankingFromJson(json);
 }
 
 /// 과목 점수: 과락 기준(미만이면 과락)

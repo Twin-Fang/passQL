@@ -2,7 +2,7 @@
 type: cluster
 topic: question-bank
 created: 2026-10-29
-members: 86
+members: 87
 status: active
 related: []
 ---
@@ -47,6 +47,9 @@ related: []
 - [[DEC-0030-answer-sql-sandbox-ground-truth]] → DEC-0055
 - [[DEC-0037-question-hard-delete-cascade]] → DEC-0127
 - [[DEC-0044-bulk-delete-per-item-transaction]] → null
+
+## 핵심 문서
+- [[DOC-0007-question-bank-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — 문제 은행 지도: 등록 3경로와 형식 관문, 선택지 세트 관리, 비활성화 삭제, 신고 처리(비활성화·소급 보정·신고자 알림)
 
 ## 관련 이슈
 - [[ISS-0502-stem-table-same-columns-overwritten]] (resolved, #1015): 이름 다른 같은 컬럼 표가 지문 표를 덮음, 제약 주석이 코드 제목으로

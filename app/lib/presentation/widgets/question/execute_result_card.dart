@@ -41,7 +41,7 @@ class ExecuteResultCard extends StatelessWidget {
     final subject =
         subjectLabel ??
         (executedChoiceLabel == null ? null : '보기 $executedChoiceLabel');
-    return subject == null ? outcomeLabel : '$subject · $outcomeLabel';
+    return subject == null ? outcomeLabel : '$subject | $outcomeLabel';
   }
 
   @override
@@ -123,8 +123,8 @@ class _SuccessContent extends StatelessWidget {
         const SizedBox(height: PassqlSpacing.xxs),
         Text(
           // 실제 DB 에서 돌린 결과임을 드러냄 (#727)
-          '실제 DB 실행 · ${result.rowCount ?? result.rows.length}행 반환'
-          '${result.elapsedMs != null ? ' · ${result.elapsedMs}ms' : ''}',
+          '실제 DB 실행 | ${result.rowCount ?? result.rows.length}행 반환'
+          '${result.elapsedMs != null ? ' | ${result.elapsedMs}ms' : ''}',
           style: PassqlTypography.caption.copyWith(
             color: colors.secondaryLabel,
           ),

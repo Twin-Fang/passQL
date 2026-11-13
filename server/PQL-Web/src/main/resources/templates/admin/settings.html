@@ -70,15 +70,20 @@
                                            th:id="'val_' + ${setting.settingKey}"
                                            th:checked="${#strings.equalsIgnoreCase(setting.valueText, 'true')}"
                                            disabled/>
-                                    <!-- INT: 정수 범위(int32)만 허용 -->
+                                    <!-- INT: 키별 허용 범위(AppSettingValueRanges), 범위 없는 키는 int32 전체 -->
                                     <input th:if="${!setting.sensitive and setting.valueType == 'INT'}"
-                                           type="number" step="1" min="-2147483648" max="2147483647"
+                                           type="number" step="1"
+                                           th:min="${setting.minimumValue ?: '-2147483648'}"
+                                           th:max="${setting.maximumValue ?: '2147483647'}"
                                            class="input input-bordered input-xs w-40 font-mono"
                                            th:id="'val_' + ${setting.settingKey}"
                                            th:value="${setting.valueText}"
                                            readonly/>
+                                    <!-- FLOAT: 범위 없는 키는 min·max 속성 생략 (null) -->
                                     <input th:if="${!setting.sensitive and setting.valueType == 'FLOAT'}"
                                            type="number" step="any"
+                                           th:min="${setting.minimumValue}"
+                                           th:max="${setting.maximumValue}"
                                            class="input input-bordered input-xs w-40 font-mono"
                                            th:id="'val_' + ${setting.settingKey}"
                                            th:value="${setting.valueText}"
@@ -133,7 +138,11 @@
                                         <i data-lucide="x" class="size-3 text-error"></i>
                                     </button>
                                 </div>
-                                <!-- 저장 실패 사유 (서버 형식 검사 메시지) -->
+                                <!-- 허용 범위 안내 (범위 있는 키만) -->
+                                <p th:if="${setting.minimumValue != null}"
+                                   class="text-xs text-base-content/50 mt-1"
+                                   th:text="|허용 범위 ${setting.minimumValue} ~ ${setting.maximumValue}|">허용 범위 1 ~ 100</p>
+                                <!-- 저장 실패 사유 (서버 형식·범위 검사 메시지) -->
                                 <p class="text-xs text-error mt-1 hidden" th:id="'err_' + ${setting.settingKey}"></p>
                             </td>
                             <td class="text-xs text-base-content/60" th:text="${setting.description}">SQL 최대 길이 제한</td>
@@ -283,6 +292,8 @@
         async function saveSetting(key, isRestartRequired) {
             const input = document.getElementById('val_' + key);
             const errorText = document.getElementById('err_' + key);
+            // 숫자 입력 min·max 사전 확인 (서버가 같은 범위로 다시 검사)
+            if (input.type === 'number' && !input.reportValidity()) return;
             try {
                 await AdminApi.put('/admin/settings/' + encodeURIComponent(key), {value: readSettingValue(input)});
             } catch (error) {

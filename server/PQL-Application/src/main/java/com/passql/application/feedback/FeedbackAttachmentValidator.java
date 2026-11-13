@@ -12,16 +12,17 @@ import com.passql.common.util.WebpImageHeader;
  */
 public final class FeedbackAttachmentValidator {
 
-    // 이미지 최대 장수
-    public static final int MAX_IMAGE_COUNT = 10;
-    // 이미지 장당 최대 바이트 (600KB)
-    public static final int MAX_IMAGE_BYTES = 600 * 1024;
+    // 이미지 한도 3개: 앱 FeedbackImageLimits 와 같은 값 (app/lib/data/feedback/feedback_image_compressor.dart)
+    // 이미지 최대 장수 (ErrorCode.FEEDBACK_IMAGE_TOO_MANY 문구와 함께 변경)
+    public static final int MAX_IMAGE_COUNT = 5;
+    // 이미지 장당 최대 바이트 (300KB)
+    public static final int MAX_IMAGE_BYTES = 300 * 1024;
     // 이미지 긴 변 최대 픽셀
-    public static final int MAX_IMAGE_LONG_SIDE_PIXELS = 1920;
+    public static final int MAX_IMAGE_LONG_SIDE_PIXELS = 1280;
     // 진단 JSON 최대 바이트 (32KB)
     public static final int MAX_DIAGNOSTICS_BYTES = 32 * 1024;
-    // 로그 gzip 최대 바이트 (2MB)
-    public static final int MAX_LOG_BYTES = 2 * 1024 * 1024;
+    // 로그 gzip 최대 바이트 (512KB, 앱 원문 상한 256KB x 2 파일과 같은 값)
+    public static final int MAX_LOG_BYTES = 512 * 1024;
 
     // gzip 매직바이트: 1f 8b
     private static final int GZIP_MAGIC_FIRST_BYTE = 0x1f;

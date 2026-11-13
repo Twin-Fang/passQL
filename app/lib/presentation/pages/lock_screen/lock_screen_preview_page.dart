@@ -84,7 +84,7 @@ class _LockScreenPreviewPageState extends ConsumerState<LockScreenPreviewPage> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xs),
                 child: Text(
-                  '미리보기 · 크레딧을 쓰지 않아요',
+                  '미리보기 | 크레딧을 쓰지 않아요',
                   textAlign: TextAlign.center,
                   style: PassqlTypography.footnoteSemibold.copyWith(
                     color: colors.accentText,

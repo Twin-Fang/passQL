@@ -9,6 +9,7 @@ import com.passql.member.constant.AutoNotificationRuleType;
 import com.passql.member.constant.MemberNotificationType;
 import com.passql.member.constant.PushLinkTarget;
 import com.passql.member.entity.AutoNotificationRule;
+import com.passql.member.entity.MemberNotification;
 import com.passql.member.entity.PushSendHistory;
 import com.passql.member.repository.AutoNotificationRuleRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ import java.util.UUID;
 
 /**
  * 재방문 자동 알림: 규칙 조회·수정(관리자), 대상 수 미리보기, 시각이 된 규칙 발송
- * 발송 = 규칙별 대상 조회 > 회원당 하루 1건 선점 > 알림함 저장·푸시 (기존 MemberNotificationService 재사용)
+ * 발송 = 규칙별 대상 조회 > 회원당 하루 상한(app_setting, 기본 1건) 선점 > 알림함 저장·푸시 > 기록에 알림 연결
  */
 @Slf4j
 @Service
@@ -45,18 +46,31 @@ public class AutoNotificationService {
     private final AutoNotificationTargetQueryRepository autoNotificationTargetQueryRepository;
     private final ExamNotificationOccasionFinder examNotificationOccasionFinder;
     private final MemberNotificationService memberNotificationService;
+    private final NotificationSettingService notificationSettingService;
     private final ApplicationEventPublisher eventPublisher;
 
-    /** 관리자 화면 한 줄: 규칙 + 최근 7일 발송 건수 */
-    public record RuleView(AutoNotificationRule rule, int recentSentCount) {
+    /** 관리자 화면 한 줄: 규칙 + 최근 7일 발송·열람·복귀 */
+    public record RuleView(AutoNotificationRule rule, AutoNotificationTargetQueryRepository.DeliveryStats recentStats) {
     }
 
     public List<RuleView> findRuleViews(LocalDate today) {
         LocalDate sinceDate = today.minusDays(RECENT_SENT_DAYS - 1L);
         return autoNotificationRuleRepository.findAllByOrderByRuleTypeAsc().stream()
                 .map(rule -> new RuleView(rule,
-                        autoNotificationTargetQueryRepository.countSentSince(rule.getRuleType(), sinceDate)))
+                        autoNotificationTargetQueryRepository.summarizeDeliverySince(rule.getRuleType(), sinceDate)))
                 .toList();
+    }
+
+    /** 회원당 하루 자동 알림 상한 (관리자 화면 표시·발송 공통) */
+    public int getDailyLimitPerMember() {
+        return notificationSettingService.getAutoDailyLimitPerMember();
+    }
+
+    /** 하루 상한 저장 (범위 검증·감사 로그는 NotificationSettingService > AppSettingService) */
+    @Transactional
+    public void updateDailyLimitPerMember(Integer dailyLimitPerMember) {
+        notificationSettingService.updateAutoDailyLimitPerMember(dailyLimitPerMember);
+        log.info("[auto notification] daily limit updated : limit={}", dailyLimitPerMember);
     }
 
     /** 수정: 값 검증 > 반영 > 감사 로그 */
@@ -87,7 +101,8 @@ public class AutoNotificationService {
         if (examNotificationOccasionFinder.findTodayOccasion(ruleType, today).isEmpty()) {
             return 0;
         }
-        return autoNotificationTargetQueryRepository.findTargetMemberUuids(ruleType, today, rule.getThresholdDays()).size();
+        return autoNotificationTargetQueryRepository
+                .findTargetMemberUuids(ruleType, today, rule.getThresholdDays(), getDailyLimitPerMember()).size();
     }
 
     /**
@@ -123,17 +138,22 @@ public class AutoNotificationService {
         String title = fillPlaceholders(rule.getTitle(), placeholderValues);
         String body = fillPlaceholders(rule.getBody(), placeholderValues);
 
+        int dailyLimit = getDailyLimitPerMember();
         List<UUID> targetMemberUuids = autoNotificationTargetQueryRepository
-                .findTargetMemberUuids(ruleType, today, rule.getThresholdDays());
+                .findTargetMemberUuids(ruleType, today, rule.getThresholdDays(), dailyLimit);
         int sentCount = 0;
         for (UUID memberUuid : targetMemberUuids) {
             try {
-                if (!autoNotificationTargetQueryRepository.tryClaim(memberUuid, ruleType, today)) {
+                // 선점 > 저장·푸시 > 기록에 알림 연결 (열람·복귀 통계)
+                UUID autoNotificationLogUuid = UUID.randomUUID();
+                if (!autoNotificationTargetQueryRepository.tryClaim(autoNotificationLogUuid, memberUuid, ruleType, today, dailyLimit)) {
                     continue;
                 }
-                memberNotificationService.notifyMember(memberUuid, MemberNotificationType.DAILY_SET_REMINDER,
-                        title, body, rule.getLinkTarget(), null);
+                MemberNotification notification = memberNotificationService.notifyMember(memberUuid,
+                        MemberNotificationType.DAILY_SET_REMINDER, title, body, rule.getLinkTarget(), null);
                 sentCount++;
+                autoNotificationTargetQueryRepository.linkMemberNotification(autoNotificationLogUuid,
+                        notification.getMemberNotificationUuid());
             } catch (Exception e) {
                 log.warn("[auto notification] member failed : type={}, cause={}", ruleType, e.getClass().getSimpleName());
             }

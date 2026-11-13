@@ -71,7 +71,7 @@ public final class QuestionFormatRule {
         findListMarkerViolations(layout, violations);
         // 5 SQL 서식 (지문 sql·언어 없는 코드 블록, SQL 보기)
         for (StemMarkdownLayout.CodeBlock codeBlock : layout.codeBlocks()) {
-            if (codeBlock.language().isEmpty() || "sql".equals(codeBlock.language())) {
+            if (codeBlock.isSqlCode()) {
                 violations.addAll(QuestionSqlFormatRule.check(codeBlock.content(), LOCATION_STEM + " SQL " + codeBlock.ordinal()));
             }
         }
@@ -116,14 +116,14 @@ public final class QuestionFormatRule {
                 "\"" + context + "\" 등 " + punctuationCount + "곳 > " + guide, isAutoFixable);
     }
 
-    // 2 지문 표: 스키마 표와 컬럼이 같고 샘플 행 있음 > 중복(지움), 머리말·같은 컬럼 있는 데이터 표 > 스키마로 옮김
+    // 2 지문 표: 스키마 표와 컬럼이 같고 샘플 행 있음(또는 지문 표 행 0개) > 중복(지움), 머리말·같은 컬럼 있는 데이터 표 > 스키마로 옮김
     private static void findStemTableViolations(StemMarkdownLayout layout, List<QuestionSchemaTable> schemaTables,
                                                 boolean isExecutable, List<QuestionFormatViolation> violations) {
         for (TableBlock table : layout.tableBlocks()) {
             QuestionSchemaTable matchingSchemaTable = findSchemaTableWithSameColumns(table, schemaTables);
             String location = LOCATION_STEM + " " + (table.firstLineIndex() + 1) + "줄";
             String tableName = table.labelName() != null ? "[" + table.labelName() + "] 표" : "표";
-            if (matchingSchemaTable != null && !matchingSchemaTable.sampleRows().isEmpty()) {
+            if (isDuplicateOfSchemaTable(table, matchingSchemaTable)) {
                 violations.add(new QuestionFormatViolation(QuestionFormatViolationReason.STEM_TABLE_DUPLICATES_SCHEMA,
                         location, tableName + "가 스키마 표 " + matchingSchemaTable.tableName() + " 와 컬럼이 같음 > 지문 표 삭제",
                         true));
@@ -134,6 +134,15 @@ public final class QuestionFormatRule {
                         + (isConvertible ? "" : " (실행형이거나 표 이름·칸이 맞지 않아 손으로)"), isConvertible));
             }
         }
+    }
+
+    /**
+     * 지문 표가 스키마 표 중복: 같은 컬럼 스키마 표가 샘플 행을 보여 주거나, 지문 표가 머리글만 있음(행 0개, #923)
+     * 형식 검사·자동 정리(QuestionFormatAutoFixer) 공통 판정
+     */
+    static boolean isDuplicateOfSchemaTable(TableBlock table, QuestionSchemaTable matchingSchemaTable) {
+        if (matchingSchemaTable == null) return false;
+        return !matchingSchemaTable.sampleRows().isEmpty() || table.rows().isEmpty();
     }
 
     /**

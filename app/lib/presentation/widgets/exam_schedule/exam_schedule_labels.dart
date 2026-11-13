@@ -23,7 +23,7 @@ ExamPhaseChip? examPhaseChipOf(ExamScheduleResponse schedule, DateTime today) {
     ExamSchedulePhase.beforeApplication => (
       text: applicationStart == null
           ? '접수 전'
-          : '접수 전 · ${formatCompactDottedMonthDay(applicationStart)} 접수 시작',
+          : '접수 전 | ${formatCompactDottedMonthDay(applicationStart)} 접수 시작',
       isUrgent: false,
     ),
     ExamSchedulePhase.applicationOpen => (
@@ -33,22 +33,22 @@ ExamPhaseChip? examPhaseChipOf(ExamScheduleResponse schedule, DateTime today) {
     ExamSchedulePhase.waitingAdmissionTicket => (
       text: admissionTicket == null
           ? '수험표 대기'
-          : '수험표 대기 · ${formatCompactDottedMonthDay(admissionTicket)} 발급',
+          : '수험표 대기 | ${formatCompactDottedMonthDay(admissionTicket)} 발급',
       isUrgent: false,
     ),
     ExamSchedulePhase.waitingExam => (
       text: daysUntilExam(schedule.examDate, now: today) == 0
-          ? '오늘 시험 · 수험표 확인'
-          : '시험 대기 · 수험표 발급됨',
+          ? '오늘 시험 | 수험표 확인'
+          : '시험 대기 | 수험표 발급됨',
       isUrgent: false,
     ),
     ExamSchedulePhase.waitingResult => (
       text: resultAnnouncement == null
           ? '발표 대기'
-          : '발표 대기 · ${formatCompactDottedMonthDay(resultAnnouncement)} 발표',
+          : '발표 대기 | ${formatCompactDottedMonthDay(resultAnnouncement)} 발표',
       isUrgent: false,
     ),
-    ExamSchedulePhase.finished => (text: '끝 · 합격 발표됨', isUrgent: false),
+    ExamSchedulePhase.finished => (text: '끝 | 합격 발표됨', isUrgent: false),
     ExamSchedulePhase.unknown => null,
   };
 }
@@ -57,7 +57,7 @@ ExamPhaseChip? examPhaseChipOf(ExamScheduleResponse schedule, DateTime today) {
 String _applicationOpenChipText(DateTime? applicationEnd, DateTime today) {
   if (applicationEnd == null) return '접수 중';
   final daysLeft = daysUntilDate(applicationEnd, now: today);
-  return daysLeft <= 0 ? '접수 중 · 오늘 마감' : '접수 중 · 마감까지 $daysLeft일';
+  return daysLeft <= 0 ? '접수 중 | 오늘 마감' : '접수 중 | 마감까지 $daysLeft일';
 }
 
 /// 홈 D-day 배지 한 줄: "접수 중 · 10.16 마감", "시험 D-2", "발표 12.4" (모르는 단계·끝 > 기존 D-day 표기)
@@ -71,7 +71,7 @@ String examHomeBadgeTextOf(ExamScheduleResponse schedule, DateTime today) {
     ExamSchedulePhase.applicationOpen =>
       applicationEnd == null
           ? '접수 중'
-          : '접수 중 · ${formatCompactDottedMonthDay(applicationEnd)} 마감',
+          : '접수 중 | ${formatCompactDottedMonthDay(applicationEnd)} 마감',
     ExamSchedulePhase.beforeApplication ||
     ExamSchedulePhase.waitingAdmissionTicket ||
     ExamSchedulePhase.waitingExam => '시험 $dday',
@@ -162,5 +162,5 @@ String examScheduleSourceTextOf(DateTime? lastCollectedAt, DateTime today) {
   final collectedText = isSameCalendarDay(lastCollectedAt, today)
       ? '오늘 ${formatHourMinute(lastCollectedAt)}'
       : formatMonthDayTime(lastCollectedAt);
-  return '$source · $collectedText 갱신';
+  return '$source | $collectedText 갱신';
 }

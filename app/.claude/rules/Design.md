@@ -22,7 +22,8 @@ lib/presentation/design/
 │   ├── passql_radius.dart      # PassqlRadius: 모서리
 │   ├── passql_size.dart        # PassqlSize: 버튼·바·행 높이, 터치 영역, 로딩 반지름 등
 │   ├── passql_icon_size.dart   # PassqlIconSize: 아이콘 크기 단계
-│   └── passql_motion.dart      # PassqlMotion: 애니메이션 시간·곡선
+│   ├── passql_motion.dart      # PassqlMotion: 애니메이션 시간·곡선
+│   └── passql_opacity.dart     # PassqlOpacity: 토큰 색 위에 겹치는 투명도 단계
 └── components/                 # 3번 이상 쓰이는 UI (파일명 = 주된 타입명)
 ```
 
@@ -111,6 +112,7 @@ lib/presentation/design/
 - 이동 경로는 `AppRoutes` (`lib/router/app_routes.dart`). `context.go('/...')`, `push('/...')` 문자열 금지
 - 아이콘은 `CupertinoIcons` (이모지 금지). 예외: 하단 탭 바는 부품별 움직임 때문에 `PassqlTabIcon`(Lucide 계열 선 아이콘 직접 그림, #755)
 - 애니메이션 시간·곡선은 `PassqlMotion` 토큰으로. `Curves.`, `duration: Duration(` 직접 사용 금지. 동작 줄이기(`PassqlMotion.isReduced`)는 공통 컴포넌트가 처리한다
+- 화면 코드의 투명도는 `PassqlOpacity` 토큰으로. `withValues(alpha: 0.5)`, `withOpacity(0.5)` 처럼 숫자 직접 사용 금지 (#789)
 
 강제 위치: `test/architecture/design_system_rules_test.dart`. 예외가 꼭 필요하면 테스트 안 `_allowedUsages` 에 파일·패턴·이유를 적는다.
 

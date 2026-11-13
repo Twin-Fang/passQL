@@ -124,6 +124,6 @@ class CommunityFeedCardTile extends StatelessWidget {
   String _activityText() {
     if (!shouldShowMyActivity) return '의견 ${card.postCount}';
     return '내 의견 ${card.myPostCount ?? 0}'
-        ' · 받은 좋아요 ${card.receivedLikeCount ?? 0}';
+        ' | 받은 좋아요 ${card.receivedLikeCount ?? 0}';
   }
 }

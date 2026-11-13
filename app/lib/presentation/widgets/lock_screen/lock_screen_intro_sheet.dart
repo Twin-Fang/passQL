@@ -32,9 +32,9 @@ class _LockScreenIntroBody extends StatelessWidget {
   final VoidCallback onPreview;
   final VoidCallback onLater;
 
-  // 한 줄 세 개: 무료, 기록, 언제든 끔
-  static const List<(IconData, String)> _lines = [
-    (CupertinoIcons.bolt_fill, '하루 크레딧으로 무료로 써요'),
+  // 한 줄 세 개: 무료(크레딧 젬, #1041), 기록, 언제든 끔. 아이콘 null = 크레딧 젬
+  static const List<(IconData?, String)> _lines = [
+    (null, '하루 크레딧으로 무료로 써요'),
     (CupertinoIcons.checkmark_seal_fill, '풀면 오늘 기록에 그대로 쌓여요'),
     (CupertinoIcons.power, '바로 닫을 수 있고, 언제든 끌 수 있어요'),
   ];
@@ -75,7 +75,13 @@ class _LockScreenIntroBody extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(icon, size: PassqlIconSize.lg, color: colors.accent),
+                      icon == null
+                          ? const PassqlCreditIcon(size: PassqlIconSize.lg)
+                          : Icon(
+                              icon,
+                              size: PassqlIconSize.lg,
+                              color: colors.accent,
+                            ),
                       const SizedBox(width: PassqlSpacing.sm),
                       Expanded(
                         child: PassqlKeepAllText(

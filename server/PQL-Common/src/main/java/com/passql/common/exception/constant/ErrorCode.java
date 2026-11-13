@@ -124,7 +124,7 @@ public enum ErrorCode {
     FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "건의사항을 찾을 수 없습니다."),
     FEEDBACK_CONTENT_EMPTY(HttpStatus.BAD_REQUEST, "건의사항 내용을 입력해 주세요."),
     FEEDBACK_CONTENT_TOO_LONG(HttpStatus.BAD_REQUEST, "건의사항은 500자 이하로 입력해 주세요."),
-    FEEDBACK_IMAGE_TOO_MANY(HttpStatus.BAD_REQUEST, "사진은 최대 10장까지 보낼 수 있어요."),
+    FEEDBACK_IMAGE_TOO_MANY(HttpStatus.BAD_REQUEST, "사진은 최대 5장까지 보낼 수 있어요."),
     FEEDBACK_IMAGE_INVALID(HttpStatus.BAD_REQUEST, "보낼 수 없는 사진이 있어요. 다른 사진을 선택해 주세요."),
     FEEDBACK_ATTACHMENT_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "첨부 용량이 너무 커요."),
     FEEDBACK_ATTACHMENT_INVALID(HttpStatus.BAD_REQUEST, "진단 정보 형식이 올바르지 않아요."),

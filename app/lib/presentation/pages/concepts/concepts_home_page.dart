@@ -175,7 +175,7 @@ class _ContinueStudyBand extends StatelessWidget {
                   ),
                   const SizedBox(height: PassqlSpacing.hairlineGap),
                   Text(
-                    '$topicLabel · $countLabel',
+                    '$topicLabel | $countLabel',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: PassqlTypography.headline.copyWith(

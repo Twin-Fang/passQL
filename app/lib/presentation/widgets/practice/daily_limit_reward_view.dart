@@ -95,7 +95,7 @@ class DailyLimitRewardView extends ConsumerWidget {
             // 0개면 충전 시각은 제목 아래에 이미 있음
             PassqlKeepAllText(
               '랜덤 풀기 1문제에 크레딧 1개'
-              '${remainingSolves == 0 ? '' : ' · 내일 0시에 $dailyFreeLimit개 충전'}',
+              '${remainingSolves == 0 ? '' : ' | 내일 0시에 $dailyFreeLimit개 충전'}',
               style: PassqlTypography.footnote.copyWith(
                 color: colors.secondaryLabel,
               ),
