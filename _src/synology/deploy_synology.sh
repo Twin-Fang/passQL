@@ -36,6 +36,8 @@ python3 -I _src/build_site.py --out "$BUILD_DIR" --custom-domain
 
 # 2. 검색엔진 소유 확인 파일 (Google·네이버) — 지우면 소유 확인이 풀림
 find _src/site_verification -maxdepth 1 -type f -name "*.html" -exec cp {} "$BUILD_DIR"/ \;
+# AdMob 앱 인증 app-ads.txt: 원본은 main 의 client/public/app-ads.txt (웹 지원 중지 후 개발자 웹사이트를 이 사이트로 옮기기 위함, #1044)
+git fetch -q origin main && git show origin/main:client/public/app-ads.txt > "$BUILD_DIR/app-ads.txt"
 
 # 3. 업로드: tar 묶음을 ssh 로 보내 NAS 에서 풀고, html 은 NAS 로컬 rsync --delete 로 원본과 똑같이 맞춤
 #    (시놀로지는 rsync 앱 권한 없는 계정의 ssh 경유 rsync 를 인증 단계에서 거부 > tar 사용)
@@ -64,7 +66,7 @@ until { if [ -n "${SSHPASS:-}" ]; then sshpass -e ssh "${SSH_OPTIONS[@]}" "$NAS_
 done
 
 # 4. 공개 주소 확인 (html 은 바인드 마운트라 재시작 불필요)
-for page_path in / /sqld/schedule/ /robots.txt /sitemap.xml; do
+for page_path in / /sqld/schedule/ /robots.txt /sitemap.xml /app-ads.txt; do
   # 확인 실패(000)도 배포 실패로 보지 않음 > 결과만 출력
   status_code=$(curl -s -o /dev/null -w '%{http_code}' "$SITE_URL$page_path" || true)
   echo "[site deploy] $status_code $SITE_URL$page_path"
