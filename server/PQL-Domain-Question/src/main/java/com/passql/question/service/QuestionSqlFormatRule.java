@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 문항 SQL 서식 규칙 (#905 규칙 5): 키워드 대문자, SELECT 목록 한 줄 40자, 한글 주석 금지(라벨 줄만 허용)
+ * 문항 SQL 서식 규칙 (#905 규칙 5): 키워드 대문자, SELECT 목록 한 줄 40자, 한글 주석 금지(라벨 줄만 허용, 수행 주체 라벨 #923)
  * 대상: 지문 코드 블록, SQL 보기 본문 (따옴표·주석 안 글자는 키워드로 보지 않음)
  */
 public final class QuestionSqlFormatRule {
@@ -21,6 +21,12 @@ public final class QuestionSqlFormatRule {
     public static final int MAX_SELECT_LIST_LINE_LENGTH = 40;
     // 라벨 주석 줄 최대 글자 수 (-- 뒤 글자, 예: SQL 1, (가), 보기 1)
     public static final int MAX_LABEL_COMMENT_LENGTH = 12;
+    // 수행 주체 라벨 줄 최대 글자 수 (순서 실행 문제 "-- ORDERS 소유자 OWNER 가 수행", #923)
+    public static final int MAX_ACTOR_LABEL_COMMENT_LENGTH = 24;
+    // 수행 주체 라벨: "<주체> 가 수행", "<주체> 이 수행" (조사 붙여 쓴 "관리자가 수행" 포함)
+    private static final Pattern ACTOR_LABEL_COMMENT = Pattern.compile("^\\S.*[가이] 수행$");
+    // SQL 문장 끝 기호
+    private static final String STATEMENT_END = ";";
     // 라벨 주석 시작 (#903 지문 블록 분해와 같은 기준: 코드 맨 앞 "-- 라벨" 줄)
     public static final String LABEL_COMMENT_PREFIX = "--";
     // 대문자로 써야 하는 SQL 키워드 (식별자로 흔한 낱말 DATE·NAME·LEVEL 등은 제외)
@@ -32,8 +38,8 @@ public final class QuestionSqlFormatRule {
             "OVER", "PARTITION", "ASC", "DESC", "CONNECT", "PRIOR", "START", "MERGE", "MATCHED", "COMMIT", "ROLLBACK");
     // 한글 (완성형·자모)
     private static final Pattern HANGUL = Pattern.compile("[가-힣ㄱ-ㅎㅏ-ㅣ]");
-    // SELECT [DISTINCT] 로 시작하는 줄
-    private static final Pattern SELECT_LINE_HEAD = Pattern.compile("^\\s*SELECT\\s+(?:DISTINCT\\s+)?",
+    // SELECT [DISTINCT] 로 시작하는 줄 (줄바꿈 정리 SqlSelectListLineBreaker 공통)
+    static final Pattern SELECT_LINE_HEAD = Pattern.compile("^\\s*SELECT\\s+(?:DISTINCT\\s+)?",
             Pattern.CASE_INSENSITIVE);
     // 같은 줄의 최상위 FROM (SELECT 목록 끝)
     private static final Pattern FROM_WORD = Pattern.compile("\\bFROM\\b", Pattern.CASE_INSENSITIVE);
@@ -50,7 +56,9 @@ public final class QuestionSqlFormatRule {
         if (sql == null || sql.isBlank()) return violations;
         SqlPieces pieces = SqlPieces.split(sql);
         findLowercaseKeywordViolation(pieces.codeText(), location, violations);
-        findLongSelectListViolations(pieces.codeText(), location, violations);
+        // SELECT 목록 위반은 줄바꿈 정리가 토큰을 지키면 자동 정리 가능 (#923)
+        boolean isSelectListAutoFixable = !sql.equals(SqlSelectListLineBreaker.breakLongSelectLists(sql));
+        findLongSelectListViolations(pieces.codeText(), location, isSelectListAutoFixable, violations);
         findKoreanCommentViolations(pieces.comments(), location, violations);
         return violations;
     }
@@ -72,25 +80,29 @@ public final class QuestionSqlFormatRule {
     }
 
     // SELECT 목록 한 줄 길이: 항목 2개 이상이고 "SELECT 목록" 이 40자 넘으면 위반 (줄마다)
-    private static void findLongSelectListViolations(String codeText, String location,
+    private static void findLongSelectListViolations(String codeText, String location, boolean isAutoFixable,
                                                      List<QuestionFormatViolation> violations) {
         String[] lines = codeText.split("\n", -1);
         for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-            String line = lines[lineIndex];
-            Matcher head = SELECT_LINE_HEAD.matcher(line);
-            if (!head.find()) continue;
-            String afterSelect = line.substring(head.end());
-            Matcher fromMatcher = FROM_WORD.matcher(afterSelect);
-            String selectList = fromMatcher.find() ? afterSelect.substring(0, fromMatcher.start()) : afterSelect;
-            int itemCount = SqlTextScanner.splitTopLevelCommas(selectList).size();
-            int selectListLineLength = (line.substring(0, head.end()) + selectList).trim().length();
-            if (itemCount >= 2 && selectListLineLength > MAX_SELECT_LIST_LINE_LENGTH) {
+            int selectListLineLength = measureSelectListLineLength(lines[lineIndex]);
+            if (selectListLineLength > MAX_SELECT_LIST_LINE_LENGTH) {
                 violations.add(new QuestionFormatViolation(QuestionFormatViolationReason.SQL_SELECT_LIST_TOO_LONG,
                         location + " " + (lineIndex + 1) + "줄",
                         "SELECT 목록 " + selectListLineLength + "자 (최대 " + MAX_SELECT_LIST_LINE_LENGTH + "자) > 항목마다 줄바꿈",
-                        false));
+                        isAutoFixable));
             }
         }
+    }
+
+    /** 코드 줄 1개 > "SELECT 목록" 글자 수 (SELECT 줄 아니거나 항목 1개면 -1), 검사·줄바꿈 정리 공통 판정 */
+    static int measureSelectListLineLength(String codeLine) {
+        Matcher head = SELECT_LINE_HEAD.matcher(codeLine);
+        if (!head.find()) return -1;
+        String afterSelect = codeLine.substring(head.end());
+        Matcher fromMatcher = FROM_WORD.matcher(afterSelect);
+        String selectList = fromMatcher.find() ? afterSelect.substring(0, fromMatcher.start()) : afterSelect;
+        if (SqlTextScanner.splitTopLevelCommas(selectList).size() < 2) return -1;
+        return (codeLine.substring(0, head.end()) + selectList).trim().length();
     }
 
     // 한글 주석: 라벨 줄(블록 맨 앞 또는 빈 줄 뒤 단독 "-- 짧은 라벨")만 허용
@@ -148,15 +160,22 @@ public final class QuestionSqlFormatRule {
             return new SqlPieces(code.toString(), comments);
         }
 
-        // 줄 주석 > 라벨 줄 판정 (그 줄에 주석만 있음 + 맨 앞 또는 빈 줄 뒤 + 짧음)
+        // 줄 주석 > 라벨 줄 판정: 그 줄에 주석만 + (맨 앞·빈 줄 뒤 + 12자 이하) 또는 (수행 주체 라벨 + 맨 앞·빈 줄 뒤·";" 다음 줄)
         private static SqlComment toLineComment(String sql, int commentStart, int commentEnd) {
             int lineStart = sql.lastIndexOf('\n', commentStart - 1) + 1;
             boolean isAloneOnLine = sql.substring(lineStart, commentStart).isBlank();
             String text = sql.substring(commentStart + LABEL_COMMENT_PREFIX.length(), commentEnd).trim();
             String before = sql.substring(0, lineStart);
             boolean isStatementStart = before.isBlank() || before.endsWith("\n\n") || before.matches("(?s).*\\n[ \\t]*\\n$");
-            boolean isLabelLine = isAloneOnLine && isStatementStart && text.length() <= MAX_LABEL_COMMENT_LENGTH;
+            boolean isAfterStatementEnd = before.stripTrailing().endsWith(STATEMENT_END);
+            boolean isLabelLine = isAloneOnLine && ((isStatementStart && text.length() <= MAX_LABEL_COMMENT_LENGTH)
+                    || (isActorLabel(text) && (isStatementStart || isAfterStatementEnd)));
             return new SqlComment(lineIndexAt(sql, commentStart), text, isLabelLine);
+        }
+
+        // 수행 주체 라벨 (24자까지, 순서 실행 문제는 문장 사이 빈 줄 없이 이어 써서 ";" 다음 줄도 허용, #923)
+        private static boolean isActorLabel(String text) {
+            return text.length() <= MAX_ACTOR_LABEL_COMMENT_LENGTH && ACTOR_LABEL_COMMENT.matcher(text).matches();
         }
 
         private static int lineIndexAt(String text, int position) {
