@@ -107,9 +107,8 @@ class LockScreenChannel(
      * 다른 앱 위에 표시: passQL 전용 화면 > 권한 목록 화면 > 앱 상세 설정 순서로 시도
      * Android 11+ 는 공개 액션의 package: URI 를 무시하고 목록을 열어서, 앱별 화면 액션을 먼저 시도
      */
+    /** 다른 앱 위에 표시 설정 (Android 11+ 는 package URI 를 무시하고 앱 목록을 엶, 앱별 화면은 시스템 앱 전용이라 권한 거부) */
     private fun openOverlaySettings() {
-        val appOverlayIntent = Intent(ACTION_MANAGE_APP_OVERLAY_PERMISSION, packageUri())
-        if (tryStart(appOverlayIntent)) return
         openSettings(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, packageUri()))
     }
 
@@ -183,9 +182,5 @@ class LockScreenChannel(
         // 네이티브 > Dart 호출: 잠금화면 표시(잠금 엔진), 경로 열기(앱 엔진)
         const val METHOD_ON_SHOWN = "onShown"
         const val METHOD_OPEN_ROUTE = "openRoute"
-
-        // 설정 앱의 앱별 "다른 앱 위에 표시" 화면 (Settings.ACTION_MANAGE_APP_OVERLAY_PERMISSION, 공개 SDK 밖 상수)
-        private const val ACTION_MANAGE_APP_OVERLAY_PERMISSION =
-            "android.settings.MANAGE_APP_OVERLAY_PERMISSION"
     }
 }
