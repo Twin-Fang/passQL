@@ -20,12 +20,12 @@ dependencies {
     // /actuator/prometheus 지표 형식 (NAS Prometheus 수집, 수집기 전용 토큰 보호 #957)
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
     api 'com.github.ben-manes.caffeine:caffeine'
-    api 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.9.1'
+    api 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.10.0'
     api 'org.postgresql:postgresql'
     api 'org.flywaydb:flyway-core'
     api 'org.flywaydb:flyway-database-postgresql'
     api 'io.github.resilience4j:resilience4j-spring-boot3:2.4.0'
-    api 'io.qdrant:client:1.19.0'
+    api 'io.qdrant:client:1.20.0'
     api 'me.suhsaechan:suh-random-engine:1.1.0'
     api 'kr.suhsaechan:suh-logger:2.0.3'
     api 'kr.suhsaechan:suh-api-log:2.0.1'
@@ -33,7 +33,7 @@ dependencies {
     api 'net.logstash.logback:logstash-logback-encoder:8.1'
 
     // Google Gemini Java SDK
-    api('com.google.genai:google-genai:1.75.0') {
+    api('com.google.genai:google-genai:1.80.0') {
         exclude group: 'org.slf4j'
     }
 }
