@@ -237,3 +237,5 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-13 22:40 | W6 | 결정 노트 4개 생성, DEC-0112 > DEC-0311 대체 체인 | DEC-0310, DEC-0311, DEC-0312, DEC-0313, DEC-0112
 - 2026-11-13 23:40 | W6 | 완료 리포트 생성, 이슈 resolved 전환 | ISS-0516-intro-site-light-demo-store-urls-report, ISS-0516
 - 2026-11-14 15:00 | W6 | ingest issue + report, DEC-0314 supersedes DEC-0290, cluster members·lists 갱신 | ISS-0517, DEC-0314, DEC-0290, cluster-ads, cluster-billing, cluster-practice, cluster-store-release
+- 2026-11-14 16:20 | W6 | ingest issue + report | ISS-0518
+- 2026-11-14 16:22 | W6 | cluster members·관련 이슈 갱신 | cluster-auth-member, cluster-practice, cluster-security

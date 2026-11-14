@@ -89,6 +89,13 @@ class TokenStore {
     return _cache;
   }
 
+  /// 캐시 버리고 저장소에서 다시 읽기 (Android 잠금화면 엔진·앱 엔진이 같은 저장소를 쓰고 서로 토큰을 회전함, #1071)
+  Future<AuthSession?> reload() {
+    _isLoaded = false;
+    _cache = null;
+    return read();
+  }
+
   /// 로그인 직후 전체 세션 저장.
   Future<void> save(AuthSession session) async {
     await _storage.write(
