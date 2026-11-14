@@ -2,7 +2,7 @@
 type: cluster
 topic: admin
 created: 2026-10-29
-members: 107
+members: 108
 status: active
 related: []
 ---
@@ -127,3 +127,6 @@ related: []
 - [[ISS-0399-auto-notification-preview-days]] (resolved, GitHub #656) — 자동 알림 관리자 미리보기가 규칙의 일수를 반영하지 않음
 - [[ISS-0410-claude-api-provider-switch]] (resolved, GitHub #688) — Claude API provider 전환 지원 (AI)
 - [[ISS-0411-ai-connections-multi-key-fallback]] (resolved, GitHub #695) — AI 연결 관리 — 다중 API 키, 우선순위, fallback
+
+## 관련 교훈
+- [[LSN-0003-question-export-500-limit-backup-by-topic]] — 문제 내보내기 1회 500건 한도, 전체 백업은 토픽별로 (#1074)

@@ -239,3 +239,6 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-14 15:00 | W6 | ingest issue + report, DEC-0314 supersedes DEC-0290, cluster members·lists 갱신 | ISS-0517, DEC-0314, DEC-0290, cluster-ads, cluster-billing, cluster-practice, cluster-store-release
 - 2026-11-14 16:20 | W6 | ingest issue + report | ISS-0518
 - 2026-11-14 16:22 | W6 | cluster members·관련 이슈 갱신 | cluster-auth-member, cluster-practice, cluster-security
+- 2026-11-14 19:14 | W6 | issue 노트(진행 기록, open — 배포·5문항 결정 남음) 생성 + 원본 보존 | ISS-0519, _sources/issues/ISS-0519-sqld-round63-trend-new-questions.md (#1074)
+- 2026-11-14 19:14 | W8 | 교훈 2개 생성 (사용자 위임 지시) | LSN-0002 하네스 lint vs 서버 형식 규칙, LSN-0003 내보내기 500건 한도
+- 2026-11-14 19:14 | W2 | 관련 이슈·관련 교훈 절 추가, fix W10 members question-bank 90, dev-workflow 79, admin 108, ops-infra 70 | cluster-question-bank, cluster-dev-workflow, cluster-admin, cluster-ops-infra

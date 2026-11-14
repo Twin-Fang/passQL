@@ -2,7 +2,7 @@
 type: cluster
 topic: dev-workflow
 created: 2026-10-29
-members: 77
+members: 79
 status: active
 related: []
 ---
@@ -96,3 +96,7 @@ related: []
 - [[ISS-0429-second-brain-vault-adoption]] (resolved, GitHub #751) — 세컨드 브레인 도입 (이슈, 리포트 지식화와 결정 기록)
 - [[ISS-0433-second-architecture-audit-followup]] (resolved, GitHub #759) — 2차 아키텍처 감사 후속 — 오류 보고 누락과 복사 로직 정리
 - [[ISS-0434-audit-followup-split-large-files]] (resolved, GitHub #762) — 감사 후속 구조 정리 — 큰 파일 분리와 복사 로직 통합
+
+## 관련 교훈
+- [[LSN-0001-issue-branch-via-pro-skills]] — 작업은 pro 스킬로 이슈와 브랜치를 먼저 만들고 진행
+- [[LSN-0002-harness-lint-misses-server-format-rule]] — 하네스 lint 통과는 서버 형식 규칙 통과가 아님, 가져오기 전 따로 확인 (#1074)
