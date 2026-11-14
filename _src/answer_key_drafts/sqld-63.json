@@ -1,0 +1,754 @@
+{
+ "basis": "passQL 운영 가답안 초안 (응시 후기 종합, 2026-11-14)",
+ "items": [
+  {
+   "questionNo": 1,
+   "subjectNo": 1,
+   "conceptTitle": "모델링 관점 중 데이터와 데이터 관계를 보는 관점",
+   "conceptTags": [
+    "모델링 관점",
+    "데이터 관점"
+   ],
+   "topicCode": "data_modeling",
+   "answer": 1,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 2,
+   "subjectNo": 1,
+   "conceptTitle": "물리 모델링 설명 중 틀린 것",
+   "conceptTags": [
+    "물리 모델링",
+    "모델링 단계"
+   ],
+   "topicCode": "data_modeling",
+   "answer": null,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    1,
+    4
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 3,
+   "subjectNo": 1,
+   "conceptTitle": "독립적으로 존재하며 부모가 되는 엔터티(발생 시점 분류)",
+   "conceptTags": [
+    "엔터티 분류",
+    "기본 엔터티"
+   ],
+   "topicCode": "data_modeling",
+   "answer": 3,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 4,
+   "subjectNo": 1,
+   "conceptTitle": "업무에서 가져온 속성/계산한 속성 짝",
+   "conceptTags": [
+    "속성 분류",
+    "파생 속성"
+   ],
+   "topicCode": "data_modeling",
+   "answer": 1,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 5,
+   "subjectNo": 1,
+   "conceptTitle": "바커 표기 필수 참여·차수 관계선 판독",
+   "conceptTags": [
+    "바커 표기법",
+    "관계 선택성"
+   ],
+   "topicCode": "data_modeling",
+   "answer": null,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    1,
+    3,
+    4
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 6,
+   "subjectNo": 1,
+   "conceptTitle": "M:N 해소 교차 엔터티와 복합 식별자",
+   "conceptTags": [
+    "M:N 해소",
+    "교차 엔터티",
+    "식별 관계"
+   ],
+   "topicCode": "data_modeling",
+   "answer": null,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    3,
+    4
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 7,
+   "subjectNo": 1,
+   "conceptTitle": "주식별자 특징 NULL 불가 = 존재성",
+   "conceptTags": [
+    "주식별자 특징",
+    "존재성"
+   ],
+   "topicCode": "data_modeling",
+   "answer": 2,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 8,
+   "subjectNo": 1,
+   "conceptTitle": "부분 함수 종속 제거 = 제2정규형",
+   "conceptTags": [
+    "정규화",
+    "제2정규형"
+   ],
+   "topicCode": "data_modeling",
+   "answer": 2,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 9,
+   "subjectNo": 1,
+   "conceptTitle": "식별/비식별 관계 설명 중 틀린 것",
+   "conceptTags": [
+    "식별 관계",
+    "비식별 관계"
+   ],
+   "topicCode": "data_modeling",
+   "answer": 3,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [
+    2
+   ],
+   "note": null
+  },
+  {
+   "questionNo": 10,
+   "subjectNo": 1,
+   "conceptTitle": "인조식별자를 만드는 방법이 아닌 것",
+   "conceptTags": [
+    "인조식별자",
+    "식별자 분류"
+   ],
+   "topicCode": "data_modeling",
+   "answer": 3,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    4
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 11,
+   "subjectNo": 2,
+   "conceptTitle": "SQL 명령어와 분류(DDL/DML/DCL/TCL) 짝",
+   "conceptTags": [
+    "SQL 분류",
+    "DML"
+   ],
+   "topicCode": "sql_ddl_dml_tcl",
+   "answer": 1,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 12,
+   "subjectNo": 2,
+   "conceptTitle": "별칭 지정 후 원래 테이블명 참조 오류",
+   "conceptTags": [
+    "테이블 별칭",
+    "오류 찾기"
+   ],
+   "topicCode": "sql_basic_select",
+   "answer": 3,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 13,
+   "subjectNo": 2,
+   "conceptTitle": "AND/OR 우선순위 + 리터럴·데이터 철자 함정",
+   "conceptTags": [
+    "연산자 우선순위",
+    "데이터 정독"
+   ],
+   "topicCode": "sql_basic_select",
+   "answer": 2,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    1
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 14,
+   "subjectNo": 2,
+   "conceptTitle": "연산자 우선순위 나열",
+   "conceptTags": [
+    "연산자 우선순위",
+    "NOT"
+   ],
+   "topicCode": "sql_basic_select",
+   "answer": 4,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    3
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 15,
+   "subjectNo": 2,
+   "conceptTitle": "CEIL 결과",
+   "conceptTags": [
+    "CEIL",
+    "숫자 함수"
+   ],
+   "topicCode": "sql_function",
+   "answer": 4,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 16,
+   "subjectNo": 2,
+   "conceptTitle": "CROSS JOIN 후 같은 값 쌍 제외 행 수",
+   "conceptTags": [
+    "CROSS JOIN",
+    "행 수 계산"
+   ],
+   "topicCode": "sql_join",
+   "answer": 3,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 17,
+   "subjectNo": 2,
+   "conceptTitle": "다중 컬럼 IN 과 같은 조건식",
+   "conceptTags": [
+    "다중 컬럼 IN",
+    "조건 동등 변환"
+   ],
+   "topicCode": "sql_subquery",
+   "answer": 4,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    2,
+    3
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 18,
+   "subjectNo": 2,
+   "conceptTitle": "LIKE 밑줄 문자 ESCAPE 검색",
+   "conceptTags": [
+    "LIKE",
+    "ESCAPE"
+   ],
+   "topicCode": "sql_basic_select",
+   "answer": 3,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 19,
+   "subjectNo": 2,
+   "conceptTitle": "이메일 정규식 매칭 여부",
+   "conceptTags": [
+    "정규식",
+    "REGEXP_LIKE"
+   ],
+   "topicCode": "sql_function",
+   "answer": 3,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 20,
+   "subjectNo": 2,
+   "conceptTitle": "NVL(MAX,0)+1 과 같은 식",
+   "conceptTags": [
+    "NULL 치환 함수",
+    "= NULL 비교"
+   ],
+   "topicCode": "sql_function",
+   "answer": 1,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    4
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 21,
+   "subjectNo": 2,
+   "conceptTitle": "부양가족 없는 사원 NOT EXISTS",
+   "conceptTags": [
+    "NOT EXISTS",
+    "안티 조인"
+   ],
+   "topicCode": "sql_subquery",
+   "answer": 3,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 22,
+   "subjectNo": 2,
+   "conceptTitle": "PIVOT 인라인 뷰 컬럼 선택",
+   "conceptTags": [
+    "PIVOT",
+    "인라인 뷰"
+   ],
+   "topicCode": "sql_hierarchy_pivot",
+   "answer": 1,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 23,
+   "subjectNo": 2,
+   "conceptTitle": "HAVING COUNT 필터 + ORDER BY CASE",
+   "conceptTags": [
+    "HAVING",
+    "ORDER BY CASE"
+   ],
+   "topicCode": "sql_group_aggregate",
+   "answer": 2,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 24,
+   "subjectNo": 2,
+   "conceptTitle": "그룹별 MAX·MIN UNION 후 합계",
+   "conceptTags": [
+    "UNION 중복 제거",
+    "MAX MIN"
+   ],
+   "topicCode": "sql_group_aggregate",
+   "answer": 1,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [
+    2
+   ],
+   "note": null
+  },
+  {
+   "questionNo": 25,
+   "subjectNo": 2,
+   "conceptTitle": "고객 합계 등급 구간 BETWEEN 비등가 조인",
+   "conceptTags": [
+    "비등가 조인",
+    "BETWEEN"
+   ],
+   "topicCode": "sql_join",
+   "answer": 1,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 26,
+   "subjectNo": 2,
+   "conceptTitle": "NULL 정렬 위치·NVL 정렬 결과 다른 것",
+   "conceptTags": [
+    "NULL 정렬",
+    "ORDER BY"
+   ],
+   "topicCode": "sql_basic_select",
+   "answer": 2,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 27,
+   "subjectNo": 2,
+   "conceptTitle": "정렬 인라인 뷰 밖 ROWNUM 상위 1건",
+   "conceptTags": [
+    "ROWNUM",
+    "인라인 뷰"
+   ],
+   "topicCode": "sql_basic_select",
+   "answer": 1,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 28,
+   "subjectNo": 2,
+   "conceptTitle": "LEFT>RIGHT 외부조인 연쇄 ON 조건 위치 SUM",
+   "conceptTags": [
+    "외부조인 연쇄",
+    "ON 조건"
+   ],
+   "topicCode": "sql_join",
+   "answer": 4,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    3
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 29,
+   "subjectNo": 2,
+   "conceptTitle": "(미복원) 셀프 조인 합계 / 순위 서브쿼리 번호 혼선",
+   "conceptTags": [
+    "셀프 조인"
+   ],
+   "topicCode": "sql_join",
+   "answer": null,
+   "answerStatus": "UNKNOWN",
+   "alternativeAnswers": [],
+   "note": "보기가 아직 복원되지 않았어요."
+  },
+  {
+   "questionNo": 30,
+   "subjectNo": 2,
+   "conceptTitle": "COALESCE 행별 첫 비NULL 합계",
+   "conceptTags": [
+    "COALESCE",
+    "SUM"
+   ],
+   "topicCode": "sql_function",
+   "answer": 3,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 31,
+   "subjectNo": 2,
+   "conceptTitle": "CASE 최솟값 비등가 조인 후 회원별 COUNT·SUM",
+   "conceptTags": [
+    "비등가 조인",
+    "CASE",
+    "GROUP BY"
+   ],
+   "topicCode": "sql_join",
+   "answer": 2,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 32,
+   "subjectNo": 2,
+   "conceptTitle": "NOT IN = 차집합(EXCEPT/MINUS)",
+   "conceptTags": [
+    "NOT IN",
+    "MINUS"
+   ],
+   "topicCode": "sql_subquery",
+   "answer": 1,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 33,
+   "subjectNo": 2,
+   "conceptTitle": "DELETE vs TRUNCATE 설명 중 틀린 것",
+   "conceptTags": [
+    "DELETE",
+    "TRUNCATE"
+   ],
+   "topicCode": "sql_ddl_dml_tcl",
+   "answer": 3,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 34,
+   "subjectNo": 2,
+   "conceptTitle": "CASE 조건 순서(넓은 조건 선행)",
+   "conceptTags": [
+    "CASE 평가 순서"
+   ],
+   "topicCode": "sql_function",
+   "answer": 2,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [
+    3
+   ],
+   "note": null
+  },
+  {
+   "questionNo": 35,
+   "subjectNo": 2,
+   "conceptTitle": "단일행 비교 서브쿼리 다중행 오류",
+   "conceptTags": [
+    "단일행 서브쿼리",
+    "오류 찾기"
+   ],
+   "topicCode": "sql_subquery",
+   "answer": 4,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 36,
+   "subjectNo": 2,
+   "conceptTitle": "스칼라 서브쿼리 COUNT+1 순위 빈칸",
+   "conceptTags": [
+    "스칼라 서브쿼리",
+    "순위"
+   ],
+   "topicCode": "sql_subquery",
+   "answer": 4,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    3
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 37,
+   "subjectNo": 2,
+   "conceptTitle": "LEFT JOIN 연쇄 결과 행 수",
+   "conceptTags": [
+    "LEFT JOIN",
+    "행 수"
+   ],
+   "topicCode": "sql_join",
+   "answer": 2,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 38,
+   "subjectNo": 2,
+   "conceptTitle": "PK·UNIQUE·CHECK NULL·중복 설명",
+   "conceptTags": [
+    "제약조건",
+    "CHECK NULL"
+   ],
+   "topicCode": "sql_ddl_dml_tcl",
+   "answer": 3,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    4
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 39,
+   "subjectNo": 2,
+   "conceptTitle": "조건 UPDATE 와 대상이 같은 UPDATE 고르기",
+   "conceptTags": [
+    "UPDATE",
+    "서브쿼리"
+   ],
+   "topicCode": "sql_ddl_dml_tcl",
+   "answer": 1,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 40,
+   "subjectNo": 2,
+   "conceptTitle": "(미복원) PARTITION BY 그룹 합계 윈도우",
+   "conceptTags": [
+    "윈도우 함수"
+   ],
+   "topicCode": "sql_window",
+   "answer": null,
+   "answerStatus": "UNKNOWN",
+   "alternativeAnswers": [],
+   "note": "보기가 아직 복원되지 않았어요."
+  },
+  {
+   "questionNo": 41,
+   "subjectNo": 2,
+   "conceptTitle": "NATURAL JOIN 공통 컬럼 접두사 오류 vs 합계",
+   "conceptTags": [
+    "NATURAL JOIN",
+    "오류 찾기"
+   ],
+   "topicCode": "sql_join",
+   "answer": null,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    1,
+    2,
+    3
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 42,
+   "subjectNo": 2,
+   "conceptTitle": "RATIO_TO_REPORT 식별",
+   "conceptTags": [
+    "RATIO_TO_REPORT"
+   ],
+   "topicCode": "sql_window",
+   "answer": 3,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 43,
+   "subjectNo": 2,
+   "conceptTitle": "RANGE 값 범위 프레임 합계",
+   "conceptTags": [
+    "RANGE 프레임"
+   ],
+   "topicCode": "sql_window",
+   "answer": 3,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 44,
+   "subjectNo": 2,
+   "conceptTitle": "ROUND(날짜,'MONTH')",
+   "conceptTags": [
+    "날짜 ROUND"
+   ],
+   "topicCode": "sql_function",
+   "answer": 4,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
+   "note": null
+  },
+  {
+   "questionNo": 45,
+   "subjectNo": 2,
+   "conceptTitle": "계층 SUM 비교(순/역방향, 조건 위치)",
+   "conceptTags": [
+    "계층형 질의",
+    "CONNECT BY 조건"
+   ],
+   "topicCode": "sql_hierarchy_pivot",
+   "answer": null,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    2,
+    3
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 46,
+   "subjectNo": 2,
+   "conceptTitle": "슈퍼키·후보키·기본키 가나다",
+   "conceptTags": [
+    "후보키",
+    "슈퍼키"
+   ],
+   "topicCode": "data_modeling",
+   "answer": 4,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    1,
+    3
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 47,
+   "subjectNo": 2,
+   "conceptTitle": "결과 행 수 최대 비교(FROM A*B 오류 포함)",
+   "conceptTags": [
+    "행 수 비교",
+    "카티션 곱"
+   ],
+   "topicCode": "sql_join",
+   "answer": null,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    1,
+    2,
+    3
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 48,
+   "subjectNo": 2,
+   "conceptTitle": "SAVEPOINT 롤백 후 AVG",
+   "conceptTags": [
+    "SAVEPOINT",
+    "AVG"
+   ],
+   "topicCode": "sql_ddl_dml_tcl",
+   "answer": 3,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [
+    2
+   ],
+   "note": null
+  },
+  {
+   "questionNo": 49,
+   "subjectNo": 2,
+   "conceptTitle": "계층 질의 설명 중 틀린 것(ORDER SIBLINGS BY)",
+   "conceptTags": [
+    "계층형 질의",
+    "ORDER SIBLINGS BY"
+   ],
+   "topicCode": "sql_hierarchy_pivot",
+   "answer": 4,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    3
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  },
+  {
+   "questionNo": 50,
+   "subjectNo": 2,
+   "conceptTitle": "CHAR 공백 채움 비교 vs VARCHAR",
+   "conceptTags": [
+    "CHAR 비교",
+    "VARCHAR2"
+   ],
+   "topicCode": "sql_function",
+   "answer": 1,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    3
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+  }
+ ]
+}

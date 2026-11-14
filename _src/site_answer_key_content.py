@@ -5,6 +5,7 @@
 """
 
 import json
+from pathlib import Path
 import urllib.request
 
 import site_content as content
@@ -111,9 +112,20 @@ def build_round_guide_page(answer_round):
     }
 
 
+def load_answer_key_draft_by_number(answer_round):
+    """운영 가답안 초안 문항 (문항 번호 > 문항, 파일 없으면 빈 dict)"""
+    # 초안: _src/answer_key_drafts/{cert}-{round}.json (서버 배포 전·API 실패 시 대체값)
+    draft_path = Path(__file__).parent / "answer_key_drafts" / f"{answer_round['cert_type'].lower()}-{answer_round['round']}.json"
+    if not draft_path.exists():
+        return {}
+    draft = json.loads(draft_path.read_text(encoding="utf-8"))
+    return {item["questionNo"]: item for item in draft["items"]}
+
+
 def build_empty_snapshot(answer_round):
-    """API 를 못 읽을 때 쓰는 빈 가답안 (50문항 UNKNOWN, 참여자 0)"""
+    """API 를 못 읽을 때 쓰는 가답안 (운영 초안 있으면 초안, 없으면 50문항 UNKNOWN, 참여자 0)"""
     rule = build_scoring_rule()
+    draft_item_by_number = load_answer_key_draft_by_number(answer_round)
     items = []
     for subject in rule["subjects"]:
         for question_number in range(subject["firstQuestionNo"], subject["lastQuestionNo"] + 1):
@@ -123,6 +135,7 @@ def build_empty_snapshot(answer_round):
                 "alternativeAnswers": None, "tally": {str(choice): 0 for choice in range(1, CHOICE_COUNT + 1)},
                 "voteCount": 0, "agreementRate": 0, "note": None,
             })
+            items[-1].update(draft_item_by_number.get(question_number, {}))
     return {"certType": answer_round["cert_type"], "roundNumber": answer_round["round"], "status": "COLLECTING",
             "participantCount": 0, "updatedAt": None, "items": items}
 

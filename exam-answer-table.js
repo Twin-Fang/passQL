@@ -25,8 +25,9 @@
         row.querySelector("[data-status-label]").textContent = config.statusLabels[item.answerStatus] || config.statusLabels.UNKNOWN;
         var agreementPercent = Math.round(item.agreementRate * 100);
         row.querySelector("[data-agree-fill]").style.width = agreementPercent + "%";
-        row.querySelector("[data-agree-text]").textContent = "합의 " + agreementPercent + "%";
-        row.querySelector("[data-vote-count]").textContent = item.voteCount.toLocaleString("ko-KR") + "명 응답";
+        // 득표 0: 운영 가답안만 있는 상태 > 합의 0% 대신 수집 중 안내
+        row.querySelector("[data-agree-text]").textContent = item.voteCount ? "합의 " + agreementPercent + "%" : "응답 모으는 중";
+        row.querySelector("[data-vote-count]").textContent = item.voteCount ? item.voteCount.toLocaleString("ko-KR") + "명 응답" : "passQL 운영 가답안";
         var topCount = Math.max.apply(null, Object.keys(item.tally).map(function (choice) { return item.tally[choice]; }));
         row.querySelectorAll("[data-tally-choice]").forEach(function (tallyRow) {
           var count = item.tally[tallyRow.getAttribute("data-tally-choice")] || 0;
