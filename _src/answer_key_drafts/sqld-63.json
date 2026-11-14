@@ -1,5 +1,5 @@
 {
- "basis": "passQL 운영 가답안 초안 (응시 후기 종합, 2026-11-14)",
+ "basis": "passQL 운영 가답안 초안 (응시 후기 종합, 2026-11-14 19:40)",
  "items": [
   {
    "questionNo": 1,
@@ -69,10 +69,9 @@
     "관계 선택성"
    ],
    "topicCode": "data_modeling",
-   "answer": null,
+   "answer": 1,
    "answerStatus": "DISPUTED",
    "alternativeAnswers": [
-    1,
     3,
     4
    ],
@@ -88,11 +87,10 @@
     "식별 관계"
    ],
    "topicCode": "data_modeling",
-   "answer": null,
+   "answer": 4,
    "answerStatus": "DISPUTED",
    "alternativeAnswers": [
-    3,
-    4
+    3
    ],
    "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
   },
@@ -194,11 +192,11 @@
    ],
    "topicCode": "sql_basic_select",
    "answer": 2,
-   "answerStatus": "DISPUTED",
+   "answerStatus": "LEADING",
    "alternativeAnswers": [
     1
    ],
-   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+   "note": null
   },
   {
    "questionNo": 14,
@@ -583,15 +581,17 @@
   {
    "questionNo": 40,
    "subjectNo": 2,
-   "conceptTitle": "(미복원) PARTITION BY 그룹 합계 윈도우",
+   "conceptTitle": "중복을 제거하지 못하는 SQL (EXISTS vs DISTINCT, GROUP BY, UNION)",
    "conceptTags": [
-    "윈도우 함수"
+    "중복 제거",
+    "EXISTS",
+    "DISTINCT"
    ],
-   "topicCode": "sql_window",
-   "answer": null,
-   "answerStatus": "UNKNOWN",
+   "topicCode": "sql_subquery",
+   "answer": 1,
+   "answerStatus": "LEADING",
    "alternativeAnswers": [],
-   "note": "보기가 아직 복원되지 않았어요."
+   "note": null
   },
   {
    "questionNo": 41,
@@ -676,11 +676,10 @@
     "슈퍼키"
    ],
    "topicCode": "data_modeling",
-   "answer": 4,
+   "answer": 3,
    "answerStatus": "DISPUTED",
    "alternativeAnswers": [
-    1,
-    3
+    4
    ],
    "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
   },
