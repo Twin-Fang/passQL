@@ -85,7 +85,7 @@ def render_trend_section():
       <div class="shares">{shares}
       </div>
     </div>
-    {render_phone(content.TREND_SCREENSHOT, "passQL 최신 경향 화면. 제58~62회 분석 요약과 과목별 비중.", "trend-phone")}
+    {render_phone(content.TREND_SCREENSHOT, "passQL 최신 경향 화면. 제58~63회 분석 요약과 과목별 비중.", "trend-phone")}
   </div>
   <div class="wrap">
     <ul class="patterns">{patterns}

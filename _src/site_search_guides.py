@@ -64,7 +64,7 @@ def render_trend_page():
     return render_guide_page(
         "sqld/trend/",
         'SQLD <span class="hl">기출 경향</span>',
-        "제58~62회 복원 기출과 수험생 후기를 바탕으로 무엇이 자주, 어떻게 나오는지 정리했어요. 최근에는 짧은 쿼리의 결과를 직접 따라가는 문제가 중심이에요.",
+        "제58~63회 복원 기출과 수험생 후기를 바탕으로 무엇이 자주, 어떻게 나오는지 정리했어요. 최근에는 짧은 쿼리의 결과를 직접 따라가는 문제가 중심이에요.",
         body, select_exam_faqs("difficulty", "format", "pass"), "SQLD 출제 자주 묻는 질문",
     )
 
