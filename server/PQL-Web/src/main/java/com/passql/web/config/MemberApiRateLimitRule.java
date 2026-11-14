@@ -32,7 +32,13 @@ public enum MemberApiRateLimitRule {
     // 알림함 조회 (회원당 분당 120회, 개수·목록 재조회)
     NOTIFICATION_INBOX_READ(HttpMethod.GET, "/api/members/me/notifications/**", 120, 60, false),
     // 알림함 읽음 처리 (회원당 분당 120회)
-    NOTIFICATION_INBOX_MARK_READ(HttpMethod.POST, "/api/members/me/notifications/**", 120, 60, false);
+    NOTIFICATION_INBOX_MARK_READ(HttpMethod.POST, "/api/members/me/notifications/**", 120, 60, false),
+    // 가답안 OMR 제출 (IP 당 분당 30회, 비로그인 공개, #1075)
+    EXAM_ANSWER_SHEET_SUBMIT(HttpMethod.POST, "/api/exam-answers/*/*/sheets", 30, 60, true),
+    // 내 가답안 조회 (IP 당 분당 60회)
+    EXAM_ANSWER_SHEET_READ(HttpMethod.GET, "/api/exam-answers/*/*/sheets/*", 60, 60, true),
+    // 회차 가답안 조회 (IP 당 분당 120회, 응답은 60초 캐시)
+    EXAM_ANSWER_ROUND_READ(HttpMethod.GET, "/api/exam-answers/**", 120, 60, true);
 
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 

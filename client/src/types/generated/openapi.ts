@@ -801,6 +801,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/exam-answers/{certType}/{roundNumber}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 회차 가답안
+         * @description ## 인증(JWT): **불필요** (IP 당 분당 120회)
+         *
+         *     ## 경로
+         *     - **`certType`**: SQLD, **`roundNumber`**: 회차 번호 (예: 63)
+         *
+         *     ## 반환값 (ExamAnswerRoundResponse)
+         *     - 회차 정보(title·examDate·status·notice), gradingRule(채점 규칙), participantCount, updatedAt(집계 기준 시각)
+         *     - items 50개: questionNo, subjectNo, conceptTitle, conceptTags, topicCode,
+         *       answer(표시용 정답: answerStatus 가 OFFICIAL·CONFIRMED·LEADING 이면 운영 가답안, 아니면 득표 1위, 없으면 null),
+         *       answerStatus, alternativeAnswers, tally({"1"~"4": 득표}), voteCount, agreementRate(0~1), note
+         *     - 득표·참여자 수는 최대 60초 늦게 반영
+         *     - 회차 없음 404 EXAM_ANSWER_ROUND_NOT_FOUND, 잘못된 certType 400 INVALID_INPUT_VALUE
+         */
+        get: operations["getRound"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exam-answers/{certType}/{roundNumber}/sheets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * OMR 답안 제출 (가채점)
+         * @description ## 인증(JWT): **선택** (있으면 회원 UUID 함께 저장, IP 당 분당 30회)
+         *
+         *     ## 요청 (ExamAnswerSheetSubmitRequest)
+         *     - **`clientToken`**: 기기·브라우저가 만든 토큰 (UUID 권장, 8~100자 영문·숫자·-_), 같은 토큰 재제출은 갱신. 서버는 SHA-256 해시만 저장
+         *     - **`answers`**: 50자 (0 모름, 1~4 보기), **`source`**: WEB | APP (없으면 WEB)
+         *
+         *     ## 반환값 (ExamAnswerSheetResponse)
+         *     - answers, source, submittedAt, result:
+         *       subject1/subject2 {score, max, isFailCut}, totalScore, scoreRange {min, max}(확정 안 된 문항 틀림/맞음 가정),
+         *       passStatus(PASS·FAIL·BORDERLINE), percentile(상위 %, 참여 10명 미만 null), perQuestion[{questionNo, myAnswer, answer, isCorrect}]
+         *     - 마감 회차 409 EXAM_ANSWER_ROUND_CLOSED, 형식 오류 400 INVALID_INPUT_VALUE
+         */
+        post: operations["submitSheet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exam-answers/{certType}/{roundNumber}/sheets/{clientToken}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 내 답안 + 가채점
+         * @description ## 인증(JWT): **불필요** (IP 당 분당 60회)
+         *
+         *     ## 경로
+         *     - **`clientToken`**: 제출 때 쓴 토큰
+         *
+         *     ## 반환값: POST sheets 와 같은 형태 (지금 가답안 기준으로 다시 채점)
+         *     - 제출 기록 없음 404 EXAM_ANSWER_SHEET_NOT_FOUND
+         */
+        get: operations["getMySheet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/exam-schedules": {
         parameters: {
             query?: never;
@@ -2939,11 +3026,244 @@ export interface components {
          * @description 서버 ErrorCode enum 이름 (응답 errorCode 값)
          * @enum {string}
          */
-        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "REQUEST_TOO_LARGE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "CONCEPT_NOT_FOUND" | "CONCEPT_CHECK_QUESTION_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_SERVER_REQUEST_REJECTED" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_UNAVAILABLE" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "QUESTION_FORMAT_VIOLATION" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "FEEDBACK_IMAGE_TOO_MANY" | "FEEDBACK_IMAGE_INVALID" | "FEEDBACK_ATTACHMENT_TOO_LARGE" | "FEEDBACK_ATTACHMENT_INVALID" | "FEEDBACK_DAILY_LIMIT_EXCEEDED" | "FEEDBACK_STORAGE_UNAVAILABLE" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED" | "AD_BONUS_DAILY_LIMIT_REACHED" | "AD_BONUS_VERIFICATION_PENDING" | "AD_BONUS_APP_UPDATE_REQUIRED" | "MOCK_EXAM_ROUND_NOT_FOUND" | "MOCK_EXAM_ATTEMPT_NOT_FOUND" | "MOCK_EXAM_ATTEMPT_IN_PROGRESS" | "MOCK_EXAM_FREE_TRIAL_USED" | "MOCK_EXAM_TIME_OVER" | "MOCK_EXAM_ALREADY_SUBMITTED" | "MOCK_EXAM_NOT_SUBMITTED" | "MOCK_EXAM_ROUND_NOT_EDITABLE" | "MOCK_EXAM_ROUND_NUMBER_DUPLICATED" | "MOCK_EXAM_PUBLISH_CHECK_FAILED";
+        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "REQUEST_TOO_LARGE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "CONCEPT_NOT_FOUND" | "CONCEPT_CHECK_QUESTION_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "EXAM_ANSWER_ROUND_NOT_FOUND" | "EXAM_ANSWER_ROUND_DUPLICATE" | "EXAM_ANSWER_ROUND_CLOSED" | "EXAM_ANSWER_SHEET_NOT_FOUND" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_SERVER_REQUEST_REJECTED" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_UNAVAILABLE" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "QUESTION_FORMAT_VIOLATION" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "FEEDBACK_IMAGE_TOO_MANY" | "FEEDBACK_IMAGE_INVALID" | "FEEDBACK_ATTACHMENT_TOO_LARGE" | "FEEDBACK_ATTACHMENT_INVALID" | "FEEDBACK_DAILY_LIMIT_EXCEEDED" | "FEEDBACK_STORAGE_UNAVAILABLE" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED" | "AD_BONUS_DAILY_LIMIT_REACHED" | "AD_BONUS_VERIFICATION_PENDING" | "AD_BONUS_APP_UPDATE_REQUIRED" | "MOCK_EXAM_ROUND_NOT_FOUND" | "MOCK_EXAM_ATTEMPT_NOT_FOUND" | "MOCK_EXAM_ATTEMPT_IN_PROGRESS" | "MOCK_EXAM_FREE_TRIAL_USED" | "MOCK_EXAM_TIME_OVER" | "MOCK_EXAM_ALREADY_SUBMITTED" | "MOCK_EXAM_NOT_SUBMITTED" | "MOCK_EXAM_ROUND_NOT_EDITABLE" | "MOCK_EXAM_ROUND_NUMBER_DUPLICATED" | "MOCK_EXAM_PUBLISH_CHECK_FAILED";
         /** @description API 에러 응답 표준 형식 */
         ErrorResponse: {
             errorCode: components["schemas"]["ErrorCode"];
             message: string;
+        };
+        ExamAnswerGradingResponse: {
+            /** @description 합격 판정: PASS, FAIL, BORDERLINE(범위가 합격선·과락선에 걸침) */
+            passStatus: string;
+            /** @description 문항별 결과 50개 */
+            perQuestion: components["schemas"]["ExamAnswerQuestionResultResponse"][];
+            /**
+             * Format: int32
+             * @description 참여자 중 상위 % (1~100, 올림, 참여 10명 미만이면 null)
+             */
+            percentile: number;
+            /** @description 총점 범위 (확정 안 된 문항 틀림/맞음 가정) */
+            scoreRange: components["schemas"]["ExamAnswerScoreRangeResponse"];
+            /** @description 1과목 (만점 20) */
+            subject1: components["schemas"]["ExamAnswerSubjectScoreResponse"];
+            /** @description 2과목 (만점 80) */
+            subject2: components["schemas"]["ExamAnswerSubjectScoreResponse"];
+            /**
+             * Format: int32
+             * @description 총점 (표시용 정답 기준)
+             */
+            totalScore: number;
+        };
+        ExamAnswerGradingRuleResponse: {
+            /**
+             * Format: int32
+             * @description 만점 (점)
+             */
+            maxScore: number;
+            /**
+             * Format: int32
+             * @description 합격 총점 (점, 이상)
+             */
+            passScore: number;
+            /**
+             * Format: int32
+             * @description 문항당 배점 (점)
+             */
+            pointsPerQuestion: number;
+            /**
+             * Format: int32
+             * @description 과락 기준 (과목 만점 대비 %, 미만이면 과락)
+             */
+            subjectFailBelowPercent: number;
+            /** @description 과목별 규칙 */
+            subjects: components["schemas"]["ExamAnswerSubjectRuleResponse"][];
+            /**
+             * Format: int32
+             * @description 전체 문항 수
+             */
+            totalQuestionCount: number;
+        };
+        ExamAnswerItemResponse: {
+            /**
+             * Format: double
+             * @description 합의율 0~1: 표시용 정답 득표 / voteCount (득표 없으면 0)
+             */
+            agreementRate: number;
+            /** @description 복수 정답 인정 보기 (없으면 빈 목록) */
+            alternativeAnswers: number[];
+            /**
+             * Format: int32
+             * @description 표시용 정답 1~4: 상태 OFFICIAL·CONFIRMED·LEADING 이면 운영 가답안, 아니면 득표 1위 (득표 없으면 null)
+             */
+            answer: number;
+            /** @description 운영 가답안 상태: UNKNOWN 모름, LEADING 우세, DISPUTED 갈림, CONFIRMED 확정, OFFICIAL 공식 */
+            answerStatus: string;
+            /** @description 개념 태그 */
+            conceptTags: string[];
+            /** @description 출제 개념 한 줄 (없으면 null) */
+            conceptTitle: string;
+            /** @description 메모 한 줄 (갈림 이유 등, 없으면 null) */
+            note: string;
+            /**
+             * Format: int32
+             * @description 문항 번호 (1~50)
+             */
+            questionNo: number;
+            /**
+             * Format: int32
+             * @description 과목 번호 (1: 1~10번, 2: 11~50번)
+             */
+            subjectNo: number;
+            /** @description 보기별 득표 수 (키 "1"~"4") */
+            tally: {
+                [key: string]: number;
+            };
+            /** @description 연결 토픽 코드 (없으면 null) */
+            topicCode: string;
+            /**
+             * Format: int32
+             * @description 이 문항에 보기를 고른 답안 수 (모름 제외)
+             */
+            voteCount: number;
+        };
+        ExamAnswerQuestionResultResponse: {
+            /**
+             * Format: int32
+             * @description 표시용 정답 (없으면 null)
+             */
+            answer: number;
+            /** @description 정답 여부 (복수 정답 인정 포함, 표시용 정답 없으면 null) */
+            isCorrect: boolean;
+            /**
+             * Format: int32
+             * @description 내 답 (0 모름, 1~4)
+             */
+            myAnswer: number;
+            /**
+             * Format: int32
+             * @description 문항 번호
+             */
+            questionNo: number;
+        };
+        ExamAnswerRoundResponse: {
+            /** @description 자격증 (SQLD) */
+            certType: string;
+            /**
+             * Format: date
+             * @description 시험일
+             */
+            examDate: string;
+            /** @description 채점 규칙 */
+            gradingRule: components["schemas"]["ExamAnswerGradingRuleResponse"];
+            /** @description 문항 50개 (번호 오름차순) */
+            items: components["schemas"]["ExamAnswerItemResponse"][];
+            /** @description 안내 문구 (없으면 null) */
+            notice: string;
+            /**
+             * Format: int32
+             * @description 답안 제출 참여자 수
+             */
+            participantCount: number;
+            /**
+             * Format: int32
+             * @description 회차 번호
+             */
+            roundNumber: number;
+            /** @description 회차 상태: COLLECTING 수집 중, OFFICIAL 공식 정답 반영, CLOSED 마감(제출 불가) */
+            status: string;
+            /** @description 제목 */
+            title: string;
+            /**
+             * Format: date-time
+             * @description 집계 기준 시각 (KST)
+             */
+            updatedAt: string;
+        };
+        ExamAnswerScoreRangeResponse: {
+            /**
+             * Format: int32
+             * @description 최고 총점
+             */
+            max: number;
+            /**
+             * Format: int32
+             * @description 최저 총점
+             */
+            min: number;
+        };
+        ExamAnswerSheetResponse: {
+            /** @description 내 답 50자 (0 모름, 1~4) */
+            answers: string;
+            /** @description 자격증 (SQLD) */
+            certType: string;
+            /** @description 가채점 결과 */
+            result: components["schemas"]["ExamAnswerGradingResponse"];
+            /**
+             * Format: int32
+             * @description 회차 번호
+             */
+            roundNumber: number;
+            /** @description 제출 경로 WEB | APP */
+            source: string;
+            /**
+             * Format: date-time
+             * @description 마지막 제출 시각
+             */
+            submittedAt: string;
+        };
+        ExamAnswerSheetSubmitRequest: {
+            /**
+             * @description 50자, 자리마다 0 모름 · 1~4 고른 보기 (1번 문항부터)
+             * @example 13420000000000000000000000000000000000000000000000
+             */
+            answers: string;
+            /** @description 클라이언트가 만든 식별 토큰 (UUID 권장, 8~100자 영문·숫자·-_), 서버는 SHA-256 해시만 저장 */
+            clientToken: string;
+            /** @description 제출 경로 WEB | APP (없으면 WEB) */
+            source?: string;
+        };
+        ExamAnswerSubjectRuleResponse: {
+            /**
+             * Format: int32
+             * @description 과락 기준 점수 (미만이면 과락)
+             */
+            failBelowScore: number;
+            /**
+             * Format: int32
+             * @description 첫 문항 번호
+             */
+            firstQuestionNo: number;
+            /**
+             * Format: int32
+             * @description 마지막 문항 번호
+             */
+            lastQuestionNo: number;
+            /**
+             * Format: int32
+             * @description 과목 만점 (점)
+             */
+            maxScore: number;
+            /** @description 과목 이름 */
+            subjectName: string;
+            /**
+             * Format: int32
+             * @description 과목 번호 (1, 2)
+             */
+            subjectNo: number;
+        };
+        ExamAnswerSubjectScoreResponse: {
+            /** @description 과락 여부 (40% 미만) */
+            isFailCut: boolean;
+            /**
+             * Format: int32
+             * @description 과목 만점
+             */
+            max: number;
+            /**
+             * Format: int32
+             * @description 과목 점수
+             */
+            score: number;
         };
         ExamScheduleResponse: {
             /** Format: date */
@@ -4572,6 +4892,80 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["DailySetTodayResponse"];
+                };
+            };
+        };
+    };
+    getRound: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                certType: string;
+                roundNumber: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExamAnswerRoundResponse"];
+                };
+            };
+        };
+    };
+    submitSheet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                certType: string;
+                roundNumber: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamAnswerSheetSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExamAnswerSheetResponse"];
+                };
+            };
+        };
+    };
+    getMySheet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                certType: string;
+                roundNumber: number;
+                clientToken: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExamAnswerSheetResponse"];
                 };
             };
         };
