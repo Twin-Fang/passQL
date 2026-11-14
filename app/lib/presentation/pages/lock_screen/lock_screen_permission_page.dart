@@ -11,7 +11,8 @@ import '../../widgets/lock_screen/lock_screen_permission_step_card.dart';
 
 /// 잠금화면 권한 단계 하나: 분석 이름, 제목, 이유 한 줄, 필수 여부
 enum LockScreenPermissionStep {
-  overlay('overlay', '다른 앱 위에 표시', '잠금화면 위에 문제를 띄우려면 필요해요', true),
+  // 설정은 앱 목록으로 열림 (Android 11+ 앱별 화면 직접 열기 불가) > 목록에서 찾는 방법을 함께 안내 (#1066)
+  overlay('overlay', '다른 앱 위에 표시', '목록에서 passQL을 눌러 허용해 주세요. 잠금화면 위에 문제를 띄울 때 필요해요', true),
   notification('notification', '알림 허용', '오늘 푼 문제 수를 상단 알림으로 보여 줘요', true),
   battery('battery', '배터리 최적화 제외', '휴대폰이 기능을 멈추지 않게 해요', true),
   samsungPower('samsung_power', '절전 예외 앱에 추가', '삼성 휴대폰은 한 번 더 필요해요', false);

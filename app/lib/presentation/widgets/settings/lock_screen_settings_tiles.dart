@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/utils/date_format.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/lock_screen_providers.dart';
@@ -27,6 +28,7 @@ List<Widget> buildLockScreenSettingsRows(WidgetRef ref) {
 }
 
 /// 잠금화면 문제 토글: 켤 때 필수 권한 없으면 권한 단계로, 켜진 뒤 권한이 빠지면 "권한 필요"(누르면 권한 단계)
+/// 부제 3가지: 권한 필요 > 쉬는 중("HH:mm까지 쉬는 중", 켜면 쉬기 해제) > 기본 안내
 class LockScreenToggleTile extends ConsumerStatefulWidget {
   const LockScreenToggleTile({super.key});
 
@@ -74,11 +76,18 @@ class _LockScreenToggleTileState extends ConsumerState<LockScreenToggleTile> {
     final lockScreenState = lockScreenAsync.valueOrNull;
     final isEnabled = lockScreenState?.settings.isEnabled ?? false;
     final isPermissionMissing = lockScreenState?.isPermissionMissing ?? false;
+    final pausedUntil = isEnabled
+        ? lockScreenState?.settings.pausedUntil
+        : null;
     return SettingsRow(
       icon: CupertinoIcons.lock_fill,
       iconColor: colors.accent,
       title: '잠금화면 문제',
-      subtitle: isPermissionMissing ? '권한이 필요해요' : '화면 켤 때 한 문제씩 풀어요',
+      subtitle: isPermissionMissing
+          ? '권한이 필요해요'
+          : pausedUntil != null
+          ? '${formatHourMinute(pausedUntil)}까지 쉬는 중'
+          : '화면 켤 때 한 문제씩 풀어요',
       shouldShowChevron: false,
       onTap: isPermissionMissing
           ? () => context.push(AppRoutes.lockScreenPermission)

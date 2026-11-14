@@ -69,6 +69,7 @@ class LockScreenSettings {
     required this.intervalMinutes,
     required this.isExecutableExcluded,
     required this.isFreshChoiceMode,
+    this.pausedUntil,
   });
 
   static const LockScreenSettings disabled = LockScreenSettings(
@@ -89,6 +90,9 @@ class LockScreenSettings {
   /// 선택지 방식: true = AI로 새로 만들기, false = 기본(준비된 세트). 앱 보기 방식 설정과 별개
   final bool isFreshChoiceMode;
 
+  /// 알림 "1시간 쉬기" 끝 시각 (쉬지 않으면 null, 읽은 시점 기준)
+  final DateTime? pausedUntil;
+
   factory LockScreenSettings.fromMap(Map<Object?, Object?> map) =>
       LockScreenSettings(
         isEnabled: map['isEnabled'] == true,
@@ -96,7 +100,14 @@ class LockScreenSettings {
             (map['intervalMinutes'] as int?) ?? disabled.intervalMinutes,
         isExecutableExcluded: map['isExecutableExcluded'] == true,
         isFreshChoiceMode: map['isFreshChoiceMode'] == true,
+        pausedUntil: _toPausedUntil(map['pauseUntilMillis']),
       );
+
+  // 네이티브 pauseUntilMillis (epoch 밀리초, 0 = 쉬지 않음) > 시각
+  static DateTime? _toPausedUntil(Object? pauseUntilMillis) =>
+      pauseUntilMillis is int && pauseUntilMillis > 0
+      ? DateTime.fromMillisecondsSinceEpoch(pauseUntilMillis)
+      : null;
 }
 
 /// 네이티브 잠금화면 채널(passql/lock_screen) 래퍼: Android 전용, 그 외 플랫폼은 아무것도 하지 않음
@@ -165,7 +176,7 @@ class LockScreenBridge {
   Future<void> openSamsungPowerSettings() =>
       _invoke<void>('openSamsungPowerSettings');
 
-  /// 켜기: 필수 권한 3개가 없으면 네이티브가 거부 > false
+  /// 켜기 (쉬는 중이면 쉬기도 해제): 필수 권한 3개가 없으면 네이티브가 거부 > false
   Future<bool> enable({
     required int intervalMinutes,
     required bool isExecutableExcluded,
