@@ -97,8 +97,8 @@ class _LockScreenPreviewPageState extends ConsumerState<LockScreenPreviewPage> {
               child: LockScreenQuestionView(
                 state: _state,
                 onChoiceTap: _grade,
-                // 샘플은 실행형이 아니라 쓰이지 않음
-                onExecutionResultUnlock: () {},
+                // 샘플은 실행형이 아니고 해설 조회 대상(세트)도 없어 쓰이지 않음
+                onProUnlock: () {},
               ),
             ),
           ],

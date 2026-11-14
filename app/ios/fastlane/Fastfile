@@ -108,11 +108,11 @@ platform :ios do
         UI.message("⏭️  review_notes.txt 없음 — 심사 Notes는 ASC 기존값 유지")
       end
 
-      # 스토어 주소 2개: ios/fastlane/{파일} 원본 > 로케일마다 같은 이름 파일, 원본이 없거나 비면 ASC 기존값 유지
+      # 스토어 주소 3개: ios/fastlane/{파일} 원본 > 로케일마다 같은 이름 파일, 원본이 없거나 비면 ASC 기존값 유지
       # marketing_url.txt: 웹사이트(AdMob iOS 앱 인증이 이 주소의 app-ads.txt 를 읽음, #864)
-      # privacy_url.txt: 개인정보처리방침 (ASC 는 새 버전 제출 때만 바뀜)
+      # privacy_url.txt: 개인정보처리방침, support_url.txt: 지원 (ASC 는 새 버전 제출 때만 바뀜)
       # 원본 값 = client/src/constants/siteUrls.ts PUBLIC_LEGAL_SITE_URL(소개 사이트) 기준, siteUrls.test.ts 가 일치 검사 (#1057)
-      ["marketing_url.txt", "privacy_url.txt"].each do |url_file_name|
+      ["marketing_url.txt", "privacy_url.txt", "support_url.txt"].each do |url_file_name|
         url_src = File.join(workspace, ENV["APP_ROOT"] || ".", "ios", "fastlane", url_file_name)
         url_value = File.file?(url_src) ? File.read(url_src).strip : ""
         locales.each do |loc|

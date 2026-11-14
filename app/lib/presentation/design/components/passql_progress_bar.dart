@@ -11,8 +11,16 @@ class PassqlProgressBar extends StatelessWidget {
     required this.value,
     this.semanticValue,
     this.fillColor,
+    this.height = PassqlSize.progressBarHeight,
+    this.isFillAnimated = true,
   });
   final double value;
+
+  /// 막대 두께 (홈 준비도 지표처럼 크게 보일 자리만 키움)
+  final double height;
+
+  /// false: 값 변화를 그대로 그림 (쓰는 쪽이 차오름을 직접 맞출 때, 홈 준비도 링과 함께 #972)
+  final bool isFillAnimated;
 
   /// 채움 색 (null 이면 강조색). 의미가 다른 막대(과락 위험 등)만 의미 색을 넘김
   final Color? fillColor;
@@ -28,12 +36,14 @@ class PassqlProgressBar extends StatelessWidget {
       // 폭 고정: 가운데 정렬 Column 안에서도 트랙이 전체 폭, 채움은 왼쪽부터 (#552)
       child: SizedBox(
         width: double.infinity,
-        height: PassqlSize.progressBarHeight,
+        height: height,
         child: Stack(
           children: [
             Positioned.fill(child: ColoredBox(color: colors.fill)),
             AnimatedFractionallySizedBox(
-              duration: PassqlMotion.durationOf(context, PassqlMotion.fast),
+              duration: isFillAnimated
+                  ? PassqlMotion.durationOf(context, PassqlMotion.fast)
+                  : Duration.zero,
               curve: PassqlMotion.curve,
               widthFactor: value.clamp(0, 1),
               heightFactor: 1,

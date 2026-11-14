@@ -7,7 +7,7 @@ import '../../design/design.dart';
 import '../../providers/onboarding_providers.dart';
 import '../../widgets/onboarding/onboarding_slides.dart';
 
-/// 신규 가입자 온보딩 4장. 마지막 장에서 오늘의 세트 첫 문제로 바로 보낸다.
+/// 신규 가입자 온보딩 3장. 마지막 장에서 오늘의 세트 첫 문제로 바로 보낸다.
 /// 탭 셸 밖 화면이라 알림 권한 안내가 끼어들지 않는다.
 class OnboardingPage extends ConsumerStatefulWidget {
   const OnboardingPage({super.key});

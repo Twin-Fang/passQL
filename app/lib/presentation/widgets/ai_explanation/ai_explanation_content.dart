@@ -11,10 +11,20 @@ import 'ai_explanation_verdict.dart';
 
 /// 전체 해설 본문 (패널·단건 결과 공통): 상태별 기다림 > 구조화 섹션 / 마크다운 > 실패 안내·재시도·폴백
 /// 무료(결제 켜짐, FULL_EXPLANATION 잠김): 판정 한 줄 > 기본 해설 > 흐린 상세 해설 (판정이 비어 오거나 실패하고 폴백도 없으면 제출 결과로 조립한 판정, #867·#999)
+/// [onProUnlock]: 흐린 상세 해설을 누를 때 (null 이면 프로 안내 시트, 잠금화면은 앱을 열어 구매)
 class AiExplanationContent extends ConsumerWidget {
-  const AiExplanationContent({super.key, required this.entry});
+  const AiExplanationContent({
+    super.key,
+    required this.entry,
+    this.onProUnlock,
+    this.lockedPreviewMaxHeight,
+  });
 
   final AiExplanationEntry entry;
+  final VoidCallback? onProUnlock;
+
+  /// 흐린 상세 해설 최대 높이 (null 이면 전체, 잠금화면은 짧게 맛보기)
+  final double? lockedPreviewMaxHeight;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,6 +53,8 @@ class AiExplanationContent extends ConsumerWidget {
       isFullExplanationLocked: true,
       basicExplanation: basicExplanation,
       explanationOutline: explanationOutline,
+      onProUnlock: onProUnlock,
+      lockedPreviewMaxHeight: lockedPreviewMaxHeight,
     );
     final Widget body = switch (explanationState.phase) {
       ChoiceExplanationPhase.loading => _LoadingBody(
@@ -59,6 +71,8 @@ class AiExplanationContent extends ConsumerWidget {
           isFullExplanationLocked: isFullExplanationLocked,
           basicExplanation: basicExplanation,
           explanationOutline: explanationOutline,
+          onProUnlock: onProUnlock,
+          lockedPreviewMaxHeight: lockedPreviewMaxHeight,
         ),
       // 판정까지 비어 온 무료 응답: 제출 결과로 조립한 판정 + 블러
       ChoiceExplanationPhase.ready when isFullExplanationLocked =>

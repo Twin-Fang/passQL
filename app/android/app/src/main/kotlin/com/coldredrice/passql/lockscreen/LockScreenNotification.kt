@@ -16,7 +16,7 @@ import java.util.Locale
 
 /**
  * 잠금화면 상태 알림: 조용한 채널 > 제목·본문(쉬는 중 > 오늘 0문제 > 푼 수·크레딧) > 탭(설정) + 액션 2개
- * 액션: 지금 한 문제(잠금화면 바로 표시, 간격 무시), 1시간 쉬기(서비스)
+ * 액션: 지금 한 문제(잠금화면 바로 표시, 간격 무시), 1시간 쉬기 또는 쉬는 중이면 다시 켜기(서비스)
  */
 object LockScreenNotification {
     const val NOTIFICATION_ID = 9901
@@ -26,6 +26,7 @@ object LockScreenNotification {
     private const val REQUEST_OPEN_SETTINGS = 1
     private const val REQUEST_SHOW_NOW = 2
     private const val REQUEST_PAUSE = 3
+    private const val REQUEST_RESUME = 4
 
     private const val PENDING_INTENT_FLAGS =
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
@@ -63,13 +64,27 @@ object LockScreenNotification {
                     showNowIntent(context),
                 ).build(),
             )
-            .addAction(
-                Notification.Action.Builder(
-                    null as Icon?,
-                    context.getString(R.string.lock_screen_action_pause),
-                    pauseIntent(context),
-                ).build(),
+            .addAction(pauseOrResumeAction(context, preferences))
+            .build()
+    }
+
+    /** 쉬는 중이면 다시 켜기(쉬기 해제), 아니면 1시간 쉬기 */
+    private fun pauseOrResumeAction(context: Context, preferences: LockScreenPreferences): Notification.Action {
+        val isPaused = preferences.pauseUntilMillis > System.currentTimeMillis()
+        val (titleResource, pendingIntent) = if (isPaused) {
+            R.string.lock_screen_action_resume to serviceActionIntent(
+                context,
+                REQUEST_RESUME,
+                LockScreenService.ACTION_RESUME,
             )
+        } else {
+            R.string.lock_screen_action_pause to serviceActionIntent(
+                context,
+                REQUEST_PAUSE,
+                LockScreenService.ACTION_PAUSE_ONE_HOUR,
+            )
+        }
+        return Notification.Action.Builder(null as Icon?, context.getString(titleResource), pendingIntent)
             .build()
     }
 
@@ -119,9 +134,8 @@ object LockScreenNotification {
         return PendingIntent.getActivity(context, REQUEST_SHOW_NOW, intent, PENDING_INTENT_FLAGS)
     }
 
-    private fun pauseIntent(context: Context): PendingIntent {
-        val intent = Intent(context, LockScreenService::class.java)
-            .setAction(LockScreenService.ACTION_PAUSE_ONE_HOUR)
-        return PendingIntent.getService(context, REQUEST_PAUSE, intent, PENDING_INTENT_FLAGS)
+    private fun serviceActionIntent(context: Context, requestCode: Int, action: String): PendingIntent {
+        val intent = Intent(context, LockScreenService::class.java).setAction(action)
+        return PendingIntent.getService(context, requestCode, intent, PENDING_INTENT_FLAGS)
     }
 }

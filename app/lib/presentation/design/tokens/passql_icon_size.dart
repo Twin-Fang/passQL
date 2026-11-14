@@ -14,5 +14,6 @@ abstract final class PassqlIconSize {
   static const double resultMarkLarge = 64; // 채점 결과 큰 표시
   static const double proOfferHero = 64; // 이용권 시트 머리 PRO 젬 (#1014)
   static const double passTicketProIcon = 40; // 탑승권 떼는 칸 PRO 젬 (바코드 자리, #1014)
+  static const double creditBalance = 40; // 크레딧 잔액 젬 (옆 34pt 숫자와 무게 맞춤, #1068)
   static const double rewardCoin = 80; // 보상 창 크레딧 동전 (에셋 최대 72px@3x, 더 키우면 흐려짐, #999)
 }

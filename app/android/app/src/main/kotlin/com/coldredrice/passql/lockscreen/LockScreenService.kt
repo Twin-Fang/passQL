@@ -47,7 +47,15 @@ class LockScreenService : Service() {
         }
         // 엔진 미리 데우기 (첫 표시 지연 방지, 이미 있으면 재사용)
         LockScreenEngine.obtain(this)
-        if (intent?.action == ACTION_PAUSE_ONE_HOUR) pauseOneHour()
+        when (intent?.action) {
+            ACTION_PAUSE_ONE_HOUR -> pauseOneHour()
+            ACTION_RESUME -> resume()
+            // 켜기·재시작: 쉬기 상태에 맞춰 알림 즉시 갱신 + 남은 쉬기 끝나면 원복 예약
+            else -> {
+                LockScreenNotification.repost(this, preferences)
+                scheduleRestoreAfterPause()
+            }
+        }
         return START_STICKY
     }
 
@@ -72,12 +80,25 @@ class LockScreenService : Service() {
         }
     }
 
-    /** 1시간 쉬기: 끝 시각 저장 > 알림 "HH:mm까지 쉬는 중" > 끝나면 원복 */
+    /** 1시간 쉬기: 끝 시각 저장 > 알림 "HH:mm까지 쉬는 중"·다시 켜기 > 끝나면 원복 */
     private fun pauseOneHour() {
         preferences.pauseUntilMillis = System.currentTimeMillis() + PAUSE_MILLIS
         LockScreenNotification.repost(this, preferences)
+        scheduleRestoreAfterPause()
+    }
+
+    /** 다시 켜기: 쉬기 해제 > 원복 예약 취소 > 알림 즉시 원복 */
+    private fun resume() {
+        preferences.pauseUntilMillis = 0L
         mainHandler.removeCallbacks(restoreAfterPause)
-        mainHandler.postDelayed(restoreAfterPause, PAUSE_MILLIS)
+        LockScreenNotification.repost(this, preferences)
+    }
+
+    // 남은 쉬기 시간 뒤 알림 원복 (쉬지 않으면 예약 없음)
+    private fun scheduleRestoreAfterPause() {
+        mainHandler.removeCallbacks(restoreAfterPause)
+        val remainingMillis = preferences.pauseUntilMillis - System.currentTimeMillis()
+        if (remainingMillis > 0) mainHandler.postDelayed(restoreAfterPause, remainingMillis)
     }
 
     /** 화면 꺼짐: 알림 재게시(밀어 없앴어도 복구) > 조건 확인 > 잠금화면 시작 */
@@ -109,6 +130,7 @@ class LockScreenService : Service() {
 
     companion object {
         const val ACTION_PAUSE_ONE_HOUR = "com.coldredrice.passql.lockscreen.PAUSE_ONE_HOUR"
+        const val ACTION_RESUME = "com.coldredrice.passql.lockscreen.RESUME"
         private const val MINUTE_MILLIS = 60_000L
         private const val PAUSE_MILLIS = 60 * MINUTE_MILLIS
 

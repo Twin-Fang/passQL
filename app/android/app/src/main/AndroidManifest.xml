@@ -7,6 +7,9 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- 잠금화면 문제 (#990): 잠금 위 표시, 상태 알림 서비스, 재부팅 후 재시작 -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <application
         android:allowBackup="false"
         android:label="passQL"
@@ -49,6 +52,24 @@
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize"
             tools:targetApi="o_mr1" />
+        <!-- 잠금화면 문제 상태 알림 서비스: 화면 켜짐 감지 > 문제 화면 띄움 (Play 앱 콘텐츠 포그라운드 서비스 신고: 특수 용도, #1043) -->
+        <service
+            android:name=".lockscreen.LockScreenService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Shows a study question over the lock screen when the user turns the screen on. The user turns it on in settings, sees an ongoing notification with today's progress, and can pause or turn it off anytime." />
+        </service>
+        <!-- 재부팅·앱 업데이트 후 서비스 재시작 (LockScreenBootReceiver.restartActions 와 같은 목록) -->
+        <receiver
+            android:name=".lockscreen.LockScreenBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

@@ -58,9 +58,10 @@ describe("운영 주소 단일 원본", () => {
     expect(indexHtml).toContain("%PASSQL_SITE_URL%/og-image.png");
   });
 
-  it("iOS 스토어 마케팅·개인정보처리방침 URL 은 소개 사이트 주소를 가리킨다 (웹 지원 중지 후 #1057)", () => {
+  it("iOS 스토어 마케팅·개인정보처리방침·지원 URL 은 소개 사이트 주소를 가리킨다 (웹 지원 중지 후 #1057)", () => {
     expect(readRepositoryFile("app/ios/fastlane/marketing_url.txt").trim()).toBe(PUBLIC_LEGAL_SITE_URL);
     expect(readRepositoryFile("app/ios/fastlane/privacy_url.txt").trim()).toBe(`${PUBLIC_LEGAL_SITE_URL}/privacy.html`);
+    expect(readRepositoryFile("app/ios/fastlane/support_url.txt").trim()).toBe(PUBLIC_LEGAL_SITE_URL);
   });
 
   it("서버 소셜 로그인 콜백 허용 목록·CORS 기본값은 운영 주소를 쓴다", () => {

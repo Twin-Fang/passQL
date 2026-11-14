@@ -2,7 +2,7 @@
 type: cluster
 topic: store-release
 created: 2026-10-29
-members: 73
+members: 79
 status: active
 related: []
 ---
@@ -18,7 +18,7 @@ related: []
 ## 활성 결정
 - [[DEC-0294-intro-site-self-hosted-own-domain]] — 소개 사이트·약관 공개 주소는 passql.suhsaechan.kr(시놀로지 직접 서빙), github.io는 경로별 이동 페이지 (#1027, DEC-0119 대체)
 - [[DEC-0295-seo-public-exam-info-no-hidden-text]] — 검색 노출은 공개 시험 정보 페이지로, 숨긴 글씨·키워드 나열·학습 콘텐츠 원문 공개는 안 함 (#1027)
-- [[DEC-0290-lock-screen-question-policy]] — 잠금화면 문제(Android): 무료도 하루 크레딧 공유, 프로 한 문제 더, 광고·결제는 잠금 풀고 앱에서 (#990, 현재 배포 앱은 #1002로 숨김)
+- [[DEC-0314-lock-screen-free-reason-pro-detail-continue]] — 잠금화면 문제: 무료도 이유를 보고 크레딧으로 이어 풀기, PRO는 상세 해설, PRO 안내는 해설 한 곳, 선택지 방식은 앱 설정 (#1068, DEC-0290 대체)
 - [[DEC-0280-ios-deploy-skip-app-store-step-while-in-review]] — 심사 대기·심사 중 버전이 있거나 확인 불가면 iOS 배포는 TestFlight 업로드만
 - [[DEC-0065-source-available-license-no-commercial]] — 저장소 라이선스를 MIT에서 자체 Source-Available License 1.0으로 — 상업적 이용 영구 금지
 - [[DEC-0082-legal-table-separate-from-app-setting]] — 약관(이용약관·개인정보처리방침)은 `AppSetting`이 아닌 독립 `legal` 테이블에서 관리한다
@@ -46,6 +46,7 @@ related: []
 - [[DEC-0119-legal-urls-on-github-pages]] — 약관 공개 URL은 GitHub Pages에 두고 웹 `/legal/*`은 그쪽으로 리다이렉트 (대체: DEC-0294)
 - [[DEC-0233-store-images-accent-keyword-style]] — 스토어 홍보 이미지는 앱 토큰의 `accent` 단색 바탕과 큰 SQL 키워드로 만들고, 한국어와 `scenes.json` 렌더 방식은 유지한다 (대체: DEC-0235)
 - [[DEC-0169-store-listing-korean-only]] — 스토어 홍보 이미지·설명은 한국어만 만들고, 문구는 `scenes.json`에서 도구로 렌더링한다 (대체: DEC-0233)
+- [[DEC-0290-lock-screen-question-policy]] → [[DEC-0314-lock-screen-free-reason-pro-detail-continue]] — 프로만 한 문제 더 > 무료도 크레딧으로 이어 풀기 (#1068)
 
 ## 관련 이슈
 - [[ISS-0512-test-build-minimum-version-block]] (resolved, GitHub #962, PR #967): 최소 지원 버전을 올리면 테스트 빌드도 업데이트 필요 화면에 막힘

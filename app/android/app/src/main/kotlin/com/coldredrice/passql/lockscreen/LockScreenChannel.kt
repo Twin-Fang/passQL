@@ -25,7 +25,7 @@ class LockScreenChannel(
         when (call.method) {
             "getPermissionStatus" -> result.success(LockScreenPermissions.toStatusMap(context))
             "openOverlaySettings" -> {
-                openSettings(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, packageUri()))
+                openOverlaySettings()
                 result.success(null)
             }
             "openNotificationSettings" -> {
@@ -57,6 +57,8 @@ class LockScreenChannel(
                     "intervalMinutes" to preferences.intervalMinutes,
                     "isExecutableExcluded" to preferences.isExecutableExcluded,
                     "isFreshChoiceMode" to preferences.isFreshChoiceMode,
+                    // 쉬기 끝 시각 (epoch 밀리초, 쉬지 않으면 0)
+                    "pauseUntilMillis" to activePauseUntilMillis(),
                 ),
             )
             "markExhaustedToday" -> {
@@ -85,13 +87,29 @@ class LockScreenChannel(
         }
     }
 
-    /** 켜기: 설정 저장 > 필수 권한 3개 확인(없으면 false) > 서비스 시작 */
+    /** 켜기: 설정 저장 > 필수 권한 3개 확인(없으면 false) > 쉬기 해제 > 서비스 시작(알림 즉시 갱신) */
     private fun enable(call: MethodCall): Boolean {
         applySettings(call)
         if (!LockScreenPermissions.hasRequiredPermissions(context)) return false
         preferences.isEnabled = true
+        preferences.pauseUntilMillis = 0L
         LockScreenService.start(context)
         return true
+    }
+
+    // 지난 쉬기 끝 시각은 0 (Dart 가 쉬는 중으로 보지 않게)
+    private fun activePauseUntilMillis(): Long {
+        val pauseUntilMillis = preferences.pauseUntilMillis
+        return if (pauseUntilMillis > System.currentTimeMillis()) pauseUntilMillis else 0L
+    }
+
+    /**
+     * 다른 앱 위에 표시: passQL 전용 화면 > 권한 목록 화면 > 앱 상세 설정 순서로 시도
+     * Android 11+ 는 공개 액션의 package: URI 를 무시하고 목록을 열어서, 앱별 화면 액션을 먼저 시도
+     */
+    /** 다른 앱 위에 표시 설정 (Android 11+ 는 package URI 를 무시하고 앱 목록을 엶, 앱별 화면은 시스템 앱 전용이라 권한 거부) */
+    private fun openOverlaySettings() {
+        openSettings(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, packageUri()))
     }
 
     private fun applySettings(call: MethodCall) {
@@ -127,6 +145,11 @@ class LockScreenChannel(
 
     /** 삼성 배터리 화면 시도 (기기 관리 앱 이름이 버전마다 다름) > 모두 실패면 앱 상세 설정 */
     private fun openSamsungPowerSettings() {
+        // 절전 예외 앱(activity_type 2) 체크 목록 직접 열기 시도 (기기 미확인, 안 열리면 아래 배터리 화면으로) (#1068)
+        val neverSleepingListIntent = Intent(SAMSUNG_ACTION_OPEN_CHECKABLE_LIST)
+            .setPackage(SAMSUNG_DEVICE_CARE_PACKAGE)
+            .putExtra(SAMSUNG_EXTRA_ACTIVITY_TYPE, SAMSUNG_ACTIVITY_TYPE_NEVER_SLEEPING)
+        if (tryStart(neverSleepingListIntent)) return
         val candidates = listOf(
             ComponentName("com.samsung.android.lool", "com.samsung.android.sm.battery.ui.BatteryActivity"),
             ComponentName("com.samsung.android.lool", "com.samsung.android.sm.ui.battery.BatteryActivity"),
@@ -164,5 +187,12 @@ class LockScreenChannel(
         // 네이티브 > Dart 호출: 잠금화면 표시(잠금 엔진), 경로 열기(앱 엔진)
         const val METHOD_ON_SHOWN = "onShown"
         const val METHOD_OPEN_ROUTE = "openRoute"
+
+        // 삼성 디바이스 케어: 앱 체크 목록 화면 액션·패키지, 목록 종류 extra (2 절전 예외 앱)
+        private const val SAMSUNG_ACTION_OPEN_CHECKABLE_LIST =
+            "com.samsung.android.sm.ACTION_OPEN_CHECKABLE_LISTACTIVITY"
+        private const val SAMSUNG_DEVICE_CARE_PACKAGE = "com.samsung.android.lool"
+        private const val SAMSUNG_EXTRA_ACTIVITY_TYPE = "activity_type"
+        private const val SAMSUNG_ACTIVITY_TYPE_NEVER_SLEEPING = 2
     }
 }

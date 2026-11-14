@@ -81,26 +81,12 @@ class QuestionInteractionNotifier
       choiceSetId: readyChoiceSet.choiceSetUuid,
       choices: readyChoiceSet.items,
     );
-    final isFreshChoiceMode = await _isFreshChoiceModeEffective();
+    final isFreshChoiceMode = await isFreshChoiceModeEffective(ref);
     if (_isDisposed) return;
     if (isFreshChoiceMode) {
       await startSseGeneration();
     } else {
       useExistingChoiceSet(readyChoiceSet.choiceSetUuid, readyChoiceSet.items);
-    }
-  }
-
-  /// 실제 적용 모드가 새 보기(REAL)인가. 모드 조회 실패면 false (검증된 세트 재사용)
-  Future<bool> _isFreshChoiceModeEffective() async {
-    // autoDispose 라 응답이 올 때까지 구독을 걸어 둠
-    final modeSubscription = ref.listen(choiceModeProvider, (_, _) {});
-    try {
-      await ref.read(choiceModeProvider.future);
-      return _currentEffectiveChoiceMode() == ChoiceGenerationMode.real;
-    } catch (_) {
-      return false;
-    } finally {
-      modeSubscription.close();
     }
   }
 

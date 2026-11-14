@@ -12,15 +12,25 @@ abstract final class LockScreenRoutes {
   static const String passSheet = 'pass_sheet';
   static const String settings = 'settings_lock_screen';
   static const String _questionPrefix = 'question:';
+  static const String _discussionPrefix = 'discussion:';
 
   static String question(String questionUuid) =>
       '$_questionPrefix$questionUuid';
 
+  /// 문제별 의견 목록 (잠금화면 "토론 보기")
+  static String discussion(String questionUuid) =>
+      '$_discussionPrefix$questionUuid';
+
   /// `question:<uuid>` 이면 uuid, 아니면 null
   static String? questionUuidOf(String route) =>
-      route.startsWith(_questionPrefix)
-      ? route.substring(_questionPrefix.length)
-      : null;
+      _uuidAfterPrefix(route, _questionPrefix);
+
+  /// `discussion:<uuid>` 이면 uuid, 아니면 null
+  static String? discussionQuestionUuidOf(String route) =>
+      _uuidAfterPrefix(route, _discussionPrefix);
+
+  static String? _uuidAfterPrefix(String route, String prefix) =>
+      route.startsWith(prefix) ? route.substring(prefix.length) : null;
 }
 
 /// 잠금화면 권한 4개: 필수 3개(다른 앱 위에 표시, 알림, 배터리 최적화 제외) + 삼성 기기 여부(절전 예외 권장)
@@ -68,14 +78,13 @@ class LockScreenSettings {
     required this.isEnabled,
     required this.intervalMinutes,
     required this.isExecutableExcluded,
-    required this.isFreshChoiceMode,
+    this.pausedUntil,
   });
 
   static const LockScreenSettings disabled = LockScreenSettings(
     isEnabled: false,
     intervalMinutes: 30,
     isExecutableExcluded: false,
-    isFreshChoiceMode: false,
   );
 
   final bool isEnabled;
@@ -86,8 +95,8 @@ class LockScreenSettings {
   /// true = 객관식만
   final bool isExecutableExcluded;
 
-  /// 선택지 방식: true = AI로 새로 만들기, false = 기본(준비된 세트). 앱 보기 방식 설정과 별개
-  final bool isFreshChoiceMode;
+  /// 알림 "1시간 쉬기" 끝 시각 (쉬지 않으면 null, 읽은 시점 기준)
+  final DateTime? pausedUntil;
 
   factory LockScreenSettings.fromMap(Map<Object?, Object?> map) =>
       LockScreenSettings(
@@ -95,8 +104,14 @@ class LockScreenSettings {
         intervalMinutes:
             (map['intervalMinutes'] as int?) ?? disabled.intervalMinutes,
         isExecutableExcluded: map['isExecutableExcluded'] == true,
-        isFreshChoiceMode: map['isFreshChoiceMode'] == true,
+        pausedUntil: _toPausedUntil(map['pauseUntilMillis']),
       );
+
+  // 네이티브 pauseUntilMillis (epoch 밀리초, 0 = 쉬지 않음) > 시각
+  static DateTime? _toPausedUntil(Object? pauseUntilMillis) =>
+      pauseUntilMillis is int && pauseUntilMillis > 0
+      ? DateTime.fromMillisecondsSinceEpoch(pauseUntilMillis)
+      : null;
 }
 
 /// 네이티브 잠금화면 채널(passql/lock_screen) 래퍼: Android 전용, 그 외 플랫폼은 아무것도 하지 않음
@@ -114,8 +129,8 @@ class LockScreenBridge {
 
   static const String _channelName = 'passql/lock_screen';
 
-  // 잠금화면 기능 출시 여부: Play 포그라운드 서비스 권한 신고 전까지 false (AndroidManifest 서비스·권한 선언과 함께 바꿈, #1002)
-  static const bool isLockScreenShipped = false;
+  // 잠금화면 기능 출시 여부: AndroidManifest 포그라운드 서비스·권한 선언과 함께 바꿈 (#1002 임시 제외, #1043 복구)
+  static const bool isLockScreenShipped = true;
 
   final MethodChannel _channel;
 
@@ -165,7 +180,7 @@ class LockScreenBridge {
   Future<void> openSamsungPowerSettings() =>
       _invoke<void>('openSamsungPowerSettings');
 
-  /// 켜기: 필수 권한 3개가 없으면 네이티브가 거부 > false
+  /// 켜기 (쉬는 중이면 쉬기도 해제): 필수 권한 3개가 없으면 네이티브가 거부 > false
   Future<bool> enable({
     required int intervalMinutes,
     required bool isExecutableExcluded,
@@ -181,11 +196,9 @@ class LockScreenBridge {
   Future<void> updateSettings({
     int? intervalMinutes,
     bool? isExecutableExcluded,
-    bool? isFreshChoiceMode,
   }) => _invoke<void>('updateSettings', {
     'intervalMinutes': ?intervalMinutes,
     'isExecutableExcluded': ?isExecutableExcluded,
-    'isFreshChoiceMode': ?isFreshChoiceMode,
   });
 
   /// 오늘 크레딧 소진 화면을 보였음 > 그날은 안 띄움

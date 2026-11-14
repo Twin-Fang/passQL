@@ -107,12 +107,14 @@ class LockScreenStateNotifier extends AsyncNotifier<LockScreenState> {
     return latest;
   }
 
-  /// 켜기: 간격(기존 값 > 서버 기본)·유형 저장 > 네이티브 켜기(필수 권한 없으면 false) > 기록·분석
-  Future<bool> enable() async {
+  /// 켜기: 간격(켜기 전 고른 값 > 기존 값 > 서버 기본)·유형 저장 > 네이티브 켜기(필수 권한 없으면 false) > 기록·분석
+  Future<bool> enable({int? selectedIntervalMinutes}) async {
     final current = state.valueOrNull ?? await future;
-    final intervalMinutes = current.hasEverEnabled
+    final int savedOrDefaultIntervalMinutes = current.hasEverEnabled
         ? current.settings.intervalMinutes
         : ref.read(lockScreenDefaultIntervalProvider);
+    final int intervalMinutes =
+        selectedIntervalMinutes ?? savedOrDefaultIntervalMinutes;
     final isEnabled = await _bridge.enable(
       intervalMinutes: intervalMinutes,
       isExecutableExcluded: current.settings.isExecutableExcluded,
@@ -136,11 +138,6 @@ class LockScreenStateNotifier extends AsyncNotifier<LockScreenState> {
 
   Future<void> updateInterval(int intervalMinutes) async {
     await _bridge.updateSettings(intervalMinutes: intervalMinutes);
-    await refresh();
-  }
-
-  Future<void> updateFreshChoiceMode(bool isFreshChoiceMode) async {
-    await _bridge.updateSettings(isFreshChoiceMode: isFreshChoiceMode);
     await refresh();
   }
 

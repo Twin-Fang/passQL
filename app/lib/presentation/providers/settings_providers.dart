@@ -160,3 +160,19 @@ final effectiveChoiceModeProvider =
       if (!ref.watch(shouldShowProUiProvider)) return storedMode;
       return storedMode.whenData((_) => ChoiceGenerationMode.practice);
     });
+
+/// 실효 모드가 새 보기(REAL)인가: 회원 설정 응답 대기 > 무료(결제 켜짐) 보정. 조회 실패면 false (검증된 세트 재사용)
+/// 문제 풀이(앱 엔진)·잠금화면(잠금 엔진) 선택지 준비가 함께 씀
+Future<bool> isFreshChoiceModeEffective(Ref ref) async {
+  // autoDispose 라 응답이 올 때까지 구독을 걸어 둠 (끝나면 해제 > 다음 호출 때 다시 받음)
+  final modeSubscription = ref.listen(choiceModeProvider, (_, _) {});
+  try {
+    await ref.read(choiceModeProvider.future);
+    return ref.read(effectiveChoiceModeProvider).valueOrNull ==
+        ChoiceGenerationMode.real;
+  } catch (_) {
+    return false;
+  } finally {
+    modeSubscription.close();
+  }
+}
