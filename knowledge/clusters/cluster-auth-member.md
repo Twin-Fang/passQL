@@ -2,7 +2,7 @@
 type: cluster
 topic: auth-member
 created: 2026-10-29
-members: 67
+members: 68
 status: active
 related: []
 ---
@@ -89,3 +89,4 @@ related: []
 - [[ISS-0407-new-member-onboarding-screens]] (resolved, GitHub #683) — 신규 가입자 온보딩 화면 추가 (앱)
 - [[ISS-0408-withdraw-confirm-phrase-input]] (resolved, GitHub #685) — 탈퇴 시 확인 문구 입력 추가
 - [[ISS-0409-radius-tokens-nickname-edit-cleanup]] (resolved, GitHub #687) — 모서리, 닉네임 편집 정리 (앱)
+- [[ISS-0518-lock-screen-engine-stale-refresh-token-reuse]] — 잠금화면 엔진 옛 refreshToken 재사용으로 전체 세션 폐기 위험, 저장소 기준 재판단 (resolved, #1071)
