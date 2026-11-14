@@ -51,7 +51,7 @@ class _ExamAnswerApiClient implements ExamAnswerApiClient {
   Future<ExamAnswerSheetResponse> submitSheet(
     String certType,
     int roundNumber,
-    ExamAnswerSheetRequest request,
+    ExamAnswerSheetSubmitRequest request,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

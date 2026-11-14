@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import '../../../core/exam_answer/sqld_scoring_rule.dart';
+import '../../../core/exam_answer/exam_grading_rule.dart';
 import '../../design/design.dart';
 
 /// OMR 입력지: 과목별 묶음 > 문항 행(번호 + 보기 1~4 큰 동그라미 + 모름)
@@ -9,8 +9,12 @@ class ExamAnswerOmrSheet extends StatelessWidget {
   const ExamAnswerOmrSheet({
     super.key,
     required this.answers,
+    required this.gradingRule,
     required this.onAnswerSelected,
   });
+
+  /// 과목 묶음·문항 범위 (회차 채점 규칙)
+  final ExamGradingRule gradingRule;
 
   /// 답안 50자: '1'~'4' 보기, '0' 모름, 그 밖 미입력
   final String answers;
@@ -23,8 +27,8 @@ class ExamAnswerOmrSheet extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final subject in SqldScoringRule.subjects) ...[
-          if (subject != SqldScoringRule.subjects.first)
+        for (final subject in gradingRule.subjects) ...[
+          if (subject != gradingRule.subjects.first)
             const SizedBox(height: PassqlSpacing.xl),
           _SubjectHeader(subject: subject, answers: answers),
           const SizedBox(height: PassqlSpacing.xs),
@@ -48,7 +52,7 @@ class ExamAnswerOmrSheet extends StatelessWidget {
 class _SubjectHeader extends StatelessWidget {
   const _SubjectHeader({required this.subject, required this.answers});
 
-  final SqldSubjectRule subject;
+  final ExamSubjectRule subject;
   final String answers;
 
   @override
@@ -118,7 +122,7 @@ class _OmrRow extends StatelessWidget {
               ),
             ),
           ),
-          for (var choice = 1; choice <= SqldScoringRule.choiceCount; choice++)
+          for (var choice = 1; choice <= ExamGradingRule.choiceCount; choice++)
             Expanded(
               child: Center(
                 child: _OmrBubble(
@@ -131,8 +135,8 @@ class _OmrRow extends StatelessWidget {
             ),
           _UnknownChip(
             questionNo: questionNo,
-            isSelected: mark == '${SqldScoringRule.unknownAnswer}',
-            onTap: () => _select(SqldScoringRule.unknownAnswer),
+            isSelected: mark == '${ExamGradingRule.unknownAnswer}',
+            onTap: () => _select(ExamGradingRule.unknownAnswer),
           ),
         ],
       ),

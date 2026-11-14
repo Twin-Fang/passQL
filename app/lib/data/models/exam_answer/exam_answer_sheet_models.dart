@@ -10,75 +10,64 @@ part 'exam_answer_sheet_models.g.dart';
 
 /// 답안 제출 (POST .../sheets, #1075): 기기 토큰·답안 50자('0' 모름, '1'~'4')·출처 APP
 @freezed
-class ExamAnswerSheetRequest with _$ExamAnswerSheetRequest {
-  const factory ExamAnswerSheetRequest({
+class ExamAnswerSheetSubmitRequest with _$ExamAnswerSheetSubmitRequest {
+  const factory ExamAnswerSheetSubmitRequest({
     required String clientToken,
     required String answers,
     required String source,
-  }) = _ExamAnswerSheetRequest;
+  }) = _ExamAnswerSheetSubmitRequest;
 
-  factory ExamAnswerSheetRequest.fromJson(Map<String, dynamic> json) =>
-      _$ExamAnswerSheetRequestFromJson(json);
+  factory ExamAnswerSheetSubmitRequest.fromJson(Map<String, dynamic> json) =>
+      _$ExamAnswerSheetSubmitRequestFromJson(json);
 }
 
-/// 내 답안지 (POST 제출 응답·GET .../sheets/{clientToken} 공용): 답안 + 채점 결과
-/// 결과는 `result` 묶음 또는 최상위 칸 두 모양 모두 받음 (서버 병행 개발)
-class ExamAnswerSheetResponse {
-  const ExamAnswerSheetResponse({this.answers, this.grade});
+/// 내 답안지 (POST 제출 응답·GET .../sheets/{clientToken} 공용, 없으면 404 EXAM_ANSWER_SHEET_NOT_FOUND)
+@freezed
+class ExamAnswerSheetResponse with _$ExamAnswerSheetResponse {
+  const factory ExamAnswerSheetResponse({
+    required String certType,
+    required int roundNumber,
+    required String answers,
+    String? source,
+    DateTime? submittedAt,
+    ExamAnswerGradingResponse? result,
+  }) = _ExamAnswerSheetResponse;
 
-  final String? answers;
-  final ExamAnswerGradeResult? grade;
-
-  // 채점 결과가 최상위에 있는지 가르는 칸
-  static const String _flatGradeMarkerKey = 'totalScore';
-
-  factory ExamAnswerSheetResponse.fromJson(Map<String, dynamic> json) {
-    final nestedGrade = json['result'];
-    final gradeJson = nestedGrade is Map<String, dynamic>
-        ? nestedGrade
-        : json.containsKey(_flatGradeMarkerKey)
-        ? json
-        : null;
-    return ExamAnswerSheetResponse(
-      answers: json['answers'] as String?,
-      grade: gradeJson == null
-          ? null
-          : ExamAnswerGradeResult.fromJson(gradeJson),
-    );
-  }
+  factory ExamAnswerSheetResponse.fromJson(Map<String, dynamic> json) =>
+      _$ExamAnswerSheetResponseFromJson(json);
 }
 
 /// 서버 채점 결과: 과목 2개·총점·점수 범위·판정·상위 %·문항별 정오
 @freezed
-class ExamAnswerGradeResult with _$ExamAnswerGradeResult {
-  const factory ExamAnswerGradeResult({
-    required ExamAnswerSubjectGrade subject1,
-    required ExamAnswerSubjectGrade subject2,
+class ExamAnswerGradingResponse with _$ExamAnswerGradingResponse {
+  const factory ExamAnswerGradingResponse({
+    required ExamAnswerSubjectScoreResponse subject1,
+    required ExamAnswerSubjectScoreResponse subject2,
     required int totalScore,
     ExamAnswerScoreRangeResponse? scoreRange,
     @JsonKey(unknownEnumValue: ExamAnswerPassStatusValue.unknown)
     @Default(ExamAnswerPassStatusValue.unknown)
     ExamAnswerPassStatusValue passStatus,
-    // 참여자 중 상위 % (0~100)
-    double? percentile,
-    @Default([]) List<ExamAnswerQuestionGrade> perQuestion,
-  }) = _ExamAnswerGradeResult;
+    // 참여자 중 상위 % (1~100 올림, 참여 10명 미만이면 null)
+    int? percentile,
+    @Default([]) List<ExamAnswerQuestionResultResponse> perQuestion,
+  }) = _ExamAnswerGradingResponse;
 
-  factory ExamAnswerGradeResult.fromJson(Map<String, dynamic> json) =>
-      _$ExamAnswerGradeResultFromJson(json);
+  factory ExamAnswerGradingResponse.fromJson(Map<String, dynamic> json) =>
+      _$ExamAnswerGradingResponseFromJson(json);
 }
 
 /// 과목 점수: 점수·만점·과락
 @freezed
-class ExamAnswerSubjectGrade with _$ExamAnswerSubjectGrade {
-  const factory ExamAnswerSubjectGrade({
+class ExamAnswerSubjectScoreResponse with _$ExamAnswerSubjectScoreResponse {
+  const factory ExamAnswerSubjectScoreResponse({
     required int score,
     required int max,
     @Default(false) bool isFailCut,
-  }) = _ExamAnswerSubjectGrade;
+  }) = _ExamAnswerSubjectScoreResponse;
 
-  factory ExamAnswerSubjectGrade.fromJson(Map<String, dynamic> json) =>
-      _$ExamAnswerSubjectGradeFromJson(json);
+  factory ExamAnswerSubjectScoreResponse.fromJson(Map<String, dynamic> json) =>
+      _$ExamAnswerSubjectScoreResponseFromJson(json);
 }
 
 /// 점수 범위 (갈림·미확정을 틀림/맞음 가정)
@@ -93,22 +82,23 @@ class ExamAnswerScoreRangeResponse with _$ExamAnswerScoreRangeResponse {
       _$ExamAnswerScoreRangeResponseFromJson(json);
 }
 
-/// 문항 정오: 내 답(0 모름)·표시 정답·정오(갈림·미확정이면 null)
+/// 문항 정오: 내 답(0 모름)·표시 정답·정오(표시 정답 없으면 null)
 @freezed
-class ExamAnswerQuestionGrade with _$ExamAnswerQuestionGrade {
-  const factory ExamAnswerQuestionGrade({
+class ExamAnswerQuestionResultResponse with _$ExamAnswerQuestionResultResponse {
+  const factory ExamAnswerQuestionResultResponse({
     required int questionNo,
     @Default(0) int myAnswer,
     int? answer,
     bool? isCorrect,
-  }) = _ExamAnswerQuestionGrade;
+  }) = _ExamAnswerQuestionResultResponse;
 
-  factory ExamAnswerQuestionGrade.fromJson(Map<String, dynamic> json) =>
-      _$ExamAnswerQuestionGradeFromJson(json);
+  factory ExamAnswerQuestionResultResponse.fromJson(
+    Map<String, dynamic> json,
+  ) => _$ExamAnswerQuestionResultResponseFromJson(json);
 }
 
 /// 서버 채점 결과 > 화면 공통 결과 모양
-extension ExamAnswerGradeResultReport on ExamAnswerGradeResult {
+extension ExamAnswerGradingResponseReport on ExamAnswerGradingResponse {
   ExamAnswerScoreReport toScoreReport() {
     final passStatusValue = switch (passStatus) {
       ExamAnswerPassStatusValue.pass => ExamAnswerPassStatus.pass,
@@ -140,11 +130,11 @@ extension ExamAnswerGradeResultReport on ExamAnswerGradeResult {
 
   static ExamAnswerSubjectScore _toSubjectScore(
     int subjectNo,
-    ExamAnswerSubjectGrade grade,
+    ExamAnswerSubjectScoreResponse subjectScore,
   ) => ExamAnswerSubjectScore(
     subjectNo: subjectNo,
-    score: grade.score,
-    maxScore: grade.max,
-    isFailCut: grade.isFailCut,
+    score: subjectScore.score,
+    maxScore: subjectScore.max,
+    isFailCut: subjectScore.isFailCut,
   );
 }

@@ -23,10 +23,10 @@ abstract class ExamAnswerApiClient {
   Future<ExamAnswerSheetResponse> submitSheet(
     @Path('certType') String certType,
     @Path('roundNumber') int roundNumber,
-    @Body() ExamAnswerSheetRequest request,
+    @Body() ExamAnswerSheetSubmitRequest request,
   );
 
-  /// 내 답안지 + 채점 결과 (제출 전이면 404)
+  /// 내 답안지 + 채점 결과 (제출 전이면 404 EXAM_ANSWER_SHEET_NOT_FOUND)
   @GET('/exam-answers/{certType}/{roundNumber}/sheets/{clientToken}')
   Future<ExamAnswerSheetResponse> getSheet(
     @Path('certType') String certType,

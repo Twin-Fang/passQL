@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import '../../../core/exam_answer/exam_answer_score_report.dart';
-import '../../../core/exam_answer/sqld_scoring_rule.dart';
+
 import '../../design/design.dart';
 import 'exam_answer_status_styles.dart';
 
@@ -10,11 +10,13 @@ class ExamAnswerShareCard extends StatelessWidget {
   const ExamAnswerShareCard({
     super.key,
     required this.roundTitle,
+    required this.maxScore,
     required this.report,
     required this.isScorePublic,
   });
 
   final String roundTitle;
+  final int maxScore;
   final ExamAnswerScoreReport report;
 
   /// 점수·과목 점수·상위 % 를 싣는지 (끄면 판정만)
@@ -95,7 +97,7 @@ class ExamAnswerShareCard extends StatelessWidget {
                               ),
                             ),
                             TextSpan(
-                              text: ' / ${SqldScoringRule.maxScore}점',
+                              text: ' / $maxScore점',
                               style: PassqlTypography.headline.copyWith(
                                 color: colors.secondaryLabel,
                               ),
@@ -119,7 +121,7 @@ class ExamAnswerShareCard extends StatelessWidget {
                             ),
                           if (percentile != null)
                             PassqlBadge(
-                              text: '상위 ${percentile.round()}%',
+                              text: '상위 $percentile%',
                               kind: PassqlBadgeKind.topic,
                             ),
                         ],

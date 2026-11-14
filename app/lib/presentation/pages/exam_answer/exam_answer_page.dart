@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/error/error_code.dart';
-import '../../../core/exam_answer/sqld_scoring_rule.dart';
 import '../../../data/models/exam_answer/exam_answer_round_response.dart';
 import '../../design/design.dart';
 import '../../providers/exam_answer_providers.dart';
@@ -114,6 +113,7 @@ class _ExamAnswerPageState extends ConsumerState<ExamAnswerPage> {
                     : ExamAnswerKeyTab(
                         key: const ValueKey(_ExamAnswerTab.answerKey),
                         items: roundResponse.items,
+                        gradingRule: roundResponse.effectiveGradingRule,
                         myAnswers: sheetState.gradedSheet?.answers,
                       ),
               ),
@@ -131,8 +131,7 @@ class _ExamAnswerPageState extends ConsumerState<ExamAnswerPage> {
     if (!sheetState.isLoaded || !sheetState.isEditing) return null;
     final colors = context.passqlColors;
     final gradingError = sheetState.gradingError;
-    final remainingCount =
-        SqldScoringRule.questionCount - sheetState.enteredCount;
+    final remainingCount = sheetState.answers.length - sheetState.enteredCount;
     return PassqlBottomActionBar(
       top: gradingError == null
           ? null

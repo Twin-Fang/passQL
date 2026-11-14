@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/error/app_exception.dart';
-import '../../core/exam_answer/sqld_scoring_rule.dart';
+import '../../core/exam_answer/exam_grading_rule.dart';
 import '../../core/logging/app_logger.dart';
 import '../../core/network/safe_call.dart';
 import '../../core/utils/app_clock.dart';
@@ -51,7 +51,7 @@ final examAnswerHomeEntryProvider =
             .fetchRound(latestSchedule.certType, latestSchedule.round),
         label: 'examAnswerHomeRound',
       );
-      return roundResponse != null && roundResponse.round.status.isOpenForEntry
+      return roundResponse != null && roundResponse.status.isOpenForEntry
           ? roundResponse
           : null;
     });
@@ -80,16 +80,18 @@ class ExamAnswerSheetState {
   // 미입력 자리 표시 (제출 때 모름 '0' 으로 바꿈)
   static const String emptyMark = '.';
 
-  static final String emptyAnswers = emptyMark * SqldScoringRule.questionCount;
+  /// 빈 답안 (문항 수는 회차 채점 규칙, 불러오기 전엔 대체 규칙)
+  static String emptyAnswersOf(ExamGradingRule rule) =>
+      emptyMark * rule.questionCount;
 
   int get enteredCount =>
       answers.split('').where((mark) => mark != emptyMark).length;
 
-  bool get isComplete => enteredCount == SqldScoringRule.questionCount;
+  bool get isComplete => enteredCount == answers.length;
 
   /// 제출용 답안 (미입력 > 모름)
   String get submittableAnswers =>
-      answers.replaceAll(emptyMark, '${SqldScoringRule.unknownAnswer}');
+      answers.replaceAll(emptyMark, '${ExamGradingRule.unknownAnswer}');
 
   /// 채점 뒤 답안을 고쳐 결과가 지금 답안과 다른지
   bool get isGradeOutdated =>
@@ -125,7 +127,11 @@ class ExamAnswerSheetNotifier
   @override
   ExamAnswerSheetState build(ExamAnswerRoundKey roundKey) {
     unawaited(Future.microtask(_load));
-    return ExamAnswerSheetState(answers: ExamAnswerSheetState.emptyAnswers);
+    return ExamAnswerSheetState(
+      answers: ExamAnswerSheetState.emptyAnswersOf(
+        ExamGradingRule.sqldFallback,
+      ),
+    );
   }
 
   ExamAnswerRepository get _repository =>
@@ -138,8 +144,10 @@ class ExamAnswerSheetNotifier
       arg.roundNumber,
     );
     ExamAnswerMySheet? serverSheet;
+    var rule = ExamGradingRule.sqldFallback;
     try {
       final roundResponse = await ref.read(examAnswerRoundProvider(arg).future);
+      rule = roundResponse.effectiveGradingRule;
       serverSheet = await _repository.fetchMySheet(roundResponse);
     } catch (exception) {
       // 회차·답안지 조회 실패 > 임시 답안만으로 입력 (회차 오류는 화면이 따로 보여 줌)
@@ -149,9 +157,9 @@ class ExamAnswerSheetNotifier
       );
     }
     final answers =
-        _normalizedDraft(draftAnswers) ??
+        _normalizedDraft(draftAnswers, rule) ??
         serverSheet?.answers ??
-        ExamAnswerSheetState.emptyAnswers;
+        ExamAnswerSheetState.emptyAnswersOf(rule);
     state = state.copyWith(
       answers: answers,
       gradedSheet: serverSheet,
@@ -207,11 +215,9 @@ class ExamAnswerSheetNotifier
     state = state.copyWith(isEditing: false);
   }
 
-  // 저장 형식이 맞는 임시 답안만 (길이 50)
-  static String? _normalizedDraft(String? draftAnswers) =>
-      draftAnswers?.length == SqldScoringRule.questionCount
-      ? draftAnswers
-      : null;
+  // 저장 형식이 맞는 임시 답안만 (길이 = 회차 문항 수)
+  static String? _normalizedDraft(String? draftAnswers, ExamGradingRule rule) =>
+      draftAnswers?.length == rule.questionCount ? draftAnswers : null;
 }
 
 final examAnswerSheetProvider = NotifierProvider.autoDispose

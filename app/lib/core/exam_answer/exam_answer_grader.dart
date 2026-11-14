@@ -1,5 +1,5 @@
 import 'exam_answer_score_report.dart';
-import 'sqld_scoring_rule.dart';
+import 'exam_grading_rule.dart';
 
 /// 가답안 1문항 (채점 입력): 표시 정답·인정 정답(복수 정답 포함)·정답이 정해졌는지
 /// 정해짐 = 공식·확정·우세, 아니면 갈림·미확정 (점수 범위의 양 끝 가정 대상)
@@ -17,12 +17,13 @@ class ExamAnswerKey {
   final int? displayAnswer;
 }
 
-/// SQLD 오프라인 가채점: 답안 문자열 + 가답안 > 결과 (서버에 닿지 못할 때만 씀)
+/// 오프라인 가채점: 답안 문자열 + 가답안 + 채점 규칙 > 결과 (서버에 닿지 못할 때만 씀)
 /// 갈림·미확정 문항: 점수는 표시 정답 기준, 범위는 모두 틀림(min)~모두 맞음(max)
-abstract final class SqldAnswerGrader {
+abstract final class ExamAnswerGrader {
   static ExamAnswerScoreReport grade(
     String answers,
     List<ExamAnswerKey> answerKeys,
+    ExamGradingRule rule,
   ) {
     final keyByQuestionNo = {for (final key in answerKeys) key.questionNo: key};
     final marks = <ExamAnswerQuestionMark>[];
@@ -32,15 +33,11 @@ abstract final class SqldAnswerGrader {
     final maxScoreBySubject = <int, int>{};
 
     // 문항별 채점 (모름은 언제나 틀림)
-    for (
-      var questionNo = 1;
-      questionNo <= SqldScoringRule.questionCount;
-      questionNo++
-    ) {
+    for (var questionNo = 1; questionNo <= rule.questionCount; questionNo++) {
       final myAnswer = answerAt(answers, questionNo);
       final key = keyByQuestionNo[questionNo];
-      final subjectNo = SqldScoringRule.subjectOf(questionNo).subjectNo;
-      final isAnswered = myAnswer != SqldScoringRule.unknownAnswer;
+      final subjectNo = rule.subjectOf(questionNo).subjectNo;
+      final isAnswered = myAnswer != ExamGradingRule.unknownAnswer;
       final isSettled = key?.isSettled ?? false;
       final isMatched =
           isAnswered && (key?.acceptedAnswers.contains(myAnswer) ?? false);
@@ -51,7 +48,7 @@ abstract final class SqldAnswerGrader {
       void addPoints(Map<int, int> scoreBySubject, bool isCorrect) {
         scoreBySubject[subjectNo] =
             (scoreBySubject[subjectNo] ?? 0) +
-            (isCorrect ? SqldScoringRule.pointsPerQuestion : 0);
+            (isCorrect ? rule.pointsPerQuestion : 0);
       }
 
       addPoints(estimatedScoreBySubject, isEstimatedCorrect);
@@ -68,8 +65,8 @@ abstract final class SqldAnswerGrader {
     }
 
     // 범위 양 끝 합격 판정 > 판정 3종
-    final isPassAtMin = _isPassed(minScoreBySubject);
-    final isPassAtMax = _isPassed(maxScoreBySubject);
+    final isPassAtMin = _isPassed(minScoreBySubject, rule);
+    final isPassAtMax = _isPassed(maxScoreBySubject, rule);
     final passStatus = isPassAtMin
         ? ExamAnswerPassStatus.pass
         : isPassAtMax
@@ -78,7 +75,7 @@ abstract final class SqldAnswerGrader {
 
     return ExamAnswerScoreReport(
       subjects: [
-        for (final subject in SqldScoringRule.subjects)
+        for (final subject in rule.subjects)
           ExamAnswerSubjectScore(
             subjectNo: subject.subjectNo,
             score: estimatedScoreBySubject[subject.subjectNo] ?? 0,
@@ -102,19 +99,19 @@ abstract final class SqldAnswerGrader {
   /// 답안 문자열 [questionNo] 번 자리 > 보기 번호 (모름·빈칸·범위 밖은 0)
   static int answerAt(String answers, int questionNo) {
     if (questionNo < 1 || questionNo > answers.length) {
-      return SqldScoringRule.unknownAnswer;
+      return ExamGradingRule.unknownAnswer;
     }
     final choice = int.tryParse(answers[questionNo - 1]);
-    if (choice == null || choice < 1 || choice > SqldScoringRule.choiceCount) {
-      return SqldScoringRule.unknownAnswer;
+    if (choice == null || choice < 1 || choice > ExamGradingRule.choiceCount) {
+      return ExamGradingRule.unknownAnswer;
     }
     return choice;
   }
 
   /// 총점 60 이상 + 과락 과목 없음
-  static bool _isPassed(Map<int, int> scoreBySubject) =>
-      _sum(scoreBySubject) >= SqldScoringRule.passScore &&
-      SqldScoringRule.subjects.every(
+  static bool _isPassed(Map<int, int> scoreBySubject, ExamGradingRule rule) =>
+      _sum(scoreBySubject) >= rule.passScore &&
+      rule.subjects.every(
         (subject) => !subject.isFailCut(scoreBySubject[subject.subjectNo] ?? 0),
       );
 

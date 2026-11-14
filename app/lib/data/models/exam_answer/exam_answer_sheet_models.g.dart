@@ -6,29 +6,57 @@ part of 'exam_answer_sheet_models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ExamAnswerSheetRequestImpl _$$ExamAnswerSheetRequestImplFromJson(
+_$ExamAnswerSheetSubmitRequestImpl _$$ExamAnswerSheetSubmitRequestImplFromJson(
   Map<String, dynamic> json,
-) => _$ExamAnswerSheetRequestImpl(
+) => _$ExamAnswerSheetSubmitRequestImpl(
   clientToken: json['clientToken'] as String,
   answers: json['answers'] as String,
   source: json['source'] as String,
 );
 
-Map<String, dynamic> _$$ExamAnswerSheetRequestImplToJson(
-  _$ExamAnswerSheetRequestImpl instance,
+Map<String, dynamic> _$$ExamAnswerSheetSubmitRequestImplToJson(
+  _$ExamAnswerSheetSubmitRequestImpl instance,
 ) => <String, dynamic>{
   'clientToken': instance.clientToken,
   'answers': instance.answers,
   'source': instance.source,
 };
 
-_$ExamAnswerGradeResultImpl _$$ExamAnswerGradeResultImplFromJson(
+_$ExamAnswerSheetResponseImpl _$$ExamAnswerSheetResponseImplFromJson(
   Map<String, dynamic> json,
-) => _$ExamAnswerGradeResultImpl(
-  subject1: ExamAnswerSubjectGrade.fromJson(
+) => _$ExamAnswerSheetResponseImpl(
+  certType: json['certType'] as String,
+  roundNumber: (json['roundNumber'] as num).toInt(),
+  answers: json['answers'] as String,
+  source: json['source'] as String?,
+  submittedAt: json['submittedAt'] == null
+      ? null
+      : DateTime.parse(json['submittedAt'] as String),
+  result: json['result'] == null
+      ? null
+      : ExamAnswerGradingResponse.fromJson(
+          json['result'] as Map<String, dynamic>,
+        ),
+);
+
+Map<String, dynamic> _$$ExamAnswerSheetResponseImplToJson(
+  _$ExamAnswerSheetResponseImpl instance,
+) => <String, dynamic>{
+  'certType': instance.certType,
+  'roundNumber': instance.roundNumber,
+  'answers': instance.answers,
+  'source': instance.source,
+  'submittedAt': instance.submittedAt?.toIso8601String(),
+  'result': instance.result,
+};
+
+_$ExamAnswerGradingResponseImpl _$$ExamAnswerGradingResponseImplFromJson(
+  Map<String, dynamic> json,
+) => _$ExamAnswerGradingResponseImpl(
+  subject1: ExamAnswerSubjectScoreResponse.fromJson(
     json['subject1'] as Map<String, dynamic>,
   ),
-  subject2: ExamAnswerSubjectGrade.fromJson(
+  subject2: ExamAnswerSubjectScoreResponse.fromJson(
     json['subject2'] as Map<String, dynamic>,
   ),
   totalScore: (json['totalScore'] as num).toInt(),
@@ -44,18 +72,20 @@ _$ExamAnswerGradeResultImpl _$$ExamAnswerGradeResultImplFromJson(
         unknownValue: ExamAnswerPassStatusValue.unknown,
       ) ??
       ExamAnswerPassStatusValue.unknown,
-  percentile: (json['percentile'] as num?)?.toDouble(),
+  percentile: (json['percentile'] as num?)?.toInt(),
   perQuestion:
       (json['perQuestion'] as List<dynamic>?)
           ?.map(
-            (e) => ExamAnswerQuestionGrade.fromJson(e as Map<String, dynamic>),
+            (e) => ExamAnswerQuestionResultResponse.fromJson(
+              e as Map<String, dynamic>,
+            ),
           )
           .toList() ??
       const [],
 );
 
-Map<String, dynamic> _$$ExamAnswerGradeResultImplToJson(
-  _$ExamAnswerGradeResultImpl instance,
+Map<String, dynamic> _$$ExamAnswerGradingResponseImplToJson(
+  _$ExamAnswerGradingResponseImpl instance,
 ) => <String, dynamic>{
   'subject1': instance.subject1,
   'subject2': instance.subject2,
@@ -73,16 +103,16 @@ const _$ExamAnswerPassStatusValueEnumMap = {
   ExamAnswerPassStatusValue.unknown: 'unknown',
 };
 
-_$ExamAnswerSubjectGradeImpl _$$ExamAnswerSubjectGradeImplFromJson(
-  Map<String, dynamic> json,
-) => _$ExamAnswerSubjectGradeImpl(
-  score: (json['score'] as num).toInt(),
-  max: (json['max'] as num).toInt(),
-  isFailCut: json['isFailCut'] as bool? ?? false,
-);
+_$ExamAnswerSubjectScoreResponseImpl
+_$$ExamAnswerSubjectScoreResponseImplFromJson(Map<String, dynamic> json) =>
+    _$ExamAnswerSubjectScoreResponseImpl(
+      score: (json['score'] as num).toInt(),
+      max: (json['max'] as num).toInt(),
+      isFailCut: json['isFailCut'] as bool? ?? false,
+    );
 
-Map<String, dynamic> _$$ExamAnswerSubjectGradeImplToJson(
-  _$ExamAnswerSubjectGradeImpl instance,
+Map<String, dynamic> _$$ExamAnswerSubjectScoreResponseImplToJson(
+  _$ExamAnswerSubjectScoreResponseImpl instance,
 ) => <String, dynamic>{
   'score': instance.score,
   'max': instance.max,
@@ -100,17 +130,17 @@ Map<String, dynamic> _$$ExamAnswerScoreRangeResponseImplToJson(
   _$ExamAnswerScoreRangeResponseImpl instance,
 ) => <String, dynamic>{'min': instance.min, 'max': instance.max};
 
-_$ExamAnswerQuestionGradeImpl _$$ExamAnswerQuestionGradeImplFromJson(
-  Map<String, dynamic> json,
-) => _$ExamAnswerQuestionGradeImpl(
-  questionNo: (json['questionNo'] as num).toInt(),
-  myAnswer: (json['myAnswer'] as num?)?.toInt() ?? 0,
-  answer: (json['answer'] as num?)?.toInt(),
-  isCorrect: json['isCorrect'] as bool?,
-);
+_$ExamAnswerQuestionResultResponseImpl
+_$$ExamAnswerQuestionResultResponseImplFromJson(Map<String, dynamic> json) =>
+    _$ExamAnswerQuestionResultResponseImpl(
+      questionNo: (json['questionNo'] as num).toInt(),
+      myAnswer: (json['myAnswer'] as num?)?.toInt() ?? 0,
+      answer: (json['answer'] as num?)?.toInt(),
+      isCorrect: json['isCorrect'] as bool?,
+    );
 
-Map<String, dynamic> _$$ExamAnswerQuestionGradeImplToJson(
-  _$ExamAnswerQuestionGradeImpl instance,
+Map<String, dynamic> _$$ExamAnswerQuestionResultResponseImplToJson(
+  _$ExamAnswerQuestionResultResponseImpl instance,
 ) => <String, dynamic>{
   'questionNo': instance.questionNo,
   'myAnswer': instance.myAnswer,

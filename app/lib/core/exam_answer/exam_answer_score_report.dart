@@ -19,15 +19,15 @@ class ExamAnswerScoreReport {
   final ExamAnswerPassStatus passStatus;
   final List<ExamAnswerQuestionMark> questionMarks;
 
-  /// 참여자 중 상위 % (0~100, 오프라인 계산이면 null)
-  final double? percentile;
+  /// 참여자 중 상위 % (1~100, 참여 10명 미만·오프라인 계산이면 null)
+  final int? percentile;
 
   /// 서버에 닿지 못해 기기에서 계산했는지 (상위 % 없음 안내)
   final bool isLocalEstimate;
 
   bool get hasUnsettledQuestion => scoreRange.min != scoreRange.max;
 
-  /// 틀린 문항 (정답이 정해진 문항만, 갈림·미확정은 제외)
+  /// 틀린 문항 (정오를 알 수 없는 문항 제외)
   List<ExamAnswerQuestionMark> get wrongMarks =>
       questionMarks.where((mark) => mark.isCorrect == false).toList();
 }

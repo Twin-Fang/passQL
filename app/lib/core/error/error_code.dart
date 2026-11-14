@@ -149,6 +149,10 @@ abstract final class ErrorCodeMapper {
     'MOCK_EXAM_NOT_SUBMITTED': ErrorCode.mockExamNotSubmitted,
     'MOCK_EXAM_ROUND_NOT_FOUND': ErrorCode.notFound,
     'MOCK_EXAM_ATTEMPT_NOT_FOUND': ErrorCode.notFound,
+    // 가답안·가채점 (#1075): 없는 회차·답안지(404, 화면은 빈 상태·입력으로), 제출 마감 회차(409, 서버 문구 그대로)
+    'EXAM_ANSWER_ROUND_NOT_FOUND': ErrorCode.notFound,
+    'EXAM_ANSWER_SHEET_NOT_FOUND': ErrorCode.notFound,
+    'EXAM_ANSWER_ROUND_CLOSED': ErrorCode.conflict,
     'DAILY_SET_ALREADY_COMPLETED': ErrorCode.dailySetAlreadyCompleted,
     'DAILY_SET_NOT_FOUND': ErrorCode.dailySetNotFound,
     // AI 사용 불가: 서버 연결 실패, 대체 경로 실패, 선택지 생성 실패(SSE GENERATION_FAILED 포함)

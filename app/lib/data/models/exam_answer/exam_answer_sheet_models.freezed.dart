@@ -15,52 +15,56 @@ final _privateConstructorUsedError = UnsupportedError(
   'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
 );
 
-ExamAnswerSheetRequest _$ExamAnswerSheetRequestFromJson(
+ExamAnswerSheetSubmitRequest _$ExamAnswerSheetSubmitRequestFromJson(
   Map<String, dynamic> json,
 ) {
-  return _ExamAnswerSheetRequest.fromJson(json);
+  return _ExamAnswerSheetSubmitRequest.fromJson(json);
 }
 
 /// @nodoc
-mixin _$ExamAnswerSheetRequest {
+mixin _$ExamAnswerSheetSubmitRequest {
   String get clientToken => throw _privateConstructorUsedError;
   String get answers => throw _privateConstructorUsedError;
   String get source => throw _privateConstructorUsedError;
 
-  /// Serializes this ExamAnswerSheetRequest to a JSON map.
+  /// Serializes this ExamAnswerSheetSubmitRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of ExamAnswerSheetRequest
+  /// Create a copy of ExamAnswerSheetSubmitRequest
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ExamAnswerSheetRequestCopyWith<ExamAnswerSheetRequest> get copyWith =>
-      throw _privateConstructorUsedError;
+  $ExamAnswerSheetSubmitRequestCopyWith<ExamAnswerSheetSubmitRequest>
+  get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $ExamAnswerSheetRequestCopyWith<$Res> {
-  factory $ExamAnswerSheetRequestCopyWith(
-    ExamAnswerSheetRequest value,
-    $Res Function(ExamAnswerSheetRequest) then,
-  ) = _$ExamAnswerSheetRequestCopyWithImpl<$Res, ExamAnswerSheetRequest>;
+abstract class $ExamAnswerSheetSubmitRequestCopyWith<$Res> {
+  factory $ExamAnswerSheetSubmitRequestCopyWith(
+    ExamAnswerSheetSubmitRequest value,
+    $Res Function(ExamAnswerSheetSubmitRequest) then,
+  ) =
+      _$ExamAnswerSheetSubmitRequestCopyWithImpl<
+        $Res,
+        ExamAnswerSheetSubmitRequest
+      >;
   @useResult
   $Res call({String clientToken, String answers, String source});
 }
 
 /// @nodoc
-class _$ExamAnswerSheetRequestCopyWithImpl<
+class _$ExamAnswerSheetSubmitRequestCopyWithImpl<
   $Res,
-  $Val extends ExamAnswerSheetRequest
+  $Val extends ExamAnswerSheetSubmitRequest
 >
-    implements $ExamAnswerSheetRequestCopyWith<$Res> {
-  _$ExamAnswerSheetRequestCopyWithImpl(this._value, this._then);
+    implements $ExamAnswerSheetSubmitRequestCopyWith<$Res> {
+  _$ExamAnswerSheetSubmitRequestCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ExamAnswerSheetRequest
+  /// Create a copy of ExamAnswerSheetSubmitRequest
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -90,28 +94,31 @@ class _$ExamAnswerSheetRequestCopyWithImpl<
 }
 
 /// @nodoc
-abstract class _$$ExamAnswerSheetRequestImplCopyWith<$Res>
-    implements $ExamAnswerSheetRequestCopyWith<$Res> {
-  factory _$$ExamAnswerSheetRequestImplCopyWith(
-    _$ExamAnswerSheetRequestImpl value,
-    $Res Function(_$ExamAnswerSheetRequestImpl) then,
-  ) = __$$ExamAnswerSheetRequestImplCopyWithImpl<$Res>;
+abstract class _$$ExamAnswerSheetSubmitRequestImplCopyWith<$Res>
+    implements $ExamAnswerSheetSubmitRequestCopyWith<$Res> {
+  factory _$$ExamAnswerSheetSubmitRequestImplCopyWith(
+    _$ExamAnswerSheetSubmitRequestImpl value,
+    $Res Function(_$ExamAnswerSheetSubmitRequestImpl) then,
+  ) = __$$ExamAnswerSheetSubmitRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String clientToken, String answers, String source});
 }
 
 /// @nodoc
-class __$$ExamAnswerSheetRequestImplCopyWithImpl<$Res>
+class __$$ExamAnswerSheetSubmitRequestImplCopyWithImpl<$Res>
     extends
-        _$ExamAnswerSheetRequestCopyWithImpl<$Res, _$ExamAnswerSheetRequestImpl>
-    implements _$$ExamAnswerSheetRequestImplCopyWith<$Res> {
-  __$$ExamAnswerSheetRequestImplCopyWithImpl(
-    _$ExamAnswerSheetRequestImpl _value,
-    $Res Function(_$ExamAnswerSheetRequestImpl) _then,
+        _$ExamAnswerSheetSubmitRequestCopyWithImpl<
+          $Res,
+          _$ExamAnswerSheetSubmitRequestImpl
+        >
+    implements _$$ExamAnswerSheetSubmitRequestImplCopyWith<$Res> {
+  __$$ExamAnswerSheetSubmitRequestImplCopyWithImpl(
+    _$ExamAnswerSheetSubmitRequestImpl _value,
+    $Res Function(_$ExamAnswerSheetSubmitRequestImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of ExamAnswerSheetRequest
+  /// Create a copy of ExamAnswerSheetSubmitRequest
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -121,7 +128,7 @@ class __$$ExamAnswerSheetRequestImplCopyWithImpl<$Res>
     Object? source = null,
   }) {
     return _then(
-      _$ExamAnswerSheetRequestImpl(
+      _$ExamAnswerSheetSubmitRequestImpl(
         clientToken: null == clientToken
             ? _value.clientToken
             : clientToken // ignore: cast_nullable_to_non_nullable
@@ -141,15 +148,17 @@ class __$$ExamAnswerSheetRequestImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$ExamAnswerSheetRequestImpl implements _ExamAnswerSheetRequest {
-  const _$ExamAnswerSheetRequestImpl({
+class _$ExamAnswerSheetSubmitRequestImpl
+    implements _ExamAnswerSheetSubmitRequest {
+  const _$ExamAnswerSheetSubmitRequestImpl({
     required this.clientToken,
     required this.answers,
     required this.source,
   });
 
-  factory _$ExamAnswerSheetRequestImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ExamAnswerSheetRequestImplFromJson(json);
+  factory _$ExamAnswerSheetSubmitRequestImpl.fromJson(
+    Map<String, dynamic> json,
+  ) => _$$ExamAnswerSheetSubmitRequestImplFromJson(json);
 
   @override
   final String clientToken;
@@ -160,14 +169,14 @@ class _$ExamAnswerSheetRequestImpl implements _ExamAnswerSheetRequest {
 
   @override
   String toString() {
-    return 'ExamAnswerSheetRequest(clientToken: $clientToken, answers: $answers, source: $source)';
+    return 'ExamAnswerSheetSubmitRequest(clientToken: $clientToken, answers: $answers, source: $source)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ExamAnswerSheetRequestImpl &&
+            other is _$ExamAnswerSheetSubmitRequestImpl &&
             (identical(other.clientToken, clientToken) ||
                 other.clientToken == clientToken) &&
             (identical(other.answers, answers) || other.answers == answers) &&
@@ -178,33 +187,35 @@ class _$ExamAnswerSheetRequestImpl implements _ExamAnswerSheetRequest {
   @override
   int get hashCode => Object.hash(runtimeType, clientToken, answers, source);
 
-  /// Create a copy of ExamAnswerSheetRequest
+  /// Create a copy of ExamAnswerSheetSubmitRequest
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$ExamAnswerSheetRequestImplCopyWith<_$ExamAnswerSheetRequestImpl>
+  _$$ExamAnswerSheetSubmitRequestImplCopyWith<
+    _$ExamAnswerSheetSubmitRequestImpl
+  >
   get copyWith =>
-      __$$ExamAnswerSheetRequestImplCopyWithImpl<_$ExamAnswerSheetRequestImpl>(
-        this,
-        _$identity,
-      );
+      __$$ExamAnswerSheetSubmitRequestImplCopyWithImpl<
+        _$ExamAnswerSheetSubmitRequestImpl
+      >(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ExamAnswerSheetRequestImplToJson(this);
+    return _$$ExamAnswerSheetSubmitRequestImplToJson(this);
   }
 }
 
-abstract class _ExamAnswerSheetRequest implements ExamAnswerSheetRequest {
-  const factory _ExamAnswerSheetRequest({
+abstract class _ExamAnswerSheetSubmitRequest
+    implements ExamAnswerSheetSubmitRequest {
+  const factory _ExamAnswerSheetSubmitRequest({
     required final String clientToken,
     required final String answers,
     required final String source,
-  }) = _$ExamAnswerSheetRequestImpl;
+  }) = _$ExamAnswerSheetSubmitRequestImpl;
 
-  factory _ExamAnswerSheetRequest.fromJson(Map<String, dynamic> json) =
-      _$ExamAnswerSheetRequestImpl.fromJson;
+  factory _ExamAnswerSheetSubmitRequest.fromJson(Map<String, dynamic> json) =
+      _$ExamAnswerSheetSubmitRequestImpl.fromJson;
 
   @override
   String get clientToken;
@@ -213,81 +224,390 @@ abstract class _ExamAnswerSheetRequest implements ExamAnswerSheetRequest {
   @override
   String get source;
 
-  /// Create a copy of ExamAnswerSheetRequest
+  /// Create a copy of ExamAnswerSheetSubmitRequest
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ExamAnswerSheetRequestImplCopyWith<_$ExamAnswerSheetRequestImpl>
+  _$$ExamAnswerSheetSubmitRequestImplCopyWith<
+    _$ExamAnswerSheetSubmitRequestImpl
+  >
   get copyWith => throw _privateConstructorUsedError;
 }
 
-ExamAnswerGradeResult _$ExamAnswerGradeResultFromJson(
+ExamAnswerSheetResponse _$ExamAnswerSheetResponseFromJson(
   Map<String, dynamic> json,
 ) {
-  return _ExamAnswerGradeResult.fromJson(json);
+  return _ExamAnswerSheetResponse.fromJson(json);
 }
 
 /// @nodoc
-mixin _$ExamAnswerGradeResult {
-  ExamAnswerSubjectGrade get subject1 => throw _privateConstructorUsedError;
-  ExamAnswerSubjectGrade get subject2 => throw _privateConstructorUsedError;
-  int get totalScore => throw _privateConstructorUsedError;
-  ExamAnswerScoreRangeResponse? get scoreRange =>
-      throw _privateConstructorUsedError;
-  @JsonKey(unknownEnumValue: ExamAnswerPassStatusValue.unknown)
-  ExamAnswerPassStatusValue get passStatus =>
-      throw _privateConstructorUsedError; // 참여자 중 상위 % (0~100)
-  double? get percentile => throw _privateConstructorUsedError;
-  List<ExamAnswerQuestionGrade> get perQuestion =>
-      throw _privateConstructorUsedError;
+mixin _$ExamAnswerSheetResponse {
+  String get certType => throw _privateConstructorUsedError;
+  int get roundNumber => throw _privateConstructorUsedError;
+  String get answers => throw _privateConstructorUsedError;
+  String? get source => throw _privateConstructorUsedError;
+  DateTime? get submittedAt => throw _privateConstructorUsedError;
+  ExamAnswerGradingResponse? get result => throw _privateConstructorUsedError;
 
-  /// Serializes this ExamAnswerGradeResult to a JSON map.
+  /// Serializes this ExamAnswerSheetResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of ExamAnswerGradeResult
+  /// Create a copy of ExamAnswerSheetResponse
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ExamAnswerGradeResultCopyWith<ExamAnswerGradeResult> get copyWith =>
+  $ExamAnswerSheetResponseCopyWith<ExamAnswerSheetResponse> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $ExamAnswerGradeResultCopyWith<$Res> {
-  factory $ExamAnswerGradeResultCopyWith(
-    ExamAnswerGradeResult value,
-    $Res Function(ExamAnswerGradeResult) then,
-  ) = _$ExamAnswerGradeResultCopyWithImpl<$Res, ExamAnswerGradeResult>;
+abstract class $ExamAnswerSheetResponseCopyWith<$Res> {
+  factory $ExamAnswerSheetResponseCopyWith(
+    ExamAnswerSheetResponse value,
+    $Res Function(ExamAnswerSheetResponse) then,
+  ) = _$ExamAnswerSheetResponseCopyWithImpl<$Res, ExamAnswerSheetResponse>;
   @useResult
   $Res call({
-    ExamAnswerSubjectGrade subject1,
-    ExamAnswerSubjectGrade subject2,
-    int totalScore,
-    ExamAnswerScoreRangeResponse? scoreRange,
-    @JsonKey(unknownEnumValue: ExamAnswerPassStatusValue.unknown)
-    ExamAnswerPassStatusValue passStatus,
-    double? percentile,
-    List<ExamAnswerQuestionGrade> perQuestion,
+    String certType,
+    int roundNumber,
+    String answers,
+    String? source,
+    DateTime? submittedAt,
+    ExamAnswerGradingResponse? result,
   });
 
-  $ExamAnswerSubjectGradeCopyWith<$Res> get subject1;
-  $ExamAnswerSubjectGradeCopyWith<$Res> get subject2;
-  $ExamAnswerScoreRangeResponseCopyWith<$Res>? get scoreRange;
+  $ExamAnswerGradingResponseCopyWith<$Res>? get result;
 }
 
 /// @nodoc
-class _$ExamAnswerGradeResultCopyWithImpl<
+class _$ExamAnswerSheetResponseCopyWithImpl<
   $Res,
-  $Val extends ExamAnswerGradeResult
+  $Val extends ExamAnswerSheetResponse
 >
-    implements $ExamAnswerGradeResultCopyWith<$Res> {
-  _$ExamAnswerGradeResultCopyWithImpl(this._value, this._then);
+    implements $ExamAnswerSheetResponseCopyWith<$Res> {
+  _$ExamAnswerSheetResponseCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ExamAnswerGradeResult
+  /// Create a copy of ExamAnswerSheetResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? certType = null,
+    Object? roundNumber = null,
+    Object? answers = null,
+    Object? source = freezed,
+    Object? submittedAt = freezed,
+    Object? result = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            certType: null == certType
+                ? _value.certType
+                : certType // ignore: cast_nullable_to_non_nullable
+                      as String,
+            roundNumber: null == roundNumber
+                ? _value.roundNumber
+                : roundNumber // ignore: cast_nullable_to_non_nullable
+                      as int,
+            answers: null == answers
+                ? _value.answers
+                : answers // ignore: cast_nullable_to_non_nullable
+                      as String,
+            source: freezed == source
+                ? _value.source
+                : source // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            submittedAt: freezed == submittedAt
+                ? _value.submittedAt
+                : submittedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            result: freezed == result
+                ? _value.result
+                : result // ignore: cast_nullable_to_non_nullable
+                      as ExamAnswerGradingResponse?,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of ExamAnswerSheetResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ExamAnswerGradingResponseCopyWith<$Res>? get result {
+    if (_value.result == null) {
+      return null;
+    }
+
+    return $ExamAnswerGradingResponseCopyWith<$Res>(_value.result!, (value) {
+      return _then(_value.copyWith(result: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$ExamAnswerSheetResponseImplCopyWith<$Res>
+    implements $ExamAnswerSheetResponseCopyWith<$Res> {
+  factory _$$ExamAnswerSheetResponseImplCopyWith(
+    _$ExamAnswerSheetResponseImpl value,
+    $Res Function(_$ExamAnswerSheetResponseImpl) then,
+  ) = __$$ExamAnswerSheetResponseImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String certType,
+    int roundNumber,
+    String answers,
+    String? source,
+    DateTime? submittedAt,
+    ExamAnswerGradingResponse? result,
+  });
+
+  @override
+  $ExamAnswerGradingResponseCopyWith<$Res>? get result;
+}
+
+/// @nodoc
+class __$$ExamAnswerSheetResponseImplCopyWithImpl<$Res>
+    extends
+        _$ExamAnswerSheetResponseCopyWithImpl<
+          $Res,
+          _$ExamAnswerSheetResponseImpl
+        >
+    implements _$$ExamAnswerSheetResponseImplCopyWith<$Res> {
+  __$$ExamAnswerSheetResponseImplCopyWithImpl(
+    _$ExamAnswerSheetResponseImpl _value,
+    $Res Function(_$ExamAnswerSheetResponseImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of ExamAnswerSheetResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? certType = null,
+    Object? roundNumber = null,
+    Object? answers = null,
+    Object? source = freezed,
+    Object? submittedAt = freezed,
+    Object? result = freezed,
+  }) {
+    return _then(
+      _$ExamAnswerSheetResponseImpl(
+        certType: null == certType
+            ? _value.certType
+            : certType // ignore: cast_nullable_to_non_nullable
+                  as String,
+        roundNumber: null == roundNumber
+            ? _value.roundNumber
+            : roundNumber // ignore: cast_nullable_to_non_nullable
+                  as int,
+        answers: null == answers
+            ? _value.answers
+            : answers // ignore: cast_nullable_to_non_nullable
+                  as String,
+        source: freezed == source
+            ? _value.source
+            : source // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        submittedAt: freezed == submittedAt
+            ? _value.submittedAt
+            : submittedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        result: freezed == result
+            ? _value.result
+            : result // ignore: cast_nullable_to_non_nullable
+                  as ExamAnswerGradingResponse?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ExamAnswerSheetResponseImpl implements _ExamAnswerSheetResponse {
+  const _$ExamAnswerSheetResponseImpl({
+    required this.certType,
+    required this.roundNumber,
+    required this.answers,
+    this.source,
+    this.submittedAt,
+    this.result,
+  });
+
+  factory _$ExamAnswerSheetResponseImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ExamAnswerSheetResponseImplFromJson(json);
+
+  @override
+  final String certType;
+  @override
+  final int roundNumber;
+  @override
+  final String answers;
+  @override
+  final String? source;
+  @override
+  final DateTime? submittedAt;
+  @override
+  final ExamAnswerGradingResponse? result;
+
+  @override
+  String toString() {
+    return 'ExamAnswerSheetResponse(certType: $certType, roundNumber: $roundNumber, answers: $answers, source: $source, submittedAt: $submittedAt, result: $result)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ExamAnswerSheetResponseImpl &&
+            (identical(other.certType, certType) ||
+                other.certType == certType) &&
+            (identical(other.roundNumber, roundNumber) ||
+                other.roundNumber == roundNumber) &&
+            (identical(other.answers, answers) || other.answers == answers) &&
+            (identical(other.source, source) || other.source == source) &&
+            (identical(other.submittedAt, submittedAt) ||
+                other.submittedAt == submittedAt) &&
+            (identical(other.result, result) || other.result == result));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    certType,
+    roundNumber,
+    answers,
+    source,
+    submittedAt,
+    result,
+  );
+
+  /// Create a copy of ExamAnswerSheetResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ExamAnswerSheetResponseImplCopyWith<_$ExamAnswerSheetResponseImpl>
+  get copyWith =>
+      __$$ExamAnswerSheetResponseImplCopyWithImpl<
+        _$ExamAnswerSheetResponseImpl
+      >(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ExamAnswerSheetResponseImplToJson(this);
+  }
+}
+
+abstract class _ExamAnswerSheetResponse implements ExamAnswerSheetResponse {
+  const factory _ExamAnswerSheetResponse({
+    required final String certType,
+    required final int roundNumber,
+    required final String answers,
+    final String? source,
+    final DateTime? submittedAt,
+    final ExamAnswerGradingResponse? result,
+  }) = _$ExamAnswerSheetResponseImpl;
+
+  factory _ExamAnswerSheetResponse.fromJson(Map<String, dynamic> json) =
+      _$ExamAnswerSheetResponseImpl.fromJson;
+
+  @override
+  String get certType;
+  @override
+  int get roundNumber;
+  @override
+  String get answers;
+  @override
+  String? get source;
+  @override
+  DateTime? get submittedAt;
+  @override
+  ExamAnswerGradingResponse? get result;
+
+  /// Create a copy of ExamAnswerSheetResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ExamAnswerSheetResponseImplCopyWith<_$ExamAnswerSheetResponseImpl>
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+ExamAnswerGradingResponse _$ExamAnswerGradingResponseFromJson(
+  Map<String, dynamic> json,
+) {
+  return _ExamAnswerGradingResponse.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ExamAnswerGradingResponse {
+  ExamAnswerSubjectScoreResponse get subject1 =>
+      throw _privateConstructorUsedError;
+  ExamAnswerSubjectScoreResponse get subject2 =>
+      throw _privateConstructorUsedError;
+  int get totalScore => throw _privateConstructorUsedError;
+  ExamAnswerScoreRangeResponse? get scoreRange =>
+      throw _privateConstructorUsedError;
+  @JsonKey(unknownEnumValue: ExamAnswerPassStatusValue.unknown)
+  ExamAnswerPassStatusValue get passStatus =>
+      throw _privateConstructorUsedError; // 참여자 중 상위 % (1~100 올림, 참여 10명 미만이면 null)
+  int? get percentile => throw _privateConstructorUsedError;
+  List<ExamAnswerQuestionResultResponse> get perQuestion =>
+      throw _privateConstructorUsedError;
+
+  /// Serializes this ExamAnswerGradingResponse to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ExamAnswerGradingResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ExamAnswerGradingResponseCopyWith<ExamAnswerGradingResponse> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ExamAnswerGradingResponseCopyWith<$Res> {
+  factory $ExamAnswerGradingResponseCopyWith(
+    ExamAnswerGradingResponse value,
+    $Res Function(ExamAnswerGradingResponse) then,
+  ) = _$ExamAnswerGradingResponseCopyWithImpl<$Res, ExamAnswerGradingResponse>;
+  @useResult
+  $Res call({
+    ExamAnswerSubjectScoreResponse subject1,
+    ExamAnswerSubjectScoreResponse subject2,
+    int totalScore,
+    ExamAnswerScoreRangeResponse? scoreRange,
+    @JsonKey(unknownEnumValue: ExamAnswerPassStatusValue.unknown)
+    ExamAnswerPassStatusValue passStatus,
+    int? percentile,
+    List<ExamAnswerQuestionResultResponse> perQuestion,
+  });
+
+  $ExamAnswerSubjectScoreResponseCopyWith<$Res> get subject1;
+  $ExamAnswerSubjectScoreResponseCopyWith<$Res> get subject2;
+  $ExamAnswerScoreRangeResponseCopyWith<$Res>? get scoreRange;
+}
+
+/// @nodoc
+class _$ExamAnswerGradingResponseCopyWithImpl<
+  $Res,
+  $Val extends ExamAnswerGradingResponse
+>
+    implements $ExamAnswerGradingResponseCopyWith<$Res> {
+  _$ExamAnswerGradingResponseCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ExamAnswerGradingResponse
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -305,11 +625,11 @@ class _$ExamAnswerGradeResultCopyWithImpl<
             subject1: null == subject1
                 ? _value.subject1
                 : subject1 // ignore: cast_nullable_to_non_nullable
-                      as ExamAnswerSubjectGrade,
+                      as ExamAnswerSubjectScoreResponse,
             subject2: null == subject2
                 ? _value.subject2
                 : subject2 // ignore: cast_nullable_to_non_nullable
-                      as ExamAnswerSubjectGrade,
+                      as ExamAnswerSubjectScoreResponse,
             totalScore: null == totalScore
                 ? _value.totalScore
                 : totalScore // ignore: cast_nullable_to_non_nullable
@@ -325,37 +645,41 @@ class _$ExamAnswerGradeResultCopyWithImpl<
             percentile: freezed == percentile
                 ? _value.percentile
                 : percentile // ignore: cast_nullable_to_non_nullable
-                      as double?,
+                      as int?,
             perQuestion: null == perQuestion
                 ? _value.perQuestion
                 : perQuestion // ignore: cast_nullable_to_non_nullable
-                      as List<ExamAnswerQuestionGrade>,
+                      as List<ExamAnswerQuestionResultResponse>,
           )
           as $Val,
     );
   }
 
-  /// Create a copy of ExamAnswerGradeResult
+  /// Create a copy of ExamAnswerGradingResponse
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $ExamAnswerSubjectGradeCopyWith<$Res> get subject1 {
-    return $ExamAnswerSubjectGradeCopyWith<$Res>(_value.subject1, (value) {
+  $ExamAnswerSubjectScoreResponseCopyWith<$Res> get subject1 {
+    return $ExamAnswerSubjectScoreResponseCopyWith<$Res>(_value.subject1, (
+      value,
+    ) {
       return _then(_value.copyWith(subject1: value) as $Val);
     });
   }
 
-  /// Create a copy of ExamAnswerGradeResult
+  /// Create a copy of ExamAnswerGradingResponse
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $ExamAnswerSubjectGradeCopyWith<$Res> get subject2 {
-    return $ExamAnswerSubjectGradeCopyWith<$Res>(_value.subject2, (value) {
+  $ExamAnswerSubjectScoreResponseCopyWith<$Res> get subject2 {
+    return $ExamAnswerSubjectScoreResponseCopyWith<$Res>(_value.subject2, (
+      value,
+    ) {
       return _then(_value.copyWith(subject2: value) as $Val);
     });
   }
 
-  /// Create a copy of ExamAnswerGradeResult
+  /// Create a copy of ExamAnswerGradingResponse
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -373,44 +697,47 @@ class _$ExamAnswerGradeResultCopyWithImpl<
 }
 
 /// @nodoc
-abstract class _$$ExamAnswerGradeResultImplCopyWith<$Res>
-    implements $ExamAnswerGradeResultCopyWith<$Res> {
-  factory _$$ExamAnswerGradeResultImplCopyWith(
-    _$ExamAnswerGradeResultImpl value,
-    $Res Function(_$ExamAnswerGradeResultImpl) then,
-  ) = __$$ExamAnswerGradeResultImplCopyWithImpl<$Res>;
+abstract class _$$ExamAnswerGradingResponseImplCopyWith<$Res>
+    implements $ExamAnswerGradingResponseCopyWith<$Res> {
+  factory _$$ExamAnswerGradingResponseImplCopyWith(
+    _$ExamAnswerGradingResponseImpl value,
+    $Res Function(_$ExamAnswerGradingResponseImpl) then,
+  ) = __$$ExamAnswerGradingResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({
-    ExamAnswerSubjectGrade subject1,
-    ExamAnswerSubjectGrade subject2,
+    ExamAnswerSubjectScoreResponse subject1,
+    ExamAnswerSubjectScoreResponse subject2,
     int totalScore,
     ExamAnswerScoreRangeResponse? scoreRange,
     @JsonKey(unknownEnumValue: ExamAnswerPassStatusValue.unknown)
     ExamAnswerPassStatusValue passStatus,
-    double? percentile,
-    List<ExamAnswerQuestionGrade> perQuestion,
+    int? percentile,
+    List<ExamAnswerQuestionResultResponse> perQuestion,
   });
 
   @override
-  $ExamAnswerSubjectGradeCopyWith<$Res> get subject1;
+  $ExamAnswerSubjectScoreResponseCopyWith<$Res> get subject1;
   @override
-  $ExamAnswerSubjectGradeCopyWith<$Res> get subject2;
+  $ExamAnswerSubjectScoreResponseCopyWith<$Res> get subject2;
   @override
   $ExamAnswerScoreRangeResponseCopyWith<$Res>? get scoreRange;
 }
 
 /// @nodoc
-class __$$ExamAnswerGradeResultImplCopyWithImpl<$Res>
+class __$$ExamAnswerGradingResponseImplCopyWithImpl<$Res>
     extends
-        _$ExamAnswerGradeResultCopyWithImpl<$Res, _$ExamAnswerGradeResultImpl>
-    implements _$$ExamAnswerGradeResultImplCopyWith<$Res> {
-  __$$ExamAnswerGradeResultImplCopyWithImpl(
-    _$ExamAnswerGradeResultImpl _value,
-    $Res Function(_$ExamAnswerGradeResultImpl) _then,
+        _$ExamAnswerGradingResponseCopyWithImpl<
+          $Res,
+          _$ExamAnswerGradingResponseImpl
+        >
+    implements _$$ExamAnswerGradingResponseImplCopyWith<$Res> {
+  __$$ExamAnswerGradingResponseImplCopyWithImpl(
+    _$ExamAnswerGradingResponseImpl _value,
+    $Res Function(_$ExamAnswerGradingResponseImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of ExamAnswerGradeResult
+  /// Create a copy of ExamAnswerGradingResponse
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -424,15 +751,15 @@ class __$$ExamAnswerGradeResultImplCopyWithImpl<$Res>
     Object? perQuestion = null,
   }) {
     return _then(
-      _$ExamAnswerGradeResultImpl(
+      _$ExamAnswerGradingResponseImpl(
         subject1: null == subject1
             ? _value.subject1
             : subject1 // ignore: cast_nullable_to_non_nullable
-                  as ExamAnswerSubjectGrade,
+                  as ExamAnswerSubjectScoreResponse,
         subject2: null == subject2
             ? _value.subject2
             : subject2 // ignore: cast_nullable_to_non_nullable
-                  as ExamAnswerSubjectGrade,
+                  as ExamAnswerSubjectScoreResponse,
         totalScore: null == totalScore
             ? _value.totalScore
             : totalScore // ignore: cast_nullable_to_non_nullable
@@ -448,11 +775,11 @@ class __$$ExamAnswerGradeResultImplCopyWithImpl<$Res>
         percentile: freezed == percentile
             ? _value.percentile
             : percentile // ignore: cast_nullable_to_non_nullable
-                  as double?,
+                  as int?,
         perQuestion: null == perQuestion
             ? _value._perQuestion
             : perQuestion // ignore: cast_nullable_to_non_nullable
-                  as List<ExamAnswerQuestionGrade>,
+                  as List<ExamAnswerQuestionResultResponse>,
       ),
     );
   }
@@ -460,8 +787,8 @@ class __$$ExamAnswerGradeResultImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$ExamAnswerGradeResultImpl implements _ExamAnswerGradeResult {
-  const _$ExamAnswerGradeResultImpl({
+class _$ExamAnswerGradingResponseImpl implements _ExamAnswerGradingResponse {
+  const _$ExamAnswerGradingResponseImpl({
     required this.subject1,
     required this.subject2,
     required this.totalScore,
@@ -469,16 +796,16 @@ class _$ExamAnswerGradeResultImpl implements _ExamAnswerGradeResult {
     @JsonKey(unknownEnumValue: ExamAnswerPassStatusValue.unknown)
     this.passStatus = ExamAnswerPassStatusValue.unknown,
     this.percentile,
-    final List<ExamAnswerQuestionGrade> perQuestion = const [],
+    final List<ExamAnswerQuestionResultResponse> perQuestion = const [],
   }) : _perQuestion = perQuestion;
 
-  factory _$ExamAnswerGradeResultImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ExamAnswerGradeResultImplFromJson(json);
+  factory _$ExamAnswerGradingResponseImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ExamAnswerGradingResponseImplFromJson(json);
 
   @override
-  final ExamAnswerSubjectGrade subject1;
+  final ExamAnswerSubjectScoreResponse subject1;
   @override
-  final ExamAnswerSubjectGrade subject2;
+  final ExamAnswerSubjectScoreResponse subject2;
   @override
   final int totalScore;
   @override
@@ -486,13 +813,13 @@ class _$ExamAnswerGradeResultImpl implements _ExamAnswerGradeResult {
   @override
   @JsonKey(unknownEnumValue: ExamAnswerPassStatusValue.unknown)
   final ExamAnswerPassStatusValue passStatus;
-  // 참여자 중 상위 % (0~100)
+  // 참여자 중 상위 % (1~100 올림, 참여 10명 미만이면 null)
   @override
-  final double? percentile;
-  final List<ExamAnswerQuestionGrade> _perQuestion;
+  final int? percentile;
+  final List<ExamAnswerQuestionResultResponse> _perQuestion;
   @override
   @JsonKey()
-  List<ExamAnswerQuestionGrade> get perQuestion {
+  List<ExamAnswerQuestionResultResponse> get perQuestion {
     if (_perQuestion is EqualUnmodifiableListView) return _perQuestion;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_perQuestion);
@@ -500,14 +827,14 @@ class _$ExamAnswerGradeResultImpl implements _ExamAnswerGradeResult {
 
   @override
   String toString() {
-    return 'ExamAnswerGradeResult(subject1: $subject1, subject2: $subject2, totalScore: $totalScore, scoreRange: $scoreRange, passStatus: $passStatus, percentile: $percentile, perQuestion: $perQuestion)';
+    return 'ExamAnswerGradingResponse(subject1: $subject1, subject2: $subject2, totalScore: $totalScore, scoreRange: $scoreRange, passStatus: $passStatus, percentile: $percentile, perQuestion: $perQuestion)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ExamAnswerGradeResultImpl &&
+            other is _$ExamAnswerGradingResponseImpl &&
             (identical(other.subject1, subject1) ||
                 other.subject1 == subject1) &&
             (identical(other.subject2, subject2) ||
@@ -539,109 +866,112 @@ class _$ExamAnswerGradeResultImpl implements _ExamAnswerGradeResult {
     const DeepCollectionEquality().hash(_perQuestion),
   );
 
-  /// Create a copy of ExamAnswerGradeResult
+  /// Create a copy of ExamAnswerGradingResponse
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$ExamAnswerGradeResultImplCopyWith<_$ExamAnswerGradeResultImpl>
+  _$$ExamAnswerGradingResponseImplCopyWith<_$ExamAnswerGradingResponseImpl>
   get copyWith =>
-      __$$ExamAnswerGradeResultImplCopyWithImpl<_$ExamAnswerGradeResultImpl>(
-        this,
-        _$identity,
-      );
+      __$$ExamAnswerGradingResponseImplCopyWithImpl<
+        _$ExamAnswerGradingResponseImpl
+      >(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ExamAnswerGradeResultImplToJson(this);
+    return _$$ExamAnswerGradingResponseImplToJson(this);
   }
 }
 
-abstract class _ExamAnswerGradeResult implements ExamAnswerGradeResult {
-  const factory _ExamAnswerGradeResult({
-    required final ExamAnswerSubjectGrade subject1,
-    required final ExamAnswerSubjectGrade subject2,
+abstract class _ExamAnswerGradingResponse implements ExamAnswerGradingResponse {
+  const factory _ExamAnswerGradingResponse({
+    required final ExamAnswerSubjectScoreResponse subject1,
+    required final ExamAnswerSubjectScoreResponse subject2,
     required final int totalScore,
     final ExamAnswerScoreRangeResponse? scoreRange,
     @JsonKey(unknownEnumValue: ExamAnswerPassStatusValue.unknown)
     final ExamAnswerPassStatusValue passStatus,
-    final double? percentile,
-    final List<ExamAnswerQuestionGrade> perQuestion,
-  }) = _$ExamAnswerGradeResultImpl;
+    final int? percentile,
+    final List<ExamAnswerQuestionResultResponse> perQuestion,
+  }) = _$ExamAnswerGradingResponseImpl;
 
-  factory _ExamAnswerGradeResult.fromJson(Map<String, dynamic> json) =
-      _$ExamAnswerGradeResultImpl.fromJson;
+  factory _ExamAnswerGradingResponse.fromJson(Map<String, dynamic> json) =
+      _$ExamAnswerGradingResponseImpl.fromJson;
 
   @override
-  ExamAnswerSubjectGrade get subject1;
+  ExamAnswerSubjectScoreResponse get subject1;
   @override
-  ExamAnswerSubjectGrade get subject2;
+  ExamAnswerSubjectScoreResponse get subject2;
   @override
   int get totalScore;
   @override
   ExamAnswerScoreRangeResponse? get scoreRange;
   @override
   @JsonKey(unknownEnumValue: ExamAnswerPassStatusValue.unknown)
-  ExamAnswerPassStatusValue get passStatus; // 참여자 중 상위 % (0~100)
+  ExamAnswerPassStatusValue get passStatus; // 참여자 중 상위 % (1~100 올림, 참여 10명 미만이면 null)
   @override
-  double? get percentile;
+  int? get percentile;
   @override
-  List<ExamAnswerQuestionGrade> get perQuestion;
+  List<ExamAnswerQuestionResultResponse> get perQuestion;
 
-  /// Create a copy of ExamAnswerGradeResult
+  /// Create a copy of ExamAnswerGradingResponse
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ExamAnswerGradeResultImplCopyWith<_$ExamAnswerGradeResultImpl>
+  _$$ExamAnswerGradingResponseImplCopyWith<_$ExamAnswerGradingResponseImpl>
   get copyWith => throw _privateConstructorUsedError;
 }
 
-ExamAnswerSubjectGrade _$ExamAnswerSubjectGradeFromJson(
+ExamAnswerSubjectScoreResponse _$ExamAnswerSubjectScoreResponseFromJson(
   Map<String, dynamic> json,
 ) {
-  return _ExamAnswerSubjectGrade.fromJson(json);
+  return _ExamAnswerSubjectScoreResponse.fromJson(json);
 }
 
 /// @nodoc
-mixin _$ExamAnswerSubjectGrade {
+mixin _$ExamAnswerSubjectScoreResponse {
   int get score => throw _privateConstructorUsedError;
   int get max => throw _privateConstructorUsedError;
   bool get isFailCut => throw _privateConstructorUsedError;
 
-  /// Serializes this ExamAnswerSubjectGrade to a JSON map.
+  /// Serializes this ExamAnswerSubjectScoreResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of ExamAnswerSubjectGrade
+  /// Create a copy of ExamAnswerSubjectScoreResponse
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ExamAnswerSubjectGradeCopyWith<ExamAnswerSubjectGrade> get copyWith =>
-      throw _privateConstructorUsedError;
+  $ExamAnswerSubjectScoreResponseCopyWith<ExamAnswerSubjectScoreResponse>
+  get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $ExamAnswerSubjectGradeCopyWith<$Res> {
-  factory $ExamAnswerSubjectGradeCopyWith(
-    ExamAnswerSubjectGrade value,
-    $Res Function(ExamAnswerSubjectGrade) then,
-  ) = _$ExamAnswerSubjectGradeCopyWithImpl<$Res, ExamAnswerSubjectGrade>;
+abstract class $ExamAnswerSubjectScoreResponseCopyWith<$Res> {
+  factory $ExamAnswerSubjectScoreResponseCopyWith(
+    ExamAnswerSubjectScoreResponse value,
+    $Res Function(ExamAnswerSubjectScoreResponse) then,
+  ) =
+      _$ExamAnswerSubjectScoreResponseCopyWithImpl<
+        $Res,
+        ExamAnswerSubjectScoreResponse
+      >;
   @useResult
   $Res call({int score, int max, bool isFailCut});
 }
 
 /// @nodoc
-class _$ExamAnswerSubjectGradeCopyWithImpl<
+class _$ExamAnswerSubjectScoreResponseCopyWithImpl<
   $Res,
-  $Val extends ExamAnswerSubjectGrade
+  $Val extends ExamAnswerSubjectScoreResponse
 >
-    implements $ExamAnswerSubjectGradeCopyWith<$Res> {
-  _$ExamAnswerSubjectGradeCopyWithImpl(this._value, this._then);
+    implements $ExamAnswerSubjectScoreResponseCopyWith<$Res> {
+  _$ExamAnswerSubjectScoreResponseCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ExamAnswerSubjectGrade
+  /// Create a copy of ExamAnswerSubjectScoreResponse
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -671,28 +1001,31 @@ class _$ExamAnswerSubjectGradeCopyWithImpl<
 }
 
 /// @nodoc
-abstract class _$$ExamAnswerSubjectGradeImplCopyWith<$Res>
-    implements $ExamAnswerSubjectGradeCopyWith<$Res> {
-  factory _$$ExamAnswerSubjectGradeImplCopyWith(
-    _$ExamAnswerSubjectGradeImpl value,
-    $Res Function(_$ExamAnswerSubjectGradeImpl) then,
-  ) = __$$ExamAnswerSubjectGradeImplCopyWithImpl<$Res>;
+abstract class _$$ExamAnswerSubjectScoreResponseImplCopyWith<$Res>
+    implements $ExamAnswerSubjectScoreResponseCopyWith<$Res> {
+  factory _$$ExamAnswerSubjectScoreResponseImplCopyWith(
+    _$ExamAnswerSubjectScoreResponseImpl value,
+    $Res Function(_$ExamAnswerSubjectScoreResponseImpl) then,
+  ) = __$$ExamAnswerSubjectScoreResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({int score, int max, bool isFailCut});
 }
 
 /// @nodoc
-class __$$ExamAnswerSubjectGradeImplCopyWithImpl<$Res>
+class __$$ExamAnswerSubjectScoreResponseImplCopyWithImpl<$Res>
     extends
-        _$ExamAnswerSubjectGradeCopyWithImpl<$Res, _$ExamAnswerSubjectGradeImpl>
-    implements _$$ExamAnswerSubjectGradeImplCopyWith<$Res> {
-  __$$ExamAnswerSubjectGradeImplCopyWithImpl(
-    _$ExamAnswerSubjectGradeImpl _value,
-    $Res Function(_$ExamAnswerSubjectGradeImpl) _then,
+        _$ExamAnswerSubjectScoreResponseCopyWithImpl<
+          $Res,
+          _$ExamAnswerSubjectScoreResponseImpl
+        >
+    implements _$$ExamAnswerSubjectScoreResponseImplCopyWith<$Res> {
+  __$$ExamAnswerSubjectScoreResponseImplCopyWithImpl(
+    _$ExamAnswerSubjectScoreResponseImpl _value,
+    $Res Function(_$ExamAnswerSubjectScoreResponseImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of ExamAnswerSubjectGrade
+  /// Create a copy of ExamAnswerSubjectScoreResponse
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -702,7 +1035,7 @@ class __$$ExamAnswerSubjectGradeImplCopyWithImpl<$Res>
     Object? isFailCut = null,
   }) {
     return _then(
-      _$ExamAnswerSubjectGradeImpl(
+      _$ExamAnswerSubjectScoreResponseImpl(
         score: null == score
             ? _value.score
             : score // ignore: cast_nullable_to_non_nullable
@@ -722,15 +1055,17 @@ class __$$ExamAnswerSubjectGradeImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$ExamAnswerSubjectGradeImpl implements _ExamAnswerSubjectGrade {
-  const _$ExamAnswerSubjectGradeImpl({
+class _$ExamAnswerSubjectScoreResponseImpl
+    implements _ExamAnswerSubjectScoreResponse {
+  const _$ExamAnswerSubjectScoreResponseImpl({
     required this.score,
     required this.max,
     this.isFailCut = false,
   });
 
-  factory _$ExamAnswerSubjectGradeImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ExamAnswerSubjectGradeImplFromJson(json);
+  factory _$ExamAnswerSubjectScoreResponseImpl.fromJson(
+    Map<String, dynamic> json,
+  ) => _$$ExamAnswerSubjectScoreResponseImplFromJson(json);
 
   @override
   final int score;
@@ -742,14 +1077,14 @@ class _$ExamAnswerSubjectGradeImpl implements _ExamAnswerSubjectGrade {
 
   @override
   String toString() {
-    return 'ExamAnswerSubjectGrade(score: $score, max: $max, isFailCut: $isFailCut)';
+    return 'ExamAnswerSubjectScoreResponse(score: $score, max: $max, isFailCut: $isFailCut)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ExamAnswerSubjectGradeImpl &&
+            other is _$ExamAnswerSubjectScoreResponseImpl &&
             (identical(other.score, score) || other.score == score) &&
             (identical(other.max, max) || other.max == max) &&
             (identical(other.isFailCut, isFailCut) ||
@@ -760,33 +1095,35 @@ class _$ExamAnswerSubjectGradeImpl implements _ExamAnswerSubjectGrade {
   @override
   int get hashCode => Object.hash(runtimeType, score, max, isFailCut);
 
-  /// Create a copy of ExamAnswerSubjectGrade
+  /// Create a copy of ExamAnswerSubjectScoreResponse
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$ExamAnswerSubjectGradeImplCopyWith<_$ExamAnswerSubjectGradeImpl>
+  _$$ExamAnswerSubjectScoreResponseImplCopyWith<
+    _$ExamAnswerSubjectScoreResponseImpl
+  >
   get copyWith =>
-      __$$ExamAnswerSubjectGradeImplCopyWithImpl<_$ExamAnswerSubjectGradeImpl>(
-        this,
-        _$identity,
-      );
+      __$$ExamAnswerSubjectScoreResponseImplCopyWithImpl<
+        _$ExamAnswerSubjectScoreResponseImpl
+      >(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ExamAnswerSubjectGradeImplToJson(this);
+    return _$$ExamAnswerSubjectScoreResponseImplToJson(this);
   }
 }
 
-abstract class _ExamAnswerSubjectGrade implements ExamAnswerSubjectGrade {
-  const factory _ExamAnswerSubjectGrade({
+abstract class _ExamAnswerSubjectScoreResponse
+    implements ExamAnswerSubjectScoreResponse {
+  const factory _ExamAnswerSubjectScoreResponse({
     required final int score,
     required final int max,
     final bool isFailCut,
-  }) = _$ExamAnswerSubjectGradeImpl;
+  }) = _$ExamAnswerSubjectScoreResponseImpl;
 
-  factory _ExamAnswerSubjectGrade.fromJson(Map<String, dynamic> json) =
-      _$ExamAnswerSubjectGradeImpl.fromJson;
+  factory _ExamAnswerSubjectScoreResponse.fromJson(Map<String, dynamic> json) =
+      _$ExamAnswerSubjectScoreResponseImpl.fromJson;
 
   @override
   int get score;
@@ -795,11 +1132,13 @@ abstract class _ExamAnswerSubjectGrade implements ExamAnswerSubjectGrade {
   @override
   bool get isFailCut;
 
-  /// Create a copy of ExamAnswerSubjectGrade
+  /// Create a copy of ExamAnswerSubjectScoreResponse
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ExamAnswerSubjectGradeImplCopyWith<_$ExamAnswerSubjectGradeImpl>
+  _$$ExamAnswerSubjectScoreResponseImplCopyWith<
+    _$ExamAnswerSubjectScoreResponseImpl
+  >
   get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -997,53 +1336,57 @@ abstract class _ExamAnswerScoreRangeResponse
   get copyWith => throw _privateConstructorUsedError;
 }
 
-ExamAnswerQuestionGrade _$ExamAnswerQuestionGradeFromJson(
+ExamAnswerQuestionResultResponse _$ExamAnswerQuestionResultResponseFromJson(
   Map<String, dynamic> json,
 ) {
-  return _ExamAnswerQuestionGrade.fromJson(json);
+  return _ExamAnswerQuestionResultResponse.fromJson(json);
 }
 
 /// @nodoc
-mixin _$ExamAnswerQuestionGrade {
+mixin _$ExamAnswerQuestionResultResponse {
   int get questionNo => throw _privateConstructorUsedError;
   int get myAnswer => throw _privateConstructorUsedError;
   int? get answer => throw _privateConstructorUsedError;
   bool? get isCorrect => throw _privateConstructorUsedError;
 
-  /// Serializes this ExamAnswerQuestionGrade to a JSON map.
+  /// Serializes this ExamAnswerQuestionResultResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of ExamAnswerQuestionGrade
+  /// Create a copy of ExamAnswerQuestionResultResponse
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ExamAnswerQuestionGradeCopyWith<ExamAnswerQuestionGrade> get copyWith =>
-      throw _privateConstructorUsedError;
+  $ExamAnswerQuestionResultResponseCopyWith<ExamAnswerQuestionResultResponse>
+  get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $ExamAnswerQuestionGradeCopyWith<$Res> {
-  factory $ExamAnswerQuestionGradeCopyWith(
-    ExamAnswerQuestionGrade value,
-    $Res Function(ExamAnswerQuestionGrade) then,
-  ) = _$ExamAnswerQuestionGradeCopyWithImpl<$Res, ExamAnswerQuestionGrade>;
+abstract class $ExamAnswerQuestionResultResponseCopyWith<$Res> {
+  factory $ExamAnswerQuestionResultResponseCopyWith(
+    ExamAnswerQuestionResultResponse value,
+    $Res Function(ExamAnswerQuestionResultResponse) then,
+  ) =
+      _$ExamAnswerQuestionResultResponseCopyWithImpl<
+        $Res,
+        ExamAnswerQuestionResultResponse
+      >;
   @useResult
   $Res call({int questionNo, int myAnswer, int? answer, bool? isCorrect});
 }
 
 /// @nodoc
-class _$ExamAnswerQuestionGradeCopyWithImpl<
+class _$ExamAnswerQuestionResultResponseCopyWithImpl<
   $Res,
-  $Val extends ExamAnswerQuestionGrade
+  $Val extends ExamAnswerQuestionResultResponse
 >
-    implements $ExamAnswerQuestionGradeCopyWith<$Res> {
-  _$ExamAnswerQuestionGradeCopyWithImpl(this._value, this._then);
+    implements $ExamAnswerQuestionResultResponseCopyWith<$Res> {
+  _$ExamAnswerQuestionResultResponseCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ExamAnswerQuestionGrade
+  /// Create a copy of ExamAnswerQuestionResultResponse
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -1078,31 +1421,31 @@ class _$ExamAnswerQuestionGradeCopyWithImpl<
 }
 
 /// @nodoc
-abstract class _$$ExamAnswerQuestionGradeImplCopyWith<$Res>
-    implements $ExamAnswerQuestionGradeCopyWith<$Res> {
-  factory _$$ExamAnswerQuestionGradeImplCopyWith(
-    _$ExamAnswerQuestionGradeImpl value,
-    $Res Function(_$ExamAnswerQuestionGradeImpl) then,
-  ) = __$$ExamAnswerQuestionGradeImplCopyWithImpl<$Res>;
+abstract class _$$ExamAnswerQuestionResultResponseImplCopyWith<$Res>
+    implements $ExamAnswerQuestionResultResponseCopyWith<$Res> {
+  factory _$$ExamAnswerQuestionResultResponseImplCopyWith(
+    _$ExamAnswerQuestionResultResponseImpl value,
+    $Res Function(_$ExamAnswerQuestionResultResponseImpl) then,
+  ) = __$$ExamAnswerQuestionResultResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({int questionNo, int myAnswer, int? answer, bool? isCorrect});
 }
 
 /// @nodoc
-class __$$ExamAnswerQuestionGradeImplCopyWithImpl<$Res>
+class __$$ExamAnswerQuestionResultResponseImplCopyWithImpl<$Res>
     extends
-        _$ExamAnswerQuestionGradeCopyWithImpl<
+        _$ExamAnswerQuestionResultResponseCopyWithImpl<
           $Res,
-          _$ExamAnswerQuestionGradeImpl
+          _$ExamAnswerQuestionResultResponseImpl
         >
-    implements _$$ExamAnswerQuestionGradeImplCopyWith<$Res> {
-  __$$ExamAnswerQuestionGradeImplCopyWithImpl(
-    _$ExamAnswerQuestionGradeImpl _value,
-    $Res Function(_$ExamAnswerQuestionGradeImpl) _then,
+    implements _$$ExamAnswerQuestionResultResponseImplCopyWith<$Res> {
+  __$$ExamAnswerQuestionResultResponseImplCopyWithImpl(
+    _$ExamAnswerQuestionResultResponseImpl _value,
+    $Res Function(_$ExamAnswerQuestionResultResponseImpl) _then,
   ) : super(_value, _then);
 
-  /// Create a copy of ExamAnswerQuestionGrade
+  /// Create a copy of ExamAnswerQuestionResultResponse
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -1113,7 +1456,7 @@ class __$$ExamAnswerQuestionGradeImplCopyWithImpl<$Res>
     Object? isCorrect = freezed,
   }) {
     return _then(
-      _$ExamAnswerQuestionGradeImpl(
+      _$ExamAnswerQuestionResultResponseImpl(
         questionNo: null == questionNo
             ? _value.questionNo
             : questionNo // ignore: cast_nullable_to_non_nullable
@@ -1137,16 +1480,18 @@ class __$$ExamAnswerQuestionGradeImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$ExamAnswerQuestionGradeImpl implements _ExamAnswerQuestionGrade {
-  const _$ExamAnswerQuestionGradeImpl({
+class _$ExamAnswerQuestionResultResponseImpl
+    implements _ExamAnswerQuestionResultResponse {
+  const _$ExamAnswerQuestionResultResponseImpl({
     required this.questionNo,
     this.myAnswer = 0,
     this.answer,
     this.isCorrect,
   });
 
-  factory _$ExamAnswerQuestionGradeImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ExamAnswerQuestionGradeImplFromJson(json);
+  factory _$ExamAnswerQuestionResultResponseImpl.fromJson(
+    Map<String, dynamic> json,
+  ) => _$$ExamAnswerQuestionResultResponseImplFromJson(json);
 
   @override
   final int questionNo;
@@ -1160,14 +1505,14 @@ class _$ExamAnswerQuestionGradeImpl implements _ExamAnswerQuestionGrade {
 
   @override
   String toString() {
-    return 'ExamAnswerQuestionGrade(questionNo: $questionNo, myAnswer: $myAnswer, answer: $answer, isCorrect: $isCorrect)';
+    return 'ExamAnswerQuestionResultResponse(questionNo: $questionNo, myAnswer: $myAnswer, answer: $answer, isCorrect: $isCorrect)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ExamAnswerQuestionGradeImpl &&
+            other is _$ExamAnswerQuestionResultResponseImpl &&
             (identical(other.questionNo, questionNo) ||
                 other.questionNo == questionNo) &&
             (identical(other.myAnswer, myAnswer) ||
@@ -1182,33 +1527,37 @@ class _$ExamAnswerQuestionGradeImpl implements _ExamAnswerQuestionGrade {
   int get hashCode =>
       Object.hash(runtimeType, questionNo, myAnswer, answer, isCorrect);
 
-  /// Create a copy of ExamAnswerQuestionGrade
+  /// Create a copy of ExamAnswerQuestionResultResponse
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$ExamAnswerQuestionGradeImplCopyWith<_$ExamAnswerQuestionGradeImpl>
+  _$$ExamAnswerQuestionResultResponseImplCopyWith<
+    _$ExamAnswerQuestionResultResponseImpl
+  >
   get copyWith =>
-      __$$ExamAnswerQuestionGradeImplCopyWithImpl<
-        _$ExamAnswerQuestionGradeImpl
+      __$$ExamAnswerQuestionResultResponseImplCopyWithImpl<
+        _$ExamAnswerQuestionResultResponseImpl
       >(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ExamAnswerQuestionGradeImplToJson(this);
+    return _$$ExamAnswerQuestionResultResponseImplToJson(this);
   }
 }
 
-abstract class _ExamAnswerQuestionGrade implements ExamAnswerQuestionGrade {
-  const factory _ExamAnswerQuestionGrade({
+abstract class _ExamAnswerQuestionResultResponse
+    implements ExamAnswerQuestionResultResponse {
+  const factory _ExamAnswerQuestionResultResponse({
     required final int questionNo,
     final int myAnswer,
     final int? answer,
     final bool? isCorrect,
-  }) = _$ExamAnswerQuestionGradeImpl;
+  }) = _$ExamAnswerQuestionResultResponseImpl;
 
-  factory _ExamAnswerQuestionGrade.fromJson(Map<String, dynamic> json) =
-      _$ExamAnswerQuestionGradeImpl.fromJson;
+  factory _ExamAnswerQuestionResultResponse.fromJson(
+    Map<String, dynamic> json,
+  ) = _$ExamAnswerQuestionResultResponseImpl.fromJson;
 
   @override
   int get questionNo;
@@ -1219,10 +1568,12 @@ abstract class _ExamAnswerQuestionGrade implements ExamAnswerQuestionGrade {
   @override
   bool? get isCorrect;
 
-  /// Create a copy of ExamAnswerQuestionGrade
+  /// Create a copy of ExamAnswerQuestionResultResponse
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ExamAnswerQuestionGradeImplCopyWith<_$ExamAnswerQuestionGradeImpl>
+  _$$ExamAnswerQuestionResultResponseImplCopyWith<
+    _$ExamAnswerQuestionResultResponseImpl
+  >
   get copyWith => throw _privateConstructorUsedError;
 }

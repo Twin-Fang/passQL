@@ -1,16 +1,23 @@
 import 'package:flutter/cupertino.dart';
 
 import '../../../core/exam_answer/exam_answer_score_report.dart';
-import '../../../core/exam_answer/sqld_scoring_rule.dart';
+import '../../../core/exam_answer/exam_grading_rule.dart';
 import '../../design/design.dart';
 import 'exam_answer_score_bar.dart';
 import 'exam_answer_status_styles.dart';
 
 /// 가채점 결과: 판정 > 총점(차오름) > 갈림 범위·상위 % > 과목 막대 2개 + 총점 막대(과락선·합격선)
 class ExamAnswerScoreResult extends StatelessWidget {
-  const ExamAnswerScoreResult({super.key, required this.report});
+  const ExamAnswerScoreResult({
+    super.key,
+    required this.report,
+    required this.gradingRule,
+  });
 
   final ExamAnswerScoreReport report;
+
+  /// 만점·합격선·과목 과락선 (회차 채점 규칙)
+  final ExamGradingRule gradingRule;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +63,7 @@ class ExamAnswerScoreResult extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: ' / ${SqldScoringRule.maxScore}점',
+                        text: ' / ${gradingRule.maxScore}점',
                         style: PassqlTypography.headline.copyWith(
                           color: colors.secondaryLabel,
                         ),
@@ -83,7 +90,7 @@ class ExamAnswerScoreResult extends StatelessWidget {
               ),
             if (percentile != null)
               PassqlBadge(
-                text: '참여자 중 상위 ${_formatPercentile(percentile)}%',
+                text: '참여자 중 상위 $percentile%',
                 kind: PassqlBadgeKind.topic,
                 icon: CupertinoIcons.chart_bar_fill,
               ),
@@ -97,7 +104,7 @@ class ExamAnswerScoreResult extends StatelessWidget {
         ),
         const SizedBox(height: PassqlSpacing.xl),
         // 과목 막대 (과락선)
-        for (final subjectRule in SqldScoringRule.subjects) ...[
+        for (final subjectRule in gradingRule.subjects) ...[
           ExamAnswerScoreBar(
             label: '${subjectRule.subjectNo}과목 ${subjectRule.name}',
             score: _scoreOf(subjectRule.subjectNo),
@@ -111,9 +118,9 @@ class ExamAnswerScoreResult extends StatelessWidget {
         ExamAnswerScoreBar(
           label: '총점',
           score: report.totalScore,
-          maxScore: SqldScoringRule.maxScore,
-          cutScore: SqldScoringRule.passScore,
-          cutLabel: '합격 ${SqldScoringRule.passScore}점',
+          maxScore: gradingRule.maxScore,
+          cutScore: gradingRule.passScore,
+          cutLabel: '합격 ${gradingRule.passScore}점',
           rangeMinScore: range.min,
           rangeMaxScore: range.max,
         ),
@@ -127,8 +134,4 @@ class ExamAnswerScoreResult extends StatelessWidget {
     }
     return 0;
   }
-
-  /// 상위 % 표기: 1 미만은 소수 한 자리, 그 외 반올림 정수
-  static String _formatPercentile(double percentile) =>
-      percentile < 1 ? percentile.toStringAsFixed(1) : '${percentile.round()}';
 }

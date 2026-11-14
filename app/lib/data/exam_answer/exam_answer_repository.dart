@@ -4,7 +4,7 @@ import '../../core/error/app_exception.dart';
 import '../../core/error/error_code.dart';
 import '../../core/exam_answer/exam_answer_device_store.dart';
 import '../../core/exam_answer/exam_answer_score_report.dart';
-import '../../core/exam_answer/sqld_answer_grader.dart';
+import '../../core/exam_answer/exam_answer_grader.dart';
 import '../../core/logging/app_logger.dart';
 import '../models/exam_answer/exam_answer_enums.dart';
 import '../models/exam_answer/exam_answer_round_response.dart';
@@ -46,21 +46,18 @@ class ExamAnswerRepository {
   Future<ExamAnswerMySheet?> fetchMySheet(
     ExamAnswerRoundResponse roundResponse,
   ) async {
-    final round = roundResponse.round;
     final clientToken = await _deviceStore.readOrCreateClientToken();
     try {
       final sheet = await _examAnswerApi.getSheet(
-        round.certType,
-        round.roundNumber,
+        roundResponse.certType,
+        roundResponse.roundNumber,
         clientToken,
       );
-      final answers = sheet.answers;
-      if (answers == null) return null;
       return ExamAnswerMySheet(
-        answers: answers,
+        answers: sheet.answers,
         report:
-            sheet.grade?.toScoreReport() ??
-            gradeLocally(answers, roundResponse.items),
+            sheet.result?.toScoreReport() ??
+            gradeLocally(sheet.answers, roundResponse),
       );
     } catch (exception) {
       final error = exception.asAppException;
@@ -74,23 +71,22 @@ class ExamAnswerRepository {
     ExamAnswerRoundResponse roundResponse,
     String answers,
   ) async {
-    final round = roundResponse.round;
     final clientToken = await _deviceStore.readOrCreateClientToken();
     try {
       final sheet = await _examAnswerApi.submitSheet(
-        round.certType,
-        round.roundNumber,
-        ExamAnswerSheetRequest(
+        roundResponse.certType,
+        roundResponse.roundNumber,
+        ExamAnswerSheetSubmitRequest(
           clientToken: clientToken,
           answers: answers,
           source: ExamAnswerSheetSource.app,
         ),
       );
       return ExamAnswerMySheet(
-        answers: sheet.answers ?? answers,
+        answers: sheet.answers,
         report:
-            sheet.grade?.toScoreReport() ??
-            gradeLocally(answers, roundResponse.items),
+            sheet.result?.toScoreReport() ??
+            gradeLocally(sheet.answers, roundResponse),
       );
     } catch (exception) {
       final error = exception.asAppException;
@@ -98,7 +94,7 @@ class ExamAnswerRepository {
       AppLogger.warn(_logTag, 'submit fell back to local grading : $error');
       return ExamAnswerMySheet(
         answers: answers,
-        report: gradeLocally(answers, roundResponse.items),
+        report: gradeLocally(answers, roundResponse),
       );
     }
   }
@@ -112,19 +108,19 @@ class ExamAnswerRepository {
     String answers,
   ) => _deviceStore.saveDraftAnswers(certType, roundNumber, answers);
 
-  /// 가답안 문항 > 채점 입력 > 오프라인 결과
+  /// 가답안 문항 + 회차 채점 규칙(서버 우선) > 오프라인 결과
   static ExamAnswerScoreReport gradeLocally(
     String answers,
-    List<ExamAnswerItem> items,
-  ) => SqldAnswerGrader.grade(answers, [
-    for (final item in items)
+    ExamAnswerRoundResponse roundResponse,
+  ) => ExamAnswerGrader.grade(answers, [
+    for (final item in roundResponse.items)
       ExamAnswerKey(
         questionNo: item.questionNo,
         displayAnswer: item.answer,
-        acceptedAnswers: {?item.answer, ...item.alternativeAnswers},
+        acceptedAnswers: item.acceptedAnswers,
         isSettled: item.answerStatus.isSettled,
       ),
-  ]);
+  ], roundResponse.effectiveGradingRule);
 
   // 서버에 닿지 못함: 네트워크 끊김·시간 초과·5xx
   static bool _isServerUnreachable(AppException error) =>

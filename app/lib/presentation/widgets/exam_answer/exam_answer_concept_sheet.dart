@@ -7,7 +7,7 @@ import 'exam_answer_concept_links.dart';
 /// 틀린 문항 복습 시트: 문항 번호·내 답·정답 > 출제 개념·태그 > 메모 > 개념 학습·문제 풀기
 Future<void> showExamAnswerConceptSheet(
   BuildContext context, {
-  required ExamAnswerItem item,
+  required ExamAnswerItemResponse item,
   required int myAnswer,
 }) => showPassqlSheet<void>(
   context,
@@ -18,7 +18,7 @@ Future<void> showExamAnswerConceptSheet(
 class _ConceptSheetBody extends StatelessWidget {
   const _ConceptSheetBody({required this.item, required this.myAnswer});
 
-  final ExamAnswerItem item;
+  final ExamAnswerItemResponse item;
   final int myAnswer;
 
   @override
@@ -59,7 +59,9 @@ class _ConceptSheetBody extends StatelessWidget {
           ),
           const SizedBox(height: PassqlSpacing.xxs),
           Text(
-            item.conceptTitle.isEmpty ? '개념 정리 중이에요' : item.conceptTitle,
+            (item.conceptTitle?.isNotEmpty ?? false)
+                ? item.conceptTitle!
+                : '개념 정리 중이에요',
             style: PassqlTypography.headline.copyWith(color: colors.label),
           ),
           if (item.conceptTags.isNotEmpty) ...[

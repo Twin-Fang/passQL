@@ -54,11 +54,11 @@ Map<String, dynamic> _itemOf(int questionNo) {
     'questionNo': questionNo,
     'subjectNo': questionNo <= 10 ? 1 : 2,
     'conceptTitle': concept.$1,
-    'conceptTags': concept.$2,
+    'conceptTags': concept.$2.split(','),
     'topicCode': concept.$3,
     'answer': status == 'UNKNOWN' ? null : answer,
     'answerStatus': status,
-    'alternativeAnswers': questionNo == 41 ? '${answer % 4 + 1}' : null,
+    'alternativeAnswers': questionNo == 41 ? [answer % 4 + 1] : <int>[],
     'tally': {for (var index = 0; index < 4; index++) '${index + 1}': tally[index]},
     'voteCount': voteCount,
     'agreementRate': status == 'UNKNOWN' ? 0.25 : tally[answer - 1] / voteCount,
@@ -67,13 +67,22 @@ Map<String, dynamic> _itemOf(int questionNo) {
 }
 
 Map<String, dynamic> _roundResponse() => {
-  'round': {
-    'certType': 'SQLD',
-    'roundNumber': 63,
-    'title': 'SQLD 제63회',
-    'examDate': '2026-11-14',
-    'status': 'COLLECTING',
-    'notice': null,
+  'certType': 'SQLD',
+  'roundNumber': 63,
+  'title': 'SQLD 제63회',
+  'examDate': '2026-11-14',
+  'status': 'COLLECTING',
+  'notice': null,
+  'gradingRule': {
+    'totalQuestionCount': 50,
+    'pointsPerQuestion': 2,
+    'maxScore': 100,
+    'passScore': 60,
+    'subjectFailBelowPercent': 40,
+    'subjects': [
+      {'subjectNo': 1, 'subjectName': '데이터 모델링의 이해', 'firstQuestionNo': 1, 'lastQuestionNo': 10, 'maxScore': 20, 'failBelowScore': 8},
+      {'subjectNo': 2, 'subjectName': 'SQL 기본과 활용', 'firstQuestionNo': 11, 'lastQuestionNo': 50, 'maxScore': 80, 'failBelowScore': 32},
+    ],
   },
   'items': [for (var questionNo = 1; questionNo <= 50; questionNo++) _itemOf(questionNo)],
   'participantCount': 1284,
@@ -116,14 +125,18 @@ Map<String, dynamic> _gradeOf(String answers) {
       ? 'BORDERLINE'
       : 'FAIL';
   return {
+    'certType': 'SQLD',
+    'roundNumber': 63,
     'answers': answers,
+    'source': 'APP',
+    'submittedAt': DateTime.now().toUtc().toIso8601String(),
     'result': {
       'subject1': {'score': subject1, 'max': 20, 'isFailCut': subject1 < 8},
       'subject2': {'score': subject2, 'max': 80, 'isFailCut': subject2 < 32},
       'totalScore': total,
       'scoreRange': {'min': rangeMin, 'max': rangeMax},
       'passStatus': passStatus,
-      'percentile': 23.4,
+      'percentile': 24,
       'perQuestion': perQuestion,
     },
   };

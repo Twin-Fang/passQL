@@ -40,15 +40,6 @@ const Map<String, String> _specSchemaByAppClass = {
 /// 스펙에 대응이 없는 앱 전용 모델 {앱 클래스: 이유}
 const Map<String, String> _appOnlyClasses = {
   'ExecuteRequest': '서버가 Map<String, String> 본문을 받아 스펙에 모델이 없음',
-  // 가답안·가채점 (#1075): 서버 공개 API 병행 개발 중 > 서버 스펙 반영 뒤 _specSchemaByAppClass 로 옮김
-  'ExamAnswerRoundResponse': '#1075 서버 스펙 반영 전 (병행 개발)',
-  'ExamAnswerRound': '#1075 서버 스펙 반영 전 (병행 개발)',
-  'ExamAnswerItem': '#1075 서버 스펙 반영 전 (병행 개발)',
-  'ExamAnswerSheetRequest': '#1075 서버 스펙 반영 전 (병행 개발)',
-  'ExamAnswerGradeResult': '#1075 서버 스펙 반영 전 (병행 개발)',
-  'ExamAnswerSubjectGrade': '#1075 서버 스펙 반영 전 (병행 개발)',
-  'ExamAnswerScoreRangeResponse': '#1075 서버 스펙 반영 전 (병행 개발)',
-  'ExamAnswerQuestionGrade': '#1075 서버 스펙 반영 전 (병행 개발)',
 };
 
 /// 알려진 어긋남 {'클래스.필드': 이유}. 새로 생기면 테스트가 실패하고, 고치면 여기서 지운다

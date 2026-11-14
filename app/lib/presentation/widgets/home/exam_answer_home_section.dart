@@ -6,7 +6,6 @@ import '../../../data/models/exam_answer/exam_answer_enums.dart';
 import '../../../data/models/exam_answer/exam_answer_round_response.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
-import '../exam_answer/exam_answer_round_summary.dart';
 import '../exam_answer/exam_answer_status_styles.dart';
 
 /// 홈 가답안 구간 (#1075): 시험일 ~ 공식 정답 반영 기간에만 (노출 판정은 examAnswerHomeEntryProvider)
@@ -19,17 +18,16 @@ class ExamAnswerHomeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final round = roundResponse.round;
-    final isOfficial = round.status == ExamAnswerRoundStatus.official;
+    final isOfficial = roundResponse.status == ExamAnswerRoundStatus.official;
     final participantCount = roundResponse.participantCount;
     return PassqlSection(
-      title: '${ExamAnswerRoundSummary.titleOf(round)} 가답안',
+      title: '${roundResponse.displayTitle} 가답안',
       child: PassqlListRow(
         title: isOfficial ? '공식 정답으로 채점하기' : '가채점하고 합격 예측',
         // 한 줄 설명: 회차 상태 | 참여자 수 (행 오른쪽엔 화살표만, Design 5.1)
         subtitle: participantCount > 0
-            ? '${round.status.label} | ${formatThousands(participantCount)}명 참여'
-            : round.status.label,
+            ? '${roundResponse.status.label} | ${formatThousands(participantCount)}명 참여'
+            : roundResponse.status.label,
         leading: PassqlIconTile(
           icon: CupertinoIcons.checkmark_seal_fill,
           color: colors.accent,
@@ -37,7 +35,10 @@ class ExamAnswerHomeSection extends StatelessWidget {
         hasChevron: true,
         hasHorizontalPadding: false,
         onTap: () => context.push(
-          AppRoutes.examAnswer(round.certType, round.roundNumber),
+          AppRoutes.examAnswer(
+            roundResponse.certType,
+            roundResponse.roundNumber,
+          ),
         ),
       ),
     );

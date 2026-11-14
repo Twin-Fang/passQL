@@ -16,22 +16,16 @@ class ExamAnswerRoundSummary extends StatelessWidget {
   // 면책 문구 (소개 사이트와 같은 뜻)
   static const String disclaimer = '공식 정답이 아니에요. 최종 정답은 한국데이터산업진흥원 발표를 확인하세요.';
 
-  /// 회차 제목: 서버 제목, 없으면 `SQLD 제63회`
-  static String titleOf(ExamAnswerRound round) => round.title.isNotEmpty
-      ? round.title
-      : '${round.certType} 제${round.roundNumber}회';
-
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final round = roundResponse.round;
     final updatedAt = roundResponse.updatedAt;
-    final notice = round.notice;
+    final notice = roundResponse.notice;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${titleOf(round)} 가답안',
+          '${roundResponse.displayTitle} 가답안',
           style: PassqlTypography.title2.copyWith(color: colors.label),
         ),
         const SizedBox(height: PassqlSpacing.xs),
@@ -40,7 +34,10 @@ class ExamAnswerRoundSummary extends StatelessWidget {
           runSpacing: PassqlSpacing.xxs,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            PassqlBadge(text: round.status.label, kind: round.status.badgeKind),
+            PassqlBadge(
+              text: roundResponse.status.label,
+              kind: roundResponse.status.badgeKind,
+            ),
             PassqlBadge(
               text: '${formatThousands(roundResponse.participantCount)}명 참여',
               kind: PassqlBadgeKind.neutral,

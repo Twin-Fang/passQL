@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import '../../../core/exam_answer/sqld_scoring_rule.dart';
+import '../../../core/exam_answer/exam_grading_rule.dart';
 import '../../../data/models/exam_answer/exam_answer_round_response.dart';
 import '../../design/design.dart';
 import 'exam_answer_concept_links.dart';
@@ -16,7 +16,7 @@ class ExamAnswerKeyRow extends StatelessWidget {
     this.myAnswer,
   });
 
-  final ExamAnswerItem item;
+  final ExamAnswerItemResponse item;
   final bool isExpanded;
   final VoidCallback onToggle;
 
@@ -133,10 +133,10 @@ class ExamAnswerKeyRow extends StatelessWidget {
   static const double _expandedChevronTurns = 0.5;
 
   /// 정답 표기: `3`, 복수 정답 `2, 3`, 없으면 `-`
-  static String _answerTextOf(ExamAnswerItem item) {
+  static String _answerTextOf(ExamAnswerItemResponse item) {
     final answer = item.answer;
     if (answer == null) return '-';
-    final answers = {answer, ...item.alternativeAnswers}.toList()..sort();
+    final answers = item.acceptedAnswers.toList()..sort();
     return answers.join(', ');
   }
 }
@@ -145,16 +145,14 @@ class ExamAnswerKeyRow extends StatelessWidget {
 class _MyAnswerMark extends StatelessWidget {
   const _MyAnswerMark({required this.item, required this.myAnswer});
 
-  final ExamAnswerItem item;
+  final ExamAnswerItemResponse item;
   final int myAnswer;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final isAnswered = myAnswer != SqldScoringRule.unknownAnswer;
-    final isMatched =
-        isAnswered &&
-        (myAnswer == item.answer || item.alternativeAnswers.contains(myAnswer));
+    final isAnswered = myAnswer != ExamGradingRule.unknownAnswer;
+    final isMatched = isAnswered && item.acceptedAnswers.contains(myAnswer);
     if (isAnswered && !item.answerStatus.isSettled) {
       return Text(
         '$myAnswer',
@@ -177,13 +175,17 @@ class _MyAnswerMark extends StatelessWidget {
 class _ExpandedDetail extends StatelessWidget {
   const _ExpandedDetail({required this.item});
 
-  final ExamAnswerItem item;
+  final ExamAnswerItemResponse item;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final note = item.note;
-    final totalVotes = item.tally.fold<int>(0, (sum, count) => sum + count);
+    final totalVotes = [
+      for (var choice = 1; choice <= ExamGradingRule.choiceCount; choice++)
+        item.votesOf(choice),
+    ].fold<int>(0, (sum, count) => sum + count);
+    final conceptTitle = item.conceptTitle;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         PassqlSpacing.md + PassqlSize.examAnswerNumberColumn,
@@ -194,14 +196,12 @@ class _ExpandedDetail extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (var choice = 1; choice <= item.tally.length; choice++)
+          for (var choice = 1; choice <= ExamGradingRule.choiceCount; choice++)
             _TallyLine(
               choice: choice,
-              count: item.tally[choice - 1],
+              count: item.votesOf(choice),
               totalVotes: totalVotes,
-              isAnswer:
-                  choice == item.answer ||
-                  item.alternativeAnswers.contains(choice),
+              isAnswer: item.acceptedAnswers.contains(choice),
               fillColor: item.answerStatus.fillColorOf(colors),
             ),
           Text(
@@ -224,10 +224,10 @@ class _ExpandedDetail extends StatelessWidget {
               ),
             ),
           ],
-          if (item.conceptTitle.isNotEmpty) ...[
+          if (conceptTitle != null && conceptTitle.isNotEmpty) ...[
             const SizedBox(height: PassqlSpacing.sm),
             Text(
-              item.conceptTitle,
+              conceptTitle,
               style: PassqlTypography.subheadlineSemibold.copyWith(
                 color: colors.label,
               ),

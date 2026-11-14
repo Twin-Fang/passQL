@@ -2,13 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/exam_answer/exam_answer_score_report.dart';
-import '../../../core/exam_answer/sqld_scoring_rule.dart';
+import '../../../core/exam_answer/exam_grading_rule.dart';
 import '../../../data/models/exam_answer/exam_answer_round_response.dart';
 import '../../design/design.dart';
 import '../../providers/exam_answer_providers.dart';
 import 'exam_answer_concept_sheet.dart';
 import 'exam_answer_omr_sheet.dart';
-import 'exam_answer_round_summary.dart';
 import 'exam_answer_score_result.dart';
 import 'exam_answer_share_sheet.dart';
 
@@ -44,6 +43,7 @@ class ExamAnswerMyScoreTab extends ConsumerWidget {
     }
     return _OmrView(
       sheetState: sheetState,
+      gradingRule: roundResponse.effectiveGradingRule,
       onAnswerSelected: notifier.selectAnswer,
       onShowPreviousResult: gradedSheet != null && !sheetState.isGradeOutdated
           ? notifier.showResult
@@ -56,11 +56,13 @@ class ExamAnswerMyScoreTab extends ConsumerWidget {
 class _OmrView extends StatelessWidget {
   const _OmrView({
     required this.sheetState,
+    required this.gradingRule,
     required this.onAnswerSelected,
     this.onShowPreviousResult,
   });
 
   final ExamAnswerSheetState sheetState;
+  final ExamGradingRule gradingRule;
   final void Function(int questionNo, int choice) onAnswerSelected;
 
   /// 고친 답이 없을 때 이전 결과로 돌아가기 (null 이면 버튼 없음)
@@ -89,13 +91,13 @@ class _OmrView extends StatelessWidget {
           children: [
             Expanded(
               child: PassqlProgressBar(
-                value: enteredCount / SqldScoringRule.questionCount,
+                value: enteredCount / sheetState.answers.length,
                 fillColor: sheetState.isComplete ? colors.correct : null,
               ),
             ),
             const SizedBox(width: PassqlSpacing.sm),
             Text(
-              '$enteredCount / ${SqldScoringRule.questionCount}',
+              '$enteredCount / ${sheetState.answers.length}',
               style: PassqlTypography.footnoteSemibold.copyWith(
                 fontFeatures: PassqlTypography.tabular,
                 color: colors.secondaryLabel,
@@ -115,6 +117,7 @@ class _OmrView extends StatelessWidget {
         const SizedBox(height: PassqlSpacing.lg),
         ExamAnswerOmrSheet(
           answers: sheetState.answers,
+          gradingRule: gradingRule,
           onAnswerSelected: onAnswerSelected,
         ),
       ],
@@ -143,13 +146,17 @@ class _ResultView extends StatelessWidget {
       for (final item in roundResponse.items) item.questionNo: item,
     };
     final wrongMarks = report.wrongMarks;
-    final unsettledCount = report.questionMarks
-        .where((mark) => mark.isCorrect == null)
+    // 갈림·미확정 문항 수 (가답안 상태 기준)
+    final unsettledCount = roundResponse.items
+        .where((item) => !item.answerStatus.isSettled)
         .length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ExamAnswerScoreResult(report: report),
+        ExamAnswerScoreResult(
+          report: report,
+          gradingRule: roundResponse.effectiveGradingRule,
+        ),
         const SizedBox(height: PassqlSpacing.xl),
         Row(
           children: [
@@ -170,9 +177,8 @@ class _ResultView extends StatelessWidget {
                   context,
                   certType: roundKey.certType,
                   roundNumber: roundKey.roundNumber,
-                  roundTitle: ExamAnswerRoundSummary.titleOf(
-                    roundResponse.round,
-                  ),
+                  roundTitle: roundResponse.displayTitle,
+                  maxScore: roundResponse.effectiveGradingRule.maxScore,
                   report: report,
                 ),
               ),
@@ -222,7 +228,7 @@ class _ResultView extends StatelessWidget {
 
   /// `내 답 2 | 가답안 3` (모름이면 `내 답 모름`)
   static String _answerCompareOf(ExamAnswerQuestionMark mark) {
-    final myAnswerText = mark.myAnswer == SqldScoringRule.unknownAnswer
+    final myAnswerText = mark.myAnswer == ExamGradingRule.unknownAnswer
         ? '모름'
         : '${mark.myAnswer}번';
     final answer = mark.answer;

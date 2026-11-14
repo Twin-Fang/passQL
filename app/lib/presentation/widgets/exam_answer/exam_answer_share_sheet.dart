@@ -18,6 +18,7 @@ Future<void> showExamAnswerShareSheet(
   required String certType,
   required int roundNumber,
   required String roundTitle,
+  required int maxScore,
   required ExamAnswerScoreReport report,
 }) => showPassqlSheet<void>(
   context,
@@ -26,6 +27,7 @@ Future<void> showExamAnswerShareSheet(
     certType: certType,
     roundNumber: roundNumber,
     roundTitle: roundTitle,
+    maxScore: maxScore,
     report: report,
   ),
 );
@@ -35,12 +37,14 @@ class _ShareSheetBody extends StatefulWidget {
     required this.certType,
     required this.roundNumber,
     required this.roundTitle,
+    required this.maxScore,
     required this.report,
   });
 
   final String certType;
   final int roundNumber;
   final String roundTitle;
+  final int maxScore;
   final ExamAnswerScoreReport report;
 
   @override
@@ -123,6 +127,7 @@ class _ShareSheetBodyState extends State<_ShareSheetBody> {
               key: _cardBoundaryKey,
               child: ExamAnswerShareCard(
                 roundTitle: widget.roundTitle,
+                maxScore: widget.maxScore,
                 report: widget.report,
                 isScorePublic: _isScorePublic,
               ),
