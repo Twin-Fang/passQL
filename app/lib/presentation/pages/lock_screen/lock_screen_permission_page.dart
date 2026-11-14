@@ -8,11 +8,18 @@ import '../../../core/monitoring/app_analytics.dart';
 import '../../design/design.dart';
 import '../../providers/lock_screen_providers.dart';
 import '../../widgets/lock_screen/lock_screen_permission_step_card.dart';
+import '../../widgets/settings/lock_screen_option_rows.dart';
+import '../../widgets/settings/settings_group.dart';
 
 /// 잠금화면 권한 단계 하나: 분석 이름, 제목, 이유 한 줄, 필수 여부
 enum LockScreenPermissionStep {
   // 설정은 앱 목록으로 열림 (Android 11+ 앱별 화면 직접 열기 불가) > 목록에서 찾는 방법을 함께 안내 (#1066)
-  overlay('overlay', '다른 앱 위에 표시', '목록에서 passQL을 눌러 허용해 주세요. 잠금화면 위에 문제를 띄울 때 필요해요', true),
+  overlay(
+    'overlay',
+    '다른 앱 위에 표시',
+    '목록에서 passQL을 눌러 허용해 주세요. 잠금화면 위에 문제를 띄울 때 필요해요',
+    true,
+  ),
   notification('notification', '알림 허용', '오늘 푼 문제 수를 상단 알림으로 보여 줘요', true),
   battery('battery', '배터리 최적화 제외', '휴대폰이 기능을 멈추지 않게 해요', true),
   samsungPower('samsung_power', '절전 예외 앱에 추가', '삼성 휴대폰은 한 번 더 필요해요', false);
@@ -30,9 +37,9 @@ enum LockScreenPermissionStep {
   final bool isRequired;
 }
 
-/// 잠금화면 켜기 권한 단계 (#990): 진행 막대 > 단계 카드(현재 단계 강조·설정 열기) > 준비 끝
+/// 잠금화면 켜기 권한 단계 (#990): 띄우는 방식 고르기(#1068) > 진행 막대 > 단계 카드(현재 단계 강조·설정 열기) > 준비 끝
 /// 필수 3개(다른 앱 위에 표시, 알림, 배터리 최적화 제외) 모두 켜지면 바로 켜기, 삼성 절전 예외는 권장(삼성만, 건너뛰기 가능)
-/// 설정 앱에서 돌아오면 상태를 다시 읽어 자동 체크
+/// 설정 앱에서 돌아오면 상태를 다시 읽어 자동 체크 (삼성 절전 예외는 읽을 방법이 없어 사용자 확인으로만 끝)
 class LockScreenPermissionPage extends ConsumerStatefulWidget {
   const LockScreenPermissionPage({super.key});
 
@@ -50,8 +57,18 @@ class _LockScreenPermissionPageState
   /// 설정 화면을 열고 돌아오기를 기다리는 단계 (돌아오면 결과 기록)
   LockScreenPermissionStep? _openedStep;
 
-  /// 삼성 절전 예외: 확인할 방법이 없어 설정을 다녀오거나 건너뛰면 끝난 것으로 봄
+  // 삼성 One UI 절전 예외 앱 경로 (설정에서 돌아온 뒤 안내)
+  static const String _samsungPowerPathHint =
+      '배터리 > 백그라운드 사용 제한 > 절전 예외 앱에서 +를 눌러 passQL을 추가해 주세요';
+
+  /// 삼성 절전 예외: 결과를 읽을 수 없어 "추가했어요"·건너뛰기로만 끝 (#1068)
   bool _isSamsungStepFinished = false;
+
+  /// 삼성 절전 예외 설정을 다녀옴 > 경로 안내와 추가했어요·다시 열기 표시
+  bool _isSamsungStepAwaitingConfirmation = false;
+
+  /// 이 화면에서 고른 간격 (켜기에 넘겨 서버 기본 대신 저장)
+  int? _selectedIntervalMinutes;
 
   bool _isEnabled = false;
   bool _isEnabling = false;
@@ -94,10 +111,12 @@ class _LockScreenPermissionPageState
     final openedStep = _openedStep;
     _openedStep = null;
     if (openedStep == LockScreenPermissionStep.samsungPower) {
-      _isSamsungStepFinished = true;
+      setState(() => _isSamsungStepAwaitingConfirmation = true);
     }
     await _reloadStatus();
-    if (openedStep != null) {
+    // 삼성 단계는 결과를 못 읽어 "추가했어요" 때 기록
+    if (openedStep != null &&
+        openedStep != LockScreenPermissionStep.samsungPower) {
       unawaited(
         AppAnalytics.current.logLockScreenPermissionStep(
           stepName: openedStep.analyticsName,
@@ -119,12 +138,25 @@ class _LockScreenPermissionPageState
 
   Future<void> _enable() async {
     setState(() => _isEnabling = true);
-    final isEnabled = await ref.read(lockScreenStateProvider.notifier).enable();
+    final isEnabled = await ref
+        .read(lockScreenStateProvider.notifier)
+        .enable(selectedIntervalMinutes: _selectedIntervalMinutes);
     if (!mounted) return;
     setState(() {
       _isEnabling = false;
       _isEnabled = isEnabled;
     });
+  }
+
+  /// 삼성 절전 예외 끝: 사용자가 추가했다고 확인 > 체크·분석 기록
+  void _confirmSamsungStepDone() {
+    setState(() => _isSamsungStepFinished = true);
+    unawaited(
+      AppAnalytics.current.logLockScreenPermissionStep(
+        stepName: LockScreenPermissionStep.samsungPower.analyticsName,
+        isGranted: true,
+      ),
+    );
   }
 
   void _openSettings(LockScreenPermissionStep step) {
@@ -156,6 +188,19 @@ class _LockScreenPermissionPageState
       body: ListView(
         padding: const EdgeInsets.all(PassqlSpacing.md),
         children: [
+          SettingsGroup(
+            title: '어떻게 띄울까요',
+            footer: '나중에 설정에서도 바꿀 수 있어요',
+            children: [
+              LockScreenIntervalTile(
+                onSelected: (intervalMinutes) =>
+                    _selectedIntervalMinutes = intervalMinutes,
+              ),
+              if (ref.watch(isLockScreenExecutableIncludedProvider))
+                const LockScreenQuestionTypeTile(),
+            ],
+          ),
+          const SizedBox(height: PassqlSpacing.lg),
           PassqlProgressBar(value: doneCount / steps.length),
           const SizedBox(height: PassqlSpacing.md),
           for (final (index, step) in steps.indexed) ...[
@@ -171,6 +216,15 @@ class _LockScreenPermissionPageState
               onSkip: step.isRequired
                   ? null
                   : () => setState(() => _isSamsungStepFinished = true),
+              confirmationPathHint:
+                  step == LockScreenPermissionStep.samsungPower
+                  ? _samsungPowerPathHint
+                  : null,
+              onConfirmDone:
+                  step == LockScreenPermissionStep.samsungPower &&
+                      _isSamsungStepAwaitingConfirmation
+                  ? _confirmSamsungStepDone
+                  : null,
             ),
             const SizedBox(height: PassqlSpacing.sm),
           ],

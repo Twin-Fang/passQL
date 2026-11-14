@@ -3,10 +3,13 @@ abstract final class PassqlSize {
   static const double buttonLarge = 50;
   static const double buttonRegular = 44;
   static const double buttonSmall = 34;
-  static const double segmentedControlSegment = 36; // 세그먼트 알약 높이 (트랙 위아래 여백 4씩 더해 누르는 영역 44, #726)
-  static const double tabBar = 50; // 아이콘 + 라벨 탭 바, 내용은 세로 가운데 > 위아래 여백 같음: 아이콘 24 + 간격 2 + 라벨 12 = 38 > 여백 6씩, 글자 배율 상한 1.4 에서 3.6씩 (#810)
+  static const double segmentedControlSegment =
+      36; // 세그먼트 알약 높이 (트랙 위아래 여백 4씩 더해 누르는 영역 44, #726)
+  static const double tabBar =
+      50; // 아이콘 + 라벨 탭 바, 내용은 세로 가운데 > 위아래 여백 같음: 아이콘 24 + 간격 2 + 라벨 12 = 38 > 여백 6씩, 글자 배율 상한 1.4 에서 3.6씩 (#810)
   static const double navBar = 44;
-  static const double bottomStrip = 44; // 탭 바 아래 한 줄 띠 (광고, #527). 띠 전체가 터치 영역이라 최소 터치 높이와 같게
+  static const double bottomStrip =
+      44; // 탭 바 아래 한 줄 띠 (광고, #527). 띠 전체가 터치 영역이라 최소 터치 높이와 같게
   static const double rowMin = 44; // Apple 최소 터치 영역
   static const double communityImageThumbnail = 112; // 의견 타일 첨부 썸네일 한 변
   static const double communityImageDraftPreview = 72; // 작성 시트 첨부 미리보기 한 변
@@ -15,7 +18,8 @@ abstract final class PassqlSize {
   static const double progressBarHeight = 4;
   static const double choiceKeyBadge = 24; // 선택지 키(A·B·C·D) 원
   static const double avatar = 40; // 설정 프로필 이니셜 원 (카드 높이를 줄이려고 52 > 40, #687)
-  static const double communityAvatar = 36; // 의견 타일 닉네임 첫 글자 원 (24 > 32 > 36, #741)
+  static const double communityAvatar =
+      36; // 의견 타일 닉네임 첫 글자 원 (24 > 32 > 36, #741)
   static const double scoreRing = 168; // 결과 점수 고리 지름
   static const double scoreRingStroke = 12;
   static const double scoreRingCompact = 68; // 개념 결과 머리의 작은 고리 (제목 옆, #764)
@@ -27,18 +31,22 @@ abstract final class PassqlSize {
   static const double readinessRingStroke = 16;
   static const double readinessMetricBarHeight = 8;
   static const double unitSegmentHeight = 6; // 단원 진행 칸 막대 (개념 하나 = 칸 하나)
-  static const double segmentedProgressHeight = 8; // 풀이 상단 칸 진행 바 (문제 하나 = 칸 하나, #999)
-  static const double rewardGaugeHeight = 12; // 보상 창 오늘 크레딧 게이지 (기본·보너스 구간, #999)
+  static const double segmentedProgressHeight =
+      8; // 풀이 상단 칸 진행 바 (문제 하나 = 칸 하나, #999)
+  static const double rewardGaugeHeight =
+      12; // 보상 창 오늘 크레딧 게이지 (기본·보너스 구간, #999)
   static const double loginLogoHeight = 44;
   static const double footerLogoHeight = 20;
-  static const double navBarLogoHeight = 24; // 홈 상단 바 워드마크 (바 높이 44 안, 종 아이콘과 시각 무게 맞춤)
+  static const double navBarLogoHeight =
+      24; // 홈 상단 바 워드마크 (바 높이 44 안, 종 아이콘과 시각 무게 맞춤)
   // 오픈소스 라이선스 화면 상단 로고 높이
   static const double licensePageLogoHeight = 32;
   static const double messageSlotHeight =
       28; // 입력 아래 안내·오류 문구 자리 최소 높이 (PassqlMessageSlot, 긴 문구는 늘어남)
   static const double mockExamRoundBadge = 44; // 모의고사 회차 번호 배지 한 변 (숫자 + "회")
   static const double mockExamRoundLockBadge = 18; // 잠긴 회차 배지 모서리 자물쇠 원
-  static const double mockExamRoundProgressWidth = 56; // 풀이 중 회차 진행 막대 폭 ("23/50" 글자 폭 정도)
+  static const double mockExamRoundProgressWidth =
+      56; // 풀이 중 회차 진행 막대 폭 ("23/50" 글자 폭 정도)
   // 시험 일정 (#991): 가로 단계 점·진행선, 세로 타임라인 점(시험은 한 단계 크게)·날짜 칸 폭("10.12" 굵은 글자 폭)
   static const double examStepDot = 14;
   static const double examStepLine = 2;
@@ -49,13 +57,19 @@ abstract final class PassqlSize {
   static const double iconTile = 29;
   static const double iconTileCompact = 26; // 구간 제목 앞 타일 (행 타일보다 한 단계 작게, #726)
   static const double blurSigma = 20;
-  static const double lockedPreviewBlurSigma = 5; // 잠금 미리보기: 글자 모양은 보이되 읽히지 않는 정도
-  static const double lockedPreviewMinHeight = 132; // 잠금 미리보기: 가운데 문구 + 알약 버튼이 들어갈 최소 높이
+  static const double lockedPreviewBlurSigma =
+      5; // 잠금 미리보기: 글자 모양은 보이되 읽히지 않는 정도
+  static const double lockedPreviewPeekHeight =
+      220; // 잠금화면 흐린 상세 해설: 위쪽만 살짝 보이는 높이
+  static const double lockedPreviewMinHeight =
+      132; // 잠금 미리보기: 가운데 문구 + 알약 버튼이 들어갈 최소 높이
   static const double hairline = 0.5;
-  static const double notificationBadge = 18; // 안 읽은 개수 배지 높이·한 자리 지름 (PassqlCountBadge)
+  static const double notificationBadge =
+      18; // 안 읽은 개수 배지 높이·한 자리 지름 (PassqlCountBadge)
   static const double unreadDot = 8; // 알림 항목 앞 안 읽음 점
   static const double sheetHeroCircle = 64; // 안내 시트 맨 위 대표 아이콘 원
-  static const double welcomeIllustration = 168; // 환영 안내 3D 일러스트 (assets 1x 크기와 같음)
+  static const double welcomeIllustration =
+      168; // 환영 안내 3D 일러스트 (assets 1x 크기와 같음)
 
   // 로딩 표시 반지름 3단계: 버튼·행 안, 섹션·시트, 화면 잠금
   static const double loadingIndicatorInlineRadius = 10;

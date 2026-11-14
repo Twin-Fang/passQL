@@ -22,6 +22,6 @@ void main() {
     expect(byLabel['모의고사']?.free, '1회 체험');
     // 무료도 오늘의 세트는 실행·전체 해설 (#992)
     expect(byLabel['SQL 실행']?.free, '오늘의 세트');
-    expect(byLabel['해설']?.free, '정답 해설 (세트 전체)');
+    expect(byLabel['해설']?.free, '기본 해설');
   });
 }

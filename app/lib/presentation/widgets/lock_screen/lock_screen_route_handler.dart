@@ -11,7 +11,7 @@ import '../practice/daily_limit_reward_sheet.dart';
 import '../pro/pro_offer_sheet.dart';
 
 /// 잠금화면·상태 알림에서 연 앱 경로 처리 (앱 엔진, MaterialApp builder 에 1개)
-/// 경로 4종: 크레딧 받기 시트, 이용권 시트, 문제 상세, 설정. 로그인 전이면 무시
+/// 경로 5종: 크레딧 받기 시트, 이용권 시트, 문제 상세, 문제별 의견 목록, 설정. 로그인 전이면 무시
 /// 시작 경로(앱이 꺼져 있었음)는 첫 프레임 뒤 1회, 떠 있을 때는 채널 신호로
 class LockScreenRouteHandler extends ConsumerStatefulWidget {
   const LockScreenRouteHandler({
@@ -60,6 +60,15 @@ class _LockScreenRouteHandlerState
       final questionUuid = LockScreenRoutes.questionUuidOf(route);
       if (questionUuid != null) {
         navigatorContext.push(AppRoutes.questionDetail(questionUuid));
+        return;
+      }
+      final discussionQuestionUuid = LockScreenRoutes.discussionQuestionUuidOf(
+        route,
+      );
+      if (discussionQuestionUuid != null) {
+        navigatorContext.push(
+          AppRoutes.communityQuestion(discussionQuestionUuid),
+        );
         return;
       }
       switch (route) {

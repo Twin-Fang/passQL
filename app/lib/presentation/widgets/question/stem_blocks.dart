@@ -229,7 +229,7 @@ List<StemBlock> _splitQuestions(List<String> lines) {
 bool _isQuestionSentence(String sentence) =>
     sentence.endsWith('?') && _hangulRe.hasMatch(sentence);
 
-/// 코드 펜스 안 > 캡션별 코드 (맨 첫 줄·빈 줄 다음 줄의 짧은 이름표 `--` 주석만 캡션, 나머지 주석은 코드에 남김)
+/// 코드 펜스 안 > 캡션별 코드 (맨 첫 줄·빈 줄·`;` 로 끝난 줄 다음의 짧은 이름표 `--` 주석만 캡션, 나머지 주석은 코드에 남김)
 List<StemCode> _parseCodeBlocks(String code) {
   final codes = <StemCode>[];
   String? caption;
@@ -255,7 +255,8 @@ List<StemCode> _parseCodeBlocks(String code) {
       isAtSegmentStart = false;
       continue;
     }
-    isAtSegmentStart = line.trim().isEmpty;
+    // 새 SQL 시작: 빈 줄 다음 또는 앞 문장이 `;` 로 끝남 (빈 줄 없이 이어 쓴 `-- X`·`-- Y` 묶음)
+    isAtSegmentStart = line.trim().isEmpty || line.trimRight().endsWith(';');
     codeLines.add(line);
   }
   flushCode();

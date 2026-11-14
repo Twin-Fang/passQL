@@ -2,7 +2,7 @@ package com.coldredrice.passql.lockscreen
 
 /**
  * 잠금화면 > 앱 이동 경로: MainActivity intent extra 키와 값 (Dart lock_screen_bridge.dart 와 같은 값)
- * 값 4종: credit_reward, pass_sheet, question:<uuid>, settings_lock_screen
+ * 값 5종: credit_reward, pass_sheet, question:<uuid>, discussion:<uuid>, settings_lock_screen
  */
 object LockScreenRoutes {
     const val EXTRA_ROUTE = "passql_lock_screen_route"

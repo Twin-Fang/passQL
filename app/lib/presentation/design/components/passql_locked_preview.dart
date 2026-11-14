@@ -17,6 +17,7 @@ class PassqlLockedPreview extends StatelessWidget {
     required this.onUnlock,
     this.unlockButtonLabel = unlockLabel,
     this.isCaptionAtTop = false,
+    this.previewMaxHeight,
   });
 
   /// 흐리게 깔 그럴듯한 가짜 미리보기 (서버의 잠긴 내용이 아님)
@@ -31,6 +32,9 @@ class PassqlLockedPreview extends StatelessWidget {
 
   /// 한 줄·버튼을 위쪽에 둘지 (긴 미리보기에서 작은 화면도 스크롤 없이 보이게), 기본은 가운데
   final bool isCaptionAtTop;
+
+  /// 미리보기 최대 높이 (null 이면 전체, 주면 위쪽만 보이고 아래는 배경으로 사라짐)
+  final double? previewMaxHeight;
 
   /// 알약 버튼 기본 문구 (모든 잠금 자리 공통)
   static const String unlockLabel = 'PRO로 보기';
@@ -68,7 +72,10 @@ class PassqlLockedPreview extends StatelessWidget {
                       sigmaX: PassqlSize.lockedPreviewBlurSigma,
                       sigmaY: PassqlSize.lockedPreviewBlurSigma,
                     ),
-                    child: Opacity(opacity: _previewOpacity, child: preview),
+                    child: Opacity(
+                      opacity: _previewOpacity,
+                      child: _clippedPreview(),
+                    ),
                   ),
                 ),
                 // 덮개
@@ -83,7 +90,12 @@ class PassqlLockedPreview extends StatelessWidget {
                           colors.background.withValues(
                             alpha: _scrimCenterAlpha,
                           ),
-                          colors.background.withValues(alpha: _scrimEdgeAlpha),
+                          // 잘린 미리보기는 끝이 배경으로 이어지게
+                          colors.background.withValues(
+                            alpha: previewMaxHeight == null
+                                ? _scrimEdgeAlpha
+                                : 1,
+                          ),
                         ],
                       ),
                     ),
@@ -126,6 +138,23 @@ class PassqlLockedPreview extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  /// 최대 높이가 있으면 위쪽만 잘라 보임
+  Widget _clippedPreview() {
+    final maxHeight = previewMaxHeight;
+    if (maxHeight == null) return preview;
+    return SizedBox(
+      height: maxHeight,
+      child: ClipRect(
+        child: OverflowBox(
+          alignment: Alignment.topCenter,
+          minHeight: 0,
+          maxHeight: double.infinity,
+          child: preview,
         ),
       ),
     );

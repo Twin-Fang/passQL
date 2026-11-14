@@ -89,6 +89,14 @@ class PassqlMemoController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 메모 끔 + 모든 문항 획·되돌리기 비움 (오래 사는 화면이 새 표시마다 처음부터)
+  void clearAllPages() {
+    _isMemoMode = false;
+    _strokesByPageKey.clear();
+    _undoSnapshotsByPageKey.clear();
+    notifyListeners();
+  }
+
   void selectTool(PassqlMemoTool tool) {
     if (_selectedTool == tool) return;
     _selectedTool = tool;

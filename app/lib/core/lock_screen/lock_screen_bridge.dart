@@ -12,15 +12,25 @@ abstract final class LockScreenRoutes {
   static const String passSheet = 'pass_sheet';
   static const String settings = 'settings_lock_screen';
   static const String _questionPrefix = 'question:';
+  static const String _discussionPrefix = 'discussion:';
 
   static String question(String questionUuid) =>
       '$_questionPrefix$questionUuid';
 
+  /// 문제별 의견 목록 (잠금화면 "토론 보기")
+  static String discussion(String questionUuid) =>
+      '$_discussionPrefix$questionUuid';
+
   /// `question:<uuid>` 이면 uuid, 아니면 null
   static String? questionUuidOf(String route) =>
-      route.startsWith(_questionPrefix)
-      ? route.substring(_questionPrefix.length)
-      : null;
+      _uuidAfterPrefix(route, _questionPrefix);
+
+  /// `discussion:<uuid>` 이면 uuid, 아니면 null
+  static String? discussionQuestionUuidOf(String route) =>
+      _uuidAfterPrefix(route, _discussionPrefix);
+
+  static String? _uuidAfterPrefix(String route, String prefix) =>
+      route.startsWith(prefix) ? route.substring(prefix.length) : null;
 }
 
 /// 잠금화면 권한 4개: 필수 3개(다른 앱 위에 표시, 알림, 배터리 최적화 제외) + 삼성 기기 여부(절전 예외 권장)
@@ -68,7 +78,6 @@ class LockScreenSettings {
     required this.isEnabled,
     required this.intervalMinutes,
     required this.isExecutableExcluded,
-    required this.isFreshChoiceMode,
     this.pausedUntil,
   });
 
@@ -76,7 +85,6 @@ class LockScreenSettings {
     isEnabled: false,
     intervalMinutes: 30,
     isExecutableExcluded: false,
-    isFreshChoiceMode: false,
   );
 
   final bool isEnabled;
@@ -87,9 +95,6 @@ class LockScreenSettings {
   /// true = 객관식만
   final bool isExecutableExcluded;
 
-  /// 선택지 방식: true = AI로 새로 만들기, false = 기본(준비된 세트). 앱 보기 방식 설정과 별개
-  final bool isFreshChoiceMode;
-
   /// 알림 "1시간 쉬기" 끝 시각 (쉬지 않으면 null, 읽은 시점 기준)
   final DateTime? pausedUntil;
 
@@ -99,7 +104,6 @@ class LockScreenSettings {
         intervalMinutes:
             (map['intervalMinutes'] as int?) ?? disabled.intervalMinutes,
         isExecutableExcluded: map['isExecutableExcluded'] == true,
-        isFreshChoiceMode: map['isFreshChoiceMode'] == true,
         pausedUntil: _toPausedUntil(map['pauseUntilMillis']),
       );
 
@@ -192,11 +196,9 @@ class LockScreenBridge {
   Future<void> updateSettings({
     int? intervalMinutes,
     bool? isExecutableExcluded,
-    bool? isFreshChoiceMode,
   }) => _invoke<void>('updateSettings', {
     'intervalMinutes': ?intervalMinutes,
     'isExecutableExcluded': ?isExecutableExcluded,
-    'isFreshChoiceMode': ?isFreshChoiceMode,
   });
 
   /// 오늘 크레딧 소진 화면을 보였음 > 그날은 안 띄움

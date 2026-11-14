@@ -4,9 +4,9 @@ id: DEC-0290
 created: 2026-11-12
 reviewed: null
 topics: [practice, billing, ads, store-release]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0314
 related: ["[[ISS-0501-lock-screen-question-android]]", "[[ISS-0501-lock-screen-question-android-report]]", "[[ISS-0499-play-fgs-declaration-lock-screen]]", "[[DEC-0282-ad-bonus-unlimited-fair-use-200]]", "[[DEC-0287-credit-term-top-bar-balance]]"]
 ---
 

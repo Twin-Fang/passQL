@@ -11,11 +11,15 @@ class CreditBalanceHeader extends StatelessWidget {
     required this.remainingCount,
     required this.baseLimit,
     required this.totalLimit,
+    this.isIconSpinningIn = false,
   });
 
   final int remainingCount;
   final int baseLimit;
   final int totalLimit;
+
+  /// true 면 젬이 처음 그려질 때 튀며 한 바퀴 돌고 빛이 한 번 지나감 (크레딧 시트·한도 본문, 동작 줄이기면 정지)
+  final bool isIconSpinningIn;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +36,12 @@ class CreditBalanceHeader extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const PassqlCreditIcon(size: PassqlIconSize.xxl),
+              Passql3dTilt(
+                isSpinningIn: isIconSpinningIn,
+                child: const PassqlCreditIcon(
+                  size: PassqlIconSize.creditBalance,
+                ),
+              ),
               const SizedBox(width: PassqlSpacing.xs),
               Expanded(
                 // 남은 크레딧은 0에서 차오름, 값이 바뀌면 이전 값에서 이어짐 (#1041)
