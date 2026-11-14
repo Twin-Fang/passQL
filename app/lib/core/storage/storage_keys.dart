@@ -1,4 +1,4 @@
-/// 기기 저장 키 원본 31개: 일반 저장소(DevicePreferences) 26개 + 보안 저장소(TokenStore) 5개
+/// 기기 저장 키 원본 33개: 일반 저장소(DevicePreferences) 27개 + 보안 저장소(TokenStore 5개·가채점 기기 토큰 1개) 6개
 /// 값은 기존 설치의 저장 데이터를 읽는 키 > 문자열 값을 바꾸지 않음
 abstract final class StorageKeys {
   // ─── 일반 저장소 (SharedPreferences, 앱 삭제 시 함께 지워짐) ───
@@ -69,6 +69,8 @@ abstract final class StorageKeys {
       'lock_screen_intro_shown_count';
   // 잠금화면 문제를 한 번이라도 켰는지 (bool, 첫 켜기 때 서버 기본 간격 적용)
   static const String lockScreenEverEnabled = 'lock_screen_ever_enabled';
+  // 가채점 OMR 임시 답안 키 접두사 (#1075): {접두사}{시험}_{회차} > 50자 ('1'~'4' 보기, '0' 모름, '.' 미입력)
+  static const String examAnswerDraftPrefix = 'exam_answer_draft_';
 
   // ─── 보안 저장소 (Keychain/Keystore, 인증 세션) ───
 
@@ -78,4 +80,7 @@ abstract final class StorageKeys {
   static const String sessionNickname = 'auth_nickname';
   // 로그인 제공자 서버 값 (GOOGLE, APPLE, KAKAO, NAVER, GITHUB)
   static const String sessionAuthProvider = 'auth_provider';
+
+  // 가채점 기기 토큰 UUID (#1075, 세션과 무관해 로그아웃해도 유지 > 재제출이 같은 답안지를 갱신)
+  static const String examAnswerClientToken = 'exam_answer_client_token';
 }

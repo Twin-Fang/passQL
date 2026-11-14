@@ -12,6 +12,8 @@ abstract final class AppRoutes {
   static const String mockExamRoundUuidParameter = 'roundUuid';
   static const String mockExamAttemptUuidParameter = 'attemptUuid';
   static const String mockExamQuestionNumberQuery = 'number';
+  static const String examAnswerCertTypeParameter = 'certType';
+  static const String examAnswerRoundParameter = 'round';
   // 커뮤니티 피드 시작 탭 (값은 CommunityFeedSource.serverValue)
   static const String communitySourceQuery = 'source';
   static const String topicCodeQuery = 'topic';
@@ -262,4 +264,13 @@ abstract final class AppRoutes {
   /// 문항 해설. 결과 번호판에서 진입 ([questionNumber] 번부터)
   static String mockExamReview(String attemptUuid, int questionNumber) =>
       '${mockExamAttempt(attemptUuid)}/review?$mockExamQuestionNumberQuery=$questionNumber';
+
+  // 회차별 가답안·OMR 가채점 (#1075)
+  /// 라우터 정의용 경로 패턴: /exam-answers/:certType/:round
+  static const String examAnswerPattern =
+      '/exam-answers/:$examAnswerCertTypeParameter/:$examAnswerRoundParameter';
+
+  /// 회차 가답안·내 가채점. 홈 가답안 구간에서 진입 ([certType] 은 서버 값 SQLD)
+  static String examAnswer(String certType, int roundNumber) =>
+      '/exam-answers/$certType/$roundNumber';
 }

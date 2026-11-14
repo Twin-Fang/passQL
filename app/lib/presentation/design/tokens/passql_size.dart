@@ -54,6 +54,15 @@ abstract final class PassqlSize {
   static const double examTimelineExamDot = 14;
   static const double examTimelineDateColumn = 40;
   static const double examPhaseDot = 6; // 단계 칩 앞 깜빡이는 점
+  // 가답안·가채점 (#1075)
+  static const double examAnswerOmrBubble = 44; // OMR 보기 동그라미 (손가락 터치 최소 영역)
+  static const double examAnswerNumberColumn = 32; // OMR·가답안 행 앞 문항 번호 칸
+  static const double examAnswerScoreBarHeight = 10; // 과목 점수 막대 두께
+  static const double examAnswerCutLineWidth = 2; // 점수 막대 위 과락선·합격선 두께
+  static const double examAnswerCutLineOverhang = 4; // 기준선이 막대 위아래로 삐져나오는 길이
+  static const double examAnswerAgreementBarWidth = 56; // 가답안 행 합의율 막대 폭
+  static const double examAnswerTallyLabelWidth = 80; // 보기별 득표 줄 오른쪽 `100% | 1234` 칸
+  static const double examAnswerShareCardWidth = 320; // 공유 이미지 카드 폭 (논리 픽셀, 3배로 저장)
   static const double iconTile = 29;
   static const double iconTileCompact = 26; // 구간 제목 앞 타일 (행 타일보다 한 단계 작게, #726)
   static const double blurSigma = 20;
