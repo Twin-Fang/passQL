@@ -16,12 +16,13 @@ import 'auth_provider.dart';
 import 'lock_screen_providers.dart';
 import 'lock_screen_question_state.dart';
 import 'plan_providers.dart';
+import 'settings_providers.dart';
 
 export 'lock_screen_question_state.dart';
 
-/// 잠금화면 문제 흐름 (잠금 엔진 전용): 표시 > 로그인·크레딧 확인 > 문제 받기 > 탭 즉시 제출 > (프로) 한 문제 더
+/// 잠금화면 문제 흐름 (잠금 엔진 전용): 표시 > 로그인·크레딧 확인 > 문제 받기 > 탭 즉시 제출 > 한 문제 더(무료는 크레딧 소진 시 소진 화면)
 /// 조용히 닫는 경우 4개: 미로그인, 낼 문제 없음(204), 네트워크·서버 오류, READY 세트 없음(1회 재시도 뒤)
-/// 선택지 방식은 앱 보기 방식과 별개 (잠금화면 설정): 기본 = 상세의 READY(OK) 세트, AI = SSE 생성(20초 넘거나 실패면 READY 세트로 대체)
+/// 선택지 방식은 앱 "새 보기로 풀기" 실효 모드를 따름: 연습 = 상세의 READY(OK) 세트, 새 보기 = SSE 생성(20초 넘거나 실패면 READY 세트로 대체)
 class LockScreenQuestionNotifier extends Notifier<LockScreenQuestionState> {
   // 바로 쓸 수 있는 선택지 세트 상태값 (서버 choice_set.status)
   static const String _readyChoiceSetStatus = 'OK';
@@ -54,10 +55,12 @@ class LockScreenQuestionNotifier extends Notifier<LockScreenQuestionState> {
     await _loadQuestion(generation, canRetryWithoutReadySet: true);
   }
 
-  /// 프로 "한 문제 더": 같은 표시 안에서 다음 문제
+  /// "한 문제 더"(무료·프로 공통): 같은 표시 안에서 다음 문제
+  /// 무료 크레딧 0 이면 바로 소진 화면 (제출 뒤 등급 갱신 전이면 서버가 상세에서 한도 응답 > 소진 화면)
   Future<void> loadNext() async {
     final generation = ++_showGeneration;
     state = const LockScreenQuestionState();
+    if (ref.read(freeRemainingSolvesProvider) == 0) return _showExhausted();
     await _loadQuestion(generation, canRetryWithoutReadySet: true);
   }
 
@@ -84,7 +87,11 @@ class LockScreenQuestionNotifier extends Notifier<LockScreenQuestionState> {
             ),
           );
       if (!_isCurrent(generation)) return;
-      state = state.copyWith(submitResult: submitResult, isSubmitting: false);
+      // 응답에 세트 ID 가 없어 붙임 (AI 해설 조회 키, 앱 풀이와 같은 방식)
+      state = state.copyWith(
+        submitResult: submitResult.copyWith(choiceSetUuid: choiceSetId),
+        isSubmitting: false,
+      );
       unawaited(
         ref
             .read(appAnalyticsProvider)
@@ -119,12 +126,14 @@ class LockScreenQuestionNotifier extends Notifier<LockScreenQuestionState> {
     }
   }
 
-  /// 문제 받기 > 상세 > 선택지 준비 (기본: READY 세트, AI: SSE 생성 > 실패면 READY 세트)
+  /// 문제 받기 > 상세 > 선택지 준비 (연습: READY 세트, 새 보기: SSE 생성 > 실패면 READY 세트)
   /// 쓸 세트가 없으면 다음 문제 1회 재시도 뒤 닫기
   Future<void> _loadQuestion(
     int generation, {
     required bool canRetryWithoutReadySet,
   }) async {
+    // 보기 방식 조회는 문제 받기와 동시에 (무료·결제 켜짐이면 연습)
+    final freshChoiceModeCheck = isFreshChoiceModeEffective(ref);
     final LockScreenSettings settings;
     final QuestionDetail question;
     try {
@@ -155,7 +164,9 @@ class LockScreenQuestionNotifier extends Notifier<LockScreenQuestionState> {
               choiceSet.items.isNotEmpty,
         )
         .firstOrNull;
-    final PreparedLockScreenChoices? choices = settings.isFreshChoiceMode
+    final isFreshChoiceMode = await freshChoiceModeCheck;
+    if (!_isCurrent(generation)) return;
+    final PreparedLockScreenChoices? choices = isFreshChoiceMode
         ? await _generateFreshChoices(generation, question) ??
               _toPreparedChoices(readyChoiceSet)
         : _toPreparedChoices(readyChoiceSet);

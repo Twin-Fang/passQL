@@ -46,7 +46,7 @@ List<ProBenefit> proBenefits({required int dailyFreeLimit}) {
     ),
     const ProBenefit(
       label: '해설',
-      free: '정답 해설 (세트 전체)',
+      free: '기본 해설',
       pro: '보기별 상세 답안지',
       icon: CupertinoIcons.sparkles,
     ),

@@ -77,6 +77,15 @@ void main() {
     expect(codes.last.code, 'SELECT DISTINCT NAME FROM EMP;');
   });
 
+  test('빈 줄 없이 이어 쓴 SQL 도 `;` 뒤 이름표마다 상자를 나눈다', () {
+    const stem =
+        '```sql\n-- X\nSELECT LOWER(ENAME) FROM EMP;\n-- Y\n'
+        'SELECT ROUND(AVG(SAL)) FROM EMP;\n-- Z\nSELECT COUNT(*) FROM EMP;\n```';
+    final codes = parseStemBlocks(stem).whereType<StemCode>().toList();
+    expect(codes.map((code) => code.caption), ['X', 'Y', 'Z']);
+    expect(codes[1].code, 'SELECT ROUND(AVG(SAL)) FROM EMP;');
+  });
+
   test('번호 목록은 번호를 남긴다 (보기가 번호를 가리킴)', () {
     final blocks = parseStemBlocks('1. 기본키는 NULL 일 수 없다\n2. 외래키는 NULL 일 수 있다');
     final items = (blocks.single as StemList).items;

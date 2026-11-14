@@ -85,11 +85,12 @@ class DailyLimitRewardView extends ConsumerWidget {
           children: [
             _CreditSheetTitle(isCreditsExhausted: remainingSolves == 0),
             const SizedBox(height: PassqlSpacing.sm),
-            // 잔액: 아이콘 + 큰 숫자 + 게이지 (보너스 구간은 초록)
+            // 잔액: 아이콘 + 큰 숫자 + 게이지 (보너스 구간은 초록), 열릴 때 젬 등장 연출
             CreditBalanceHeader(
               remainingCount: remainingSolves,
               baseLimit: dailyFreeLimit,
               totalLimit: knownPlan?.effectiveTodayFreeLimit ?? dailyFreeLimit,
+              isIconSpinningIn: true,
             ),
             const SizedBox(height: PassqlSpacing.xs),
             // 0개면 충전 시각은 제목 아래에 이미 있음
