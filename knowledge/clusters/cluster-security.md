@@ -2,7 +2,7 @@
 type: cluster
 topic: security
 created: 2026-10-29
-members: 49
+members: 50
 status: active
 related: []
 ---
@@ -68,3 +68,4 @@ related: []
 - [[ISS-0316-social-login-token-unlink-account-switch]] (resolved, GitHub #516) — 소셜 로그인 토큰 검증 강화, 탈퇴 연결 해제, 계정 전환 시 이전 회원 데이터 노출
 - [[ISS-0378-admin-audit-log-search-access-events]] (resolved, GitHub #623) — 관리자 감사 로그에 동작 필터·검색이 없고 접근 이벤트가 기록되지 않는 것으로 보임
 - [[ISS-0487-synology-secret-upload-ssh-handshake-flaky]] (resolved, GitHub #950) — 시놀로지 시크릿 업로드가 NAS SSH 무차별 대입 급증으로 handshake 간헐 실패, 최대 3회 재시도
+- [[ISS-0518-lock-screen-engine-stale-refresh-token-reuse]] — 잠금화면 엔진 옛 refreshToken 재사용으로 전체 세션 폐기 위험, 저장소 기준 재판단 (resolved, #1071)

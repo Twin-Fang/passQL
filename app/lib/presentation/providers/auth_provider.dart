@@ -38,6 +38,18 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     return ref.read(tokenStoreProvider).read();
   }
 
+  /// 저장소에서 세션 다시 읽어 상태 갱신 (Android 잠금화면 엔진: 앱 엔진의 로그인·로그아웃·토큰 회전 반영, #1071)
+  Future<AuthSession?> reloadFromStorage() async {
+    final session = await ref.read(tokenStoreProvider).reload();
+    final current = state.valueOrNull;
+    // 같은 세션이면 상태를 바꾸지 않음 (회원별 provider 재생성 방지)
+    final isSameSession =
+        current?.memberUuid == session?.memberUuid &&
+        current?.accessToken == session?.accessToken;
+    if (!isSameSession) state = AsyncData(session);
+    return session;
+  }
+
   /// 소셜 로그인 → 서버 로그인 → 세션 저장 → 최근 로그인 기록.
   ///
   /// 사용자가 소셜 로그인을 취소하면 아무 변화 없이 false 를 반환한다.

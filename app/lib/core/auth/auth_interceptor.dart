@@ -10,6 +10,7 @@ import 'token_store.dart';
 /// - `/auth/*` 요청은 토큰 없이 호출되므로 건드리지 않는다.
 /// - 동시에 여러 요청이 401 을 받아도 재발급은 한 번만 수행하고 결과를 공유한다.
 ///   (refreshToken 이 회전되므로 중복 호출하면 두 번째가 실패해 로그아웃될 수 있다.)
+/// - 401 판정·재발급은 메모리 캐시가 아닌 저장소 값 기준 (Android 잠금화면 엔진과 저장소 공유, #1071)
 /// - 재발급까지 실패하면 세션을 지우고 [onSessionExpired] 로 로그인 화면 전환을 알린다.
 class AuthInterceptor extends Interceptor {
   AuthInterceptor({
@@ -62,9 +63,9 @@ class AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
-    // 이 요청이 나간 뒤 다른 요청이 이미 토큰을 갱신했다면(보낸 토큰 != 현재 토큰),
-    // 재발급을 또 하지 않고 현재 토큰으로 바로 재시도한다. 불필요한 토큰 회전을 막는다.
-    final current = await tokenStore.read();
+    // 이 요청이 나간 뒤 다른 요청·다른 엔진이 이미 토큰을 갱신했다면(보낸 토큰 != 저장소 토큰),
+    // 재발급을 또 하지 않고 저장소 토큰으로 바로 재시도한다. 옛 refreshToken 재사용(서버가 전체 세션 폐기)을 막는다.
+    final current = await tokenStore.reload();
     final sent = options.headers['Authorization'];
     final newAccessToken =
         (current != null && sent != null && sent != 'Bearer ${current.accessToken}')
@@ -94,7 +95,8 @@ class AuthInterceptor extends Interceptor {
   }
 
   Future<String?> _doRefresh() async {
-    final session = await tokenStore.read();
+    // 저장소 최신 refreshToken 으로 (다른 엔진이 회전했을 수 있음)
+    final session = await tokenStore.reload();
     if (session == null) return null;
 
     try {
@@ -109,6 +111,11 @@ class AuthInterceptor extends Interceptor {
       // 서버가 refreshToken 을 거부했을 때만(401/403) 세션을 지운다 → 다시 로그인해야 한다.
       // 네트워크 끊김, 타임아웃, 5xx 는 일시적일 수 있으므로 로그인을 유지하고 원래 오류만 전달한다.
       if (status == 401 || status == 403) {
+        // 그 사이 다른 엔진이 갱신했으면 세션 유지하고 새 토큰 사용
+        final latest = await tokenStore.reload();
+        if (latest != null && latest.refreshToken != session.refreshToken) {
+          return latest.accessToken;
+        }
         await tokenStore.clear();
         onSessionExpired();
       }

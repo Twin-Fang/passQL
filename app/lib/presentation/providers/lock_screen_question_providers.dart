@@ -236,7 +236,9 @@ class LockScreenQuestionNotifier extends Notifier<LockScreenQuestionState> {
 
   Future<bool> _isSignedIn() async {
     try {
-      return await ref.read(authProvider.future) != null;
+      // 잠금 엔진은 오래 살아 있어 앱에서 바뀐 로그인 상태를 저장소에서 다시 읽음 (#1071)
+      await ref.read(authProvider.future);
+      return await ref.read(authProvider.notifier).reloadFromStorage() != null;
     } catch (_) {
       // 세션 읽기 실패 = 미로그인으로 보고 조용히 닫음 (잠금화면은 로그인 화면이 없음)
       return false;
