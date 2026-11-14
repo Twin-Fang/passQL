@@ -1,5 +1,5 @@
 {
- "basis": "passQL 운영 가답안 초안 (응시 후기 종합, 2026-11-14 19:40)",
+ "basis": "passQL 운영 가답안 초안 (응시 후기 종합, 2026-11-14 22:30)",
  "items": [
   {
    "questionNo": 1,
@@ -88,11 +88,11 @@
    ],
    "topicCode": "data_modeling",
    "answer": 4,
-   "answerStatus": "DISPUTED",
+   "answerStatus": "LEADING",
    "alternativeAnswers": [
     3
    ],
-   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+   "note": null
   },
   {
    "questionNo": 7,
@@ -297,11 +297,11 @@
    ],
    "topicCode": "sql_function",
    "answer": 1,
-   "answerStatus": "DISPUTED",
+   "answerStatus": "LEADING",
    "alternativeAnswers": [
     4
    ],
-   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+   "note": null
   },
   {
    "questionNo": 21,
@@ -602,10 +602,9 @@
     "오류 찾기"
    ],
    "topicCode": "sql_join",
-   "answer": null,
+   "answer": 1,
    "answerStatus": "DISPUTED",
    "alternativeAnswers": [
-    1,
     2,
     3
    ],
@@ -663,7 +662,8 @@
    "answerStatus": "DISPUTED",
    "alternativeAnswers": [
     2,
-    3
+    3,
+    4
    ],
    "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
   },
