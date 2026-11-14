@@ -25,7 +25,7 @@ class LockScreenChannel(
         when (call.method) {
             "getPermissionStatus" -> result.success(LockScreenPermissions.toStatusMap(context))
             "openOverlaySettings" -> {
-                openSettings(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, packageUri()))
+                openOverlaySettings()
                 result.success(null)
             }
             "openNotificationSettings" -> {
@@ -57,6 +57,8 @@ class LockScreenChannel(
                     "intervalMinutes" to preferences.intervalMinutes,
                     "isExecutableExcluded" to preferences.isExecutableExcluded,
                     "isFreshChoiceMode" to preferences.isFreshChoiceMode,
+                    // 쉬기 끝 시각 (epoch 밀리초, 쉬지 않으면 0)
+                    "pauseUntilMillis" to activePauseUntilMillis(),
                 ),
             )
             "markExhaustedToday" -> {
@@ -85,13 +87,30 @@ class LockScreenChannel(
         }
     }
 
-    /** 켜기: 설정 저장 > 필수 권한 3개 확인(없으면 false) > 서비스 시작 */
+    /** 켜기: 설정 저장 > 필수 권한 3개 확인(없으면 false) > 쉬기 해제 > 서비스 시작(알림 즉시 갱신) */
     private fun enable(call: MethodCall): Boolean {
         applySettings(call)
         if (!LockScreenPermissions.hasRequiredPermissions(context)) return false
         preferences.isEnabled = true
+        preferences.pauseUntilMillis = 0L
         LockScreenService.start(context)
         return true
+    }
+
+    // 지난 쉬기 끝 시각은 0 (Dart 가 쉬는 중으로 보지 않게)
+    private fun activePauseUntilMillis(): Long {
+        val pauseUntilMillis = preferences.pauseUntilMillis
+        return if (pauseUntilMillis > System.currentTimeMillis()) pauseUntilMillis else 0L
+    }
+
+    /**
+     * 다른 앱 위에 표시: passQL 전용 화면 > 권한 목록 화면 > 앱 상세 설정 순서로 시도
+     * Android 11+ 는 공개 액션의 package: URI 를 무시하고 목록을 열어서, 앱별 화면 액션을 먼저 시도
+     */
+    private fun openOverlaySettings() {
+        val appOverlayIntent = Intent(ACTION_MANAGE_APP_OVERLAY_PERMISSION, packageUri())
+        if (tryStart(appOverlayIntent)) return
+        openSettings(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, packageUri()))
     }
 
     private fun applySettings(call: MethodCall) {
@@ -164,5 +183,9 @@ class LockScreenChannel(
         // 네이티브 > Dart 호출: 잠금화면 표시(잠금 엔진), 경로 열기(앱 엔진)
         const val METHOD_ON_SHOWN = "onShown"
         const val METHOD_OPEN_ROUTE = "openRoute"
+
+        // 설정 앱의 앱별 "다른 앱 위에 표시" 화면 (Settings.ACTION_MANAGE_APP_OVERLAY_PERMISSION, 공개 SDK 밖 상수)
+        private const val ACTION_MANAGE_APP_OVERLAY_PERMISSION =
+            "android.settings.MANAGE_APP_OVERLAY_PERMISSION"
     }
 }

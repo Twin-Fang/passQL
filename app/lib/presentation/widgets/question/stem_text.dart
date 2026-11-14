@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/utils/word_wrap.dart';
 import '../../../data/models/question/question_schema_table.dart';
 import '../../design/design.dart';
 import 'question_data_table.dart';
@@ -220,7 +221,7 @@ class _CodeCaption extends StatelessWidget {
   }
 }
 
-/// 인라인 코드(`키워드`)를 고정폭 + 연한 배경으로 강조하는 일반 글.
+/// 인라인 코드(`키워드`)를 고정폭 + 연한 배경으로 강조하는 일반 글 (일반 글은 낱말 단위 줄바꿈).
 /// 백틱은 표시하지 않는다. 짝이 맞지 않는 백틱은 글자 그대로 둔다.
 class InlineCodeText extends StatelessWidget {
   const InlineCodeText(this.text, {super.key, this.style});
@@ -245,7 +246,7 @@ class InlineCodeText extends StatelessWidget {
     var cursor = 0;
     for (final match in _inlineRe.allMatches(text)) {
       if (match.start > cursor) {
-        spans.add(TextSpan(text: text.substring(cursor, match.start)));
+        spans.add(_plainSpan(text.substring(cursor, match.start)));
       }
       spans.add(
         TextSpan(
@@ -259,9 +260,13 @@ class InlineCodeText extends StatelessWidget {
       );
       cursor = match.end;
     }
-    if (cursor < text.length) spans.add(TextSpan(text: text.substring(cursor)));
+    if (cursor < text.length) spans.add(_plainSpan(text.substring(cursor)));
     return Text.rich(TextSpan(style: base, children: spans));
   }
+
+  // 일반 글은 낱말 단위 줄바꿈 (PassqlKeepAllText 와 같은 처리, 코드 칩은 원문 그대로, #1066)
+  static TextSpan _plainSpan(String plainText) =>
+      TextSpan(text: keepWordsTogether(plainText));
 
   static String _toCodeSpanText(String code) =>
       code.length <= _maxKeptTogetherCodeLength
