@@ -67,6 +67,7 @@ dependencies:
   connectivity_plus: ^7.3.1
   # 스토어 평가 요청 시스템 창 (iOS SKStoreReviewController·Android Play In-App Review, #864). 2.0.12 고정 (Play Review 2.0.2, iOS 12+)
   in_app_review: 2.0.12
+  share_plus: ^12.0.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

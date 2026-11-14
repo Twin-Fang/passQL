@@ -2,7 +2,7 @@
 type: cluster
 topic: store-release
 created: 2026-10-29
-members: 79
+members: 83
 status: active
 related: []
 ---
@@ -16,6 +16,8 @@ related: []
 (2026-11-12, 자동 생성) 활성 결정 18개, 열린 이슈 5개. 앱 아이콘이 시안 8번으로 바뀌었다 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]]: 사용자 기기에는 스토어 새 버전에서 바뀌고, Play 스토어 목록 아이콘(512px)은 Play Console에서 따로 올려야 한다. 프로모션 코드는 스토어 코드(App Store 오퍼 코드, Play 프로모 코드)만 쓴다 — [[DEC-0244-promo-code-store-codes-only]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 잠금화면 문제(#990)는 특수 용도 포그라운드 서비스 권한 신고 전까지 배포 앱에서 숨김 — [[DEC-0290-lock-screen-question-policy]], [[ISS-0499-play-fgs-declaration-lock-screen]]. (2026-11-12) 소개 사이트·약관 공개 주소는 passql.suhsaechan.kr — [[DEC-0294-intro-site-self-hosted-own-domain]](DEC-0119 대체), 검색 노출 원칙은 [[DEC-0295-seo-public-exam-info-no-hidden-text]]. 스토어 문구 반영 2건(Play 검토 제출, App Store 이름·부제·키워드)이 남아 [[ISS-0508-search-visibility-site-domain-aso]] 열림. (2026-11-12) 최소 지원 버전은 스토어 운영 빌드만 막고 개발용 테스트 빌드는 건너뛴다 — [[DEC-0307-dev-build-skips-minimum-version]].
 
 ## 활성 결정
+- [[DEC-0315-exam-answer-page-concept-line-no-original]] — 가답안 페이지는 원문 대신 번호·과목·개념 한 줄·가답안, 면책·게시 중단 요청 (#1075)
+- [[DEC-0317-site-answer-key-fallback-operator-draft]] — 사이트는 API 실패 시 운영 가답안 초안 스냅샷, 브라우저 채점 (#1075)
 - [[DEC-0294-intro-site-self-hosted-own-domain]] — 소개 사이트·약관 공개 주소는 passql.suhsaechan.kr(시놀로지 직접 서빙), github.io는 경로별 이동 페이지 (#1027, DEC-0119 대체)
 - [[DEC-0295-seo-public-exam-info-no-hidden-text]] — 검색 노출은 공개 시험 정보 페이지로, 숨긴 글씨·키워드 나열·학습 콘텐츠 원문 공개는 안 함 (#1027)
 - [[DEC-0314-lock-screen-free-reason-pro-detail-continue]] — 잠금화면 문제: 무료도 이유를 보고 크레딧으로 이어 풀기, PRO는 상세 해설, PRO 안내는 해설 한 곳, 선택지 방식은 앱 설정 (#1068, DEC-0290 대체)
@@ -49,6 +51,7 @@ related: []
 - [[DEC-0290-lock-screen-question-policy]] → [[DEC-0314-lock-screen-free-reason-pro-detail-continue]] — 프로만 한 문제 더 > 무료도 크레딧으로 이어 풀기 (#1068)
 
 ## 관련 이슈
+- [[ISS-0520-sqld-round-answer-key-omr-grading]] (open, #1075): SQLD 회차별 가답안·OMR 가채점, 소개 사이트 sqld/63/ 배포, 서버·앱 PR #1089 배포 보류(앱 심사 동반), 서버 배포 직후 63회 운영 가답안 입력 필요
 - [[ISS-0512-test-build-minimum-version-block]] (resolved, GitHub #962, PR #967): 최소 지원 버전을 올리면 테스트 빌드도 업데이트 필요 화면에 막힘
 - [[ISS-0508-search-visibility-site-domain-aso]] (open, #1027): 소개 사이트 개편·passql.suhsaechan.kr 이전·스토어 검색 최적화, Play 검토 제출·App Store 이름/부제/키워드 남음
 - [[ISS-0501-lock-screen-question-android]] (resolved, #990): 잠금화면 위 SQLD 문제 1개(Android), 서버 출제 API·운영 설정 3개
@@ -95,3 +98,6 @@ related: []
 - [[ISS-0397-promo-site-overhaul-operator-notice]] (resolved, GitHub #650) — 홍보 페이지(github.io) 전체 재정비와 약관 운영자 표기
 - [[ISS-0401-hide-question-counts-exam-trend]] (resolved, GitHub #660) — 최신 경향 화면에서 문제 수·표본 크기 숨기기
 - [[ISS-0422-play-closed-testing-promote-default-off]] (resolved, GitHub #729) — Play 수동 배포 비공개 테스트 승급 기본값 끄기
+
+## 관련 교훈
+- [[LSN-0004-app-change-release-means-ios-review]] — 앱 변경이 든 릴리스 deploy 푸시는 iOS 심사 자동 제출까지, 서버 배포라도 따로 확인 (#1075)

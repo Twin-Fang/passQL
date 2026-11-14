@@ -62,6 +62,7 @@ public class AdminAuditLogViewHelper {
             case EMBEDDING_INDEX -> "/admin/embeddings";
             case AI_CONNECTION -> "/admin/ai-connections";
             case BILLING_REFUND_CHECK -> "/admin/subscriptions";
+            case EXAM_ANSWER_ROUND -> toDetailPathIfUuid("/admin/exam-answers?roundUuid=", targetId, "/admin/exam-answers");
         };
     }
 

@@ -64,6 +64,11 @@ public enum ErrorCode {
     TOPIC_HAS_QUESTIONS(HttpStatus.CONFLICT, "소속 문제가 있는 토픽·서브토픽은 삭제할 수 없습니다."),
     EXAM_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "시험 일정을 찾을 수 없습니다."),
     EXAM_SCHEDULE_DUPLICATE(HttpStatus.CONFLICT, "이미 등록된 시험 회차입니다."),
+    // 회차별 가답안·OMR 가채점 (#1075)
+    EXAM_ANSWER_ROUND_NOT_FOUND(HttpStatus.NOT_FOUND, "가답안 회차를 찾을 수 없습니다."),
+    EXAM_ANSWER_ROUND_DUPLICATE(HttpStatus.CONFLICT, "이미 등록된 가답안 회차입니다."),
+    EXAM_ANSWER_ROUND_CLOSED(HttpStatus.CONFLICT, "답안 제출이 마감된 회차입니다."),
+    EXAM_ANSWER_SHEET_NOT_FOUND(HttpStatus.NOT_FOUND, "제출한 답안이 없습니다."),
     DAILY_CHALLENGE_QUESTION_INACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "비활성 문제는 일일 챌린지로 배정할 수 없습니다."),
     DAILY_CHALLENGE_RANGE_INVALID(HttpStatus.BAD_REQUEST, "기간이 올바르지 않습니다. 시작일이 종료일보다 늦거나 62일을 넘을 수 없습니다."),
     DAILY_CHALLENGE_TOO_MANY_QUESTIONS(HttpStatus.BAD_REQUEST, "하루에 배정할 수 있는 문제는 최대 5개입니다."),

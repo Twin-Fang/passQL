@@ -23,6 +23,7 @@ import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
 import '../presentation/pages/lock_screen/lock_screen_permission_page.dart';
 import '../presentation/pages/lock_screen/lock_screen_preview_page.dart';
+import '../presentation/pages/exam_answer/exam_answer_page.dart';
 import '../presentation/pages/exam_schedule/exam_schedule_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_guide_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_result_page.dart';
@@ -417,6 +418,21 @@ abstract final class AppRouter {
         path: AppRoutes.examSchedule,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const ExamSchedulePage(),
+      ),
+
+      // 풀스크린: 회차별 가답안·OMR 가채점 (#1075, 홈 가답안 구간에서 진입). 회차 번호가 숫자가 아니면 0 > 없는 회차 안내
+      GoRoute(
+        path: AppRoutes.examAnswerPattern,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => ExamAnswerPage(
+          certType: state.pathParameters[AppRoutes.examAnswerCertTypeParameter]!
+              .toUpperCase(),
+          roundNumber:
+              int.tryParse(
+                state.pathParameters[AppRoutes.examAnswerRoundParameter]!,
+              ) ??
+              0,
+        ),
       ),
 
       // SQLD 모의고사 (#866): 목록 > 안내 > 풀이 > 결과 > 문항 해설
