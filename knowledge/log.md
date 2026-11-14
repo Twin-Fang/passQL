@@ -243,3 +243,7 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-14 19:16 | W6 | 결정 노트 3개 생성, W4 검사 DEC-0295·DEC-0294·DEC-0264 충돌 없음 | DEC-0315, DEC-0316, DEC-0317
 - 2026-11-14 19:16 | W8 | 교훈 1개 생성 (사용자 위임 지시) | LSN-0004 앱 변경 릴리스 deploy 푸시 = iOS 심사 동반
 - 2026-11-14 19:16 | W2 | 활성 결정·관련 이슈·관련 교훈 절 추가, fix W10 members practice 200, store-release 83, admin 109, ci-deploy 74 | cluster-practice, cluster-store-release, cluster-admin, cluster-ci-deploy
+- 2026-11-14 19:14 | W6 | issue 노트(진행 기록, open — 배포·5문항 결정 남음) 생성 + 원본 보존 | ISS-0519, _sources/issues/ISS-0519-sqld-round63-trend-new-questions.md (#1074)
+- 2026-11-14 19:14 | W8 | 교훈 2개 생성 (사용자 위임 지시) | LSN-0002 하네스 lint vs 서버 형식 규칙, LSN-0003 내보내기 500건 한도
+- 2026-11-14 19:14 | W2 | 관련 이슈·관련 교훈 절 추가, fix W10 members question-bank 90, dev-workflow 79, admin 108, ops-infra 70 | cluster-question-bank, cluster-dev-workflow, cluster-admin, cluster-ops-infra
+- 2026-11-14 22:42 | W2 | main 병합 충돌 해소: cluster-admin members 110 (양쪽 PR 노트 합산) | clusters/cluster-admin.md

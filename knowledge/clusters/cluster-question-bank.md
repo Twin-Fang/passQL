@@ -2,7 +2,7 @@
 type: cluster
 topic: question-bank
 created: 2026-10-29
-members: 87
+members: 90
 status: active
 related: []
 ---
@@ -52,6 +52,7 @@ related: []
 - [[DOC-0007-question-bank-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — 문제 은행 지도: 등록 3경로와 형식 관문, 선택지 세트 관리, 비활성화 삭제, 신고 처리(비활성화·소급 보정·신고자 알림)
 
 ## 관련 이슈
+- [[ISS-0519-sqld-round63-trend-new-questions]] (open, #1074): 63회 출제 경향 반영(제58~63회), 신규 38건 등록 499 > 537, 서버 형식 규칙 위반 24건 재등록. 교훈 [[LSN-0002-harness-lint-misses-server-format-rule]], [[LSN-0003-question-export-500-limit-backup-by-topic]]
 - [[ISS-0502-stem-table-same-columns-overwritten]] (resolved, #1015): 이름 다른 같은 컬럼 표가 지문 표를 덮음, 제약 주석이 코드 제목으로
 - [[ISS-0504-question-structure-audit-harness]] (resolved, #1017): 운영 활성 499건 구조 전수조사(데이터 누락 0, 표 소실 17건은 앱 배치), 하네스 lint 3개
 - [[ISS-0480-stem-table-sql-format-data-cleanup-deferred]] (open, GitHub #923): 지문 중복 표와 SQL 서식 운영 데이터 정리, #903 앱 보급과 최소 버전 상향 뒤 적용
@@ -109,3 +110,7 @@ related: []
 - [[ISS-0419-ai-only-choice-answer-result-feedback]] (resolved, GitHub #720) — 일반 SQL 선택지 생성 — 기준 실행 결과 제공, 재시도 실행 결과 피드백
 - [[ISS-0420-questions-tab-trend-section-layout]] (resolved, GitHub #726) — 문제 탭 경향 화면 구간 개편 (앱)
 - [[ISS-0435-concept-ai-only-49-rewrite-curated]] (resolved, GitHub #767) — AI 선택지 개념 문제 49개 — 정답 오류와 의미 없는 보기, 고정 보기 문제로 재작성
+
+## 관련 교훈
+- [[LSN-0002-harness-lint-misses-server-format-rule]] — 하네스 lint 통과는 서버 형식 규칙 통과가 아님, 가져오기 전 따로 확인 (#1074)
+- [[LSN-0003-question-export-500-limit-backup-by-topic]] — 문제 내보내기 1회 500건 한도, 전체 백업은 토픽별로 (#1074)

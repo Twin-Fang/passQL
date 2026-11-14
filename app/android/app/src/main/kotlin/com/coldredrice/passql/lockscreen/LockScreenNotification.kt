@@ -15,8 +15,9 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * 잠금화면 상태 알림: 조용한 채널 > 제목·본문(쉬는 중 > 오늘 0문제 > 푼 수·크레딧) > 탭(설정) + 액션 2개
- * 액션: 지금 한 문제(잠금화면 바로 표시, 간격 무시), 1시간 쉬기 또는 쉬는 중이면 다시 켜기(서비스)
+ * 잠금화면 상태 알림: 조용한 채널 > 제목·본문(쉬는 중 > 오늘 0문제 > 푼 수·크레딧) > 본문 탭(지금 한 문제) + 액션 2개
+ * 본문 탭: 잠금화면 바로 표시(간격 무시). 잠긴 폰에서 액션 버튼은 시스템이 잠금 해제부터 요구해 본문 탭으로 둠 (#1091)
+ * 액션: 설정 열기, 1시간 쉬기 또는 쉬는 중이면 다시 켜기(서비스)
  */
 object LockScreenNotification {
     const val NOTIFICATION_ID = 9901
@@ -56,12 +57,12 @@ object LockScreenNotification {
             .setShowWhen(false)
             .setOnlyAlertOnce(true)
             .setCategory(Notification.CATEGORY_SERVICE)
-            .setContentIntent(openSettingsIntent(context))
+            .setContentIntent(showNowIntent(context))
             .addAction(
                 Notification.Action.Builder(
                     null as Icon?,
-                    context.getString(R.string.lock_screen_action_show_now),
-                    showNowIntent(context),
+                    context.getString(R.string.lock_screen_action_settings),
+                    openSettingsIntent(context),
                 ).build(),
             )
             .addAction(pauseOrResumeAction(context, preferences))
