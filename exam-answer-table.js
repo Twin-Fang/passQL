@@ -56,7 +56,9 @@
         var question = result ? result.perQuestion[Number(row.getAttribute("data-question-no")) - 1] : null;
         mine.classList.remove("is-correct", "is-wrong", "is-pending");
         if (!question || question.myAnswer === unknownMark) { mine.textContent = ""; return; }
-        mine.textContent = "내 답 " + toChoiceSymbol(question.myAnswer) + (question.isCorrect === null ? "" : question.isCorrect ? " O" : " X");
+        // 좁은 화면은 '내 답' 글자를 숨기고 기호만 (exam-answer.css .ak-mine-label)
+        mine.innerHTML = '<span class="ak-mine-label">내 답 </span>' + toChoiceSymbol(question.myAnswer)
+          + (question.isCorrect === null ? "" : question.isCorrect ? " O" : " X");
         mine.classList.add(question.isCorrect === null ? "is-pending" : question.isCorrect ? "is-correct" : "is-wrong");
       });
     }

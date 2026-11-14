@@ -66,41 +66,52 @@ def render_home_answer_banner(today=None):
 
 # ── 회차 페이지 조각 ──
 def render_round_hero_extra(answer_round, exam_round, rule):
-    """히어로 아래: 회차 알약 > 숫자 3개(참여자·정답 집계·갱신) > 버튼 2개"""
+    """히어로 아래: 회차·집계 상태 > 숫자 카드 3개(사이트 fact-card) > 시작 버튼 > 연결 상태"""
+    facts = [
+        ("groups", "가채점 참여", '<span data-participant-count>0</span>명'),
+        ("fact_check", "정답 모인 문항", f'<span data-decided-count>0</span> / {rule["questionCount"]}'),
+        ("update", "마지막 갱신", '<span data-updated-at>집계 대기</span>'),
+    ]
+    fact_cards = "".join(
+        f"""
+      <li class="fact-card"><span class="fact-icon">{render_symbol(icon_name)}</span><span class="fact-label">{escape(label)}</span><strong>{value_html}</strong></li>"""
+        for icon_name, label, value_html in facts
+    )
     return f"""
-    <p class="ak-round-pill">{render_symbol("event")}제{answer_round['round']}회 · {escape(format_long_date(exam_round['exam']))} 시행
-      <span class="ak-live-pill" data-round-status>{render_symbol("campaign")}실시간 집계 중</span></p>
-    <ul class="ak-hero-stats">
-      <li>{render_symbol("groups")}<span>가채점 참여</span><strong><span data-participant-count>0</span>명</strong></li>
-      <li>{render_symbol("fact_check")}<span>정답 모인 문항</span><strong><span data-decided-count>0</span> / {rule['questionCount']}</strong></li>
-      <li>{render_symbol("update")}<span>마지막 갱신</span><strong data-updated-at>집계 대기</strong></li>
-    </ul>
+    <p class="ak-hero-meta"><span class="ak-chip">{render_symbol("event")}제{answer_round['round']}회 · {escape(format_short_date(exam_round['exam']))} 시행</span>
+      <span class="ak-chip ak-chip-live" data-round-status>{render_symbol("campaign")}실시간 집계 중</span></p>
     <div class="cta ak-hero-cta">
-      <a class="btn btn-primary" href="#omr">{render_symbol("edit_note")}내 답 입력하고 가채점</a>
+      <a class="btn btn-primary" href="#omr">{render_symbol("edit_note")}OMR로 가채점 시작</a>
       <a class="btn btn-ghost" href="#answer-key">{render_symbol("fact_check")}가답안 먼저 보기</a>
     </div>
+    <ul class="fact-grid ak-hero-facts">{fact_cards}
+    </ul>
     <p class="ak-connection" data-connection-status>{render_symbol("info")}빌드 때 받은 가답안을 보여 주고 있어요. 서버에 연결되면 1분마다 새로 집계해요.</p>"""
 
 
 def render_omr_subject(subject):
-    """OMR 과목 1개: 제목 > 문항 줄 (번호 + 보기 4개 버튼, 다시 누르면 모름)"""
+    """OMR 과목 1개 (접기): 과목명·입력 수 > 문항 줄 (번호 + 보기 4개 버튼, 다시 누르면 모름)"""
     rows = "".join(
         f"""
-        <div class="omr-row" data-omr-row="{question_number}">
-          <span class="omr-no">{question_number}</span>
-          <div class="omr-choices" role="group" aria-label="{question_number}번 답">{"".join(
-            f'<button type="button" class="omr-bubble" data-choice="{choice}" aria-pressed="false" aria-label="{question_number}번 {choice}번">{choice}</button>'
-            for choice in range(1, answer_content.CHOICE_COUNT + 1))}</div>
-        </div>"""
+          <div class="omr-row" data-omr-row="{question_number}">
+            <span class="omr-no">{question_number}</span>
+            <div class="omr-choices" role="group" aria-label="{question_number}번 답">{"".join(
+              f'<button type="button" class="omr-bubble" data-choice="{choice}" aria-pressed="false" aria-label="{question_number}번 {choice}번">{choice}</button>'
+              for choice in range(1, answer_content.CHOICE_COUNT + 1))}</div>
+          </div>"""
         for question_number in range(subject["firstQuestionNo"], subject["lastQuestionNo"] + 1)
     )
     question_count = subject["lastQuestionNo"] - subject["firstQuestionNo"] + 1
     return f"""
-      <section class="omr-subject" aria-label="{escape(subject['name'])}">
-        <h3>{escape(subject['name'])}<small>{subject['firstQuestionNo']}~{subject['lastQuestionNo']}번 · {question_count}문항 · {subject['maxScore']}점</small></h3>
+      <details class="omr-subject" data-omr-subject="{subject['subjectNo']}" open>
+        <summary>
+          <span class="omr-subject-title"><strong>{escape(subject['name'])}</strong><small>{subject['firstQuestionNo']}~{subject['lastQuestionNo']}번 · {subject['maxScore']}점</small></span>
+          <span class="omr-subject-count"><b data-omr-subject-filled>0</b> / {question_count}</span>
+          {render_symbol("expand_more", "omr-subject-chevron")}
+        </summary>
         <div class="omr-grid">{rows}
         </div>
-      </section>"""
+      </details>"""
 
 
 def render_omr_section(rule):
@@ -110,22 +121,24 @@ def render_omr_section(rule):
   <div class="wrap">
     <p class="kicker">STEP 1 · OMR 입력</p>
     <h2>기억나는 답을 찍어 보세요</h2>
-    <p class="sec-lead">모르는 문항은 비워 두면 돼요. 입력하는 대로 이 브라우저에 자동 저장돼요.</p>
+    <p class="sec-lead">모르는 문항은 비워 두면 돼요. 같은 번호를 다시 누르면 지워지고, 입력하는 대로 이 브라우저에 자동 저장돼요.</p>
     <div class="omr-quick">
-      <label for="omr-quick-input">{render_symbol("keyboard")}숫자로 빠르게 입력</label>
+      <label for="omr-quick-input">{render_symbol("keyboard")}숫자로 한 번에 입력</label>
       <input id="omr-quick-input" class="omr-quick-input" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
-        maxlength="{rule['questionCount']}" placeholder="예: 2314... (1번부터 차례로, 모르면 0)" data-omr-quick>
-      <p class="omr-hint">PC에서는 OMR을 누른 뒤 숫자 키 1~4로 입력하면 다음 문항으로 넘어가요. 0은 모름, ←는 지우기.</p>
+        maxlength="{rule['questionCount']}" placeholder="1번부터 차례로, 모르면 0 (예: 2314)" data-omr-quick>
+      <p class="omr-hint">PC에서는 OMR 칸을 누른 뒤 숫자 키 1~4로 입력하면 다음 문항으로 넘어가요.</p>
     </div>
+    <div class="omr-sheet">
     <div class="omr-panel" data-omr tabindex="-1">{subjects}
     </div>
     <div class="omr-bar" data-omr-bar>
       <div class="omr-progress">
-        <p><strong data-omr-filled>0</strong> / {rule['questionCount']} 입력<span data-omr-saved></span></p>
+        <p><strong data-omr-filled>0</strong> / {rule['questionCount']} 입력 <span data-omr-saved></span></p>
         <div class="omr-progress-track"><span data-omr-progress></span></div>
       </div>
-      <button type="button" class="btn btn-ghost btn-small" data-omr-reset>{render_symbol("restart_alt")}초기화</button>
-      <button type="button" class="btn btn-primary btn-small omr-submit" data-omr-submit>{render_symbol("fact_check")}채점하기</button>
+      <button type="button" class="btn btn-ghost btn-small omr-reset" data-omr-reset aria-label="입력 초기화">{render_symbol("restart_alt")}<span>초기화</span></button>
+      <button type="button" class="btn btn-primary btn-small" data-omr-submit>{render_symbol("fact_check")}채점하기</button>
+    </div>
     </div>
   </div>
 </section>"""
@@ -155,7 +168,12 @@ def render_result_section(answer_round, rule):
     <p class="kicker">STEP 2 · 가채점 결과</p>
     <h2>내 예상 점수</h2>
     <div class="score-card" data-score-card data-state="empty">
-      <p class="score-empty" data-score-empty>{render_symbol("edit_note")}OMR에 답을 입력하고 <strong>채점하기</strong>를 누르면 여기에 점수가 나와요.</p>
+      <div class="score-empty" data-score-empty>
+        <span class="feature-icon">{render_symbol("edit_note")}</span>
+        <p><strong>아직 채점 전이에요</strong>OMR에 답을 찍고 채점하기를 누르면 과목별 점수와 합격 여부가 여기에 나와요.</p>
+        <a class="btn btn-ghost btn-small" href="#omr">{render_symbol("edit_note")}OMR 입력하러 가기</a>
+      </div>
+      <div class="score-body">
       <div class="score-main">
         <div class="score-total">
           <p class="score-label">SQLD {answer_round['round']}회 가채점</p>
@@ -172,6 +190,7 @@ def render_result_section(answer_round, rule):
       </div>
       <div class="score-marks" data-score-marks aria-label="문항별 채점 결과"></div>
       <p class="score-basis">합격: 총점 {rule['passScore']}점 이상 + 과목별 40% 이상. 가답안 기준 예상 점수이며 공식 점수가 아니에요.</p>
+      </div>
     </div>
     {render_share_panel()}
   </div>
@@ -263,7 +282,7 @@ def render_answer_key_section(rule, snapshot):
     )
     return f"""
 <section id="answer-key" class="section-tight ak-key-section">
-  <div class="wrap narrow">
+  <div class="wrap">
     <p class="kicker">STEP 3 · 문항별 가답안</p>
     <h2>문항별 가답안과 합의율</h2>
     <p class="sec-lead">보기마다 몇 명이 골랐는지와 합의율로 보여 줘요. 문항을 누르면 보기 분포와 출제 개념이 펼쳐져요.</p>
@@ -280,8 +299,8 @@ def render_answer_key_section(rule, snapshot):
 def render_disclaimer_section():
     lines = "".join(f"<li>{escape(line)}</li>" for line in answer_content.DISCLAIMER_LINES)
     return f"""
-<section class="section-tight ak-disclaimer">
-  <div class="wrap narrow">
+<section class="section-tight band ak-disclaimer">
+  <div class="wrap">
     <h2>꼭 확인해 주세요</h2>
     <ul class="ak-disclaimer-list">{lines}</ul>
     <p class="ak-takedown">{render_symbol("mail")}{escape(answer_content.TAKEDOWN_NOTE)} <a href="mailto:{content.CONTACT_EMAIL}">{content.CONTACT_EMAIL}</a></p>
@@ -337,8 +356,8 @@ def render_answer_round_page(answer_round, snapshot):
 <script type="application/json" id="answer-key-config">{config_json}</script>
 <script type="application/json" id="answer-key-snapshot">{snapshot_json}</script>"""
     )
-    lead = (f"시험 끝나고 제일 궁금한 것, 몇 점일까? OMR에 답을 찍으면 1과목·2과목 점수와 과락, 합격 여부가 바로 나와요. "
-            f"사전점수 공개는 {format_short_date(exam_round['score_preview_start'])}, 합격자 발표는 {format_short_date(exam_round['result'])}이에요.")
+    lead = (f"OMR에 기억나는 답을 찍으면 과목별 점수·과락·합격 여부가 바로 나와요. "
+            f"사전점수 공개 {format_short_date(exam_round['score_preview_start'])}, 합격자 발표 {format_short_date(exam_round['result'])}.")
     return render_guide_page(
         path, f'SQLD {round_number}회 <span class="hl">가답안·가채점</span>', lead, body,
         faqs=answer_content.build_round_faqs(answer_round), faq_heading=f"SQLD {round_number}회 가채점 자주 묻는 질문",

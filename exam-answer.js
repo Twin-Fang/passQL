@@ -132,6 +132,12 @@
   function renderOmrProgress(isSaved) {
     var filledCount = countFilledAnswers();
     setText("[data-omr-filled]", filledCount);
+    // 과목 접기 머리줄 입력 수
+    rules.subjects.forEach(function (subject) {
+      var subjectFilledCount = state.answers.slice(subject.firstQuestionNo - 1, subject.lastQuestionNo)
+        .filter(function (answer) { return answer !== unknownMark; }).length;
+      setText('[data-omr-subject="' + subject.subjectNo + '"] [data-omr-subject-filled]', subjectFilledCount);
+    });
     var progress = document.querySelector("[data-omr-progress]");
     if (progress) progress.style.width = (filledCount * 100 / questionCount) + "%";
     var savedElement = document.querySelector("[data-omr-saved]");
