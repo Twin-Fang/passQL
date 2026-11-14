@@ -25,7 +25,7 @@ const Map<String, List<String>> _forbiddenImportsByLayer = {
 /// 명시적 예외: {파일 경로: 이유}. 비어 있는 것이 정상
 const Map<String, String> _allowedReverseImports = {};
 
-/// SDK 별 직접 import 를 허용하는 공통 지점 폴더 5개 (나머지는 공통 지점 경유)
+/// SDK 별 직접 import 를 허용하는 공통 지점 폴더 6개 (나머지는 공통 지점 경유)
 /// (규칙 이름, SDK 패키지 접두사 목록, 허용 폴더)
 const List<(String, List<String>, String)> _sdkHomeDirectoryRules = [
   // 오류·분석 수집 SDK: core/monitoring 의 공통 지점
@@ -54,6 +54,8 @@ const List<(String, List<String>, String)> _sdkHomeDirectoryRules = [
     ['package:in_app_review/'],
     'lib/core/review/',
   ),
+  // 시스템 공유 창 SDK: core/share 의 AppShareSheet (#1075)
+  ('시스템 공유 창 SDK 는 core/share', ['package:share_plus/'], 'lib/core/share/'),
 ];
 
 /// 알림함 진입 경로: 종 아이콘(PassqlNotificationBellButton)을 둔 화면만 사용 {파일: 이유}
