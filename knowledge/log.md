@@ -239,3 +239,7 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-14 15:00 | W6 | ingest issue + report, DEC-0314 supersedes DEC-0290, cluster members·lists 갱신 | ISS-0517, DEC-0314, DEC-0290, cluster-ads, cluster-billing, cluster-practice, cluster-store-release
 - 2026-11-14 16:20 | W6 | ingest issue + report | ISS-0518
 - 2026-11-14 16:22 | W6 | cluster members·관련 이슈 갱신 | cluster-auth-member, cluster-practice, cluster-security
+- 2026-11-14 19:16 | W6 | issue 노트(진행 기록, open — 서버·앱 배포·운영 가답안 입력 남음) 생성 + 원본 보존 | ISS-0520, _sources/issues/ISS-0520-sqld-round-answer-key-omr-grading.md (#1075)
+- 2026-11-14 19:16 | W6 | 결정 노트 3개 생성, W4 검사 DEC-0295·DEC-0294·DEC-0264 충돌 없음 | DEC-0315, DEC-0316, DEC-0317
+- 2026-11-14 19:16 | W8 | 교훈 1개 생성 (사용자 위임 지시) | LSN-0004 앱 변경 릴리스 deploy 푸시 = iOS 심사 동반
+- 2026-11-14 19:16 | W2 | 활성 결정·관련 이슈·관련 교훈 절 추가, fix W10 members practice 200, store-release 83, admin 109, ci-deploy 74 | cluster-practice, cluster-store-release, cluster-admin, cluster-ci-deploy
