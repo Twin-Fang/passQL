@@ -10,6 +10,7 @@ import '../../../router/app_routes.dart';
 import '../../../router/questions_tab_view.dart';
 import '../../design/design.dart';
 import '../../providers/community_providers.dart';
+import '../../providers/exam_answer_providers.dart';
 import '../../providers/exam_trend_providers.dart';
 import '../../providers/home_providers.dart';
 import '../../providers/notification_inbox_providers.dart';
@@ -22,6 +23,7 @@ import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_section.dart';
 import '../../flows/random_practice_flow.dart';
 import '../../widgets/home/daily_study_tip_card.dart';
+import '../../widgets/home/exam_answer_home_section.dart';
 import '../../widgets/home/exam_dday_bar_title.dart';
 import '../../widgets/home/exam_trend_home_section.dart';
 import '../../widgets/home/fallback_stats_section.dart';
@@ -73,8 +75,9 @@ class HomePage extends ConsumerWidget {
               notificationInboxProvider(NotificationCategory.notice),
             );
             invalidateHomeData(ref.invalidate);
-            // 출제 경향·공부 팁도 함께 갱신
+            // 출제 경향·공부 팁·가답안 구간도 함께 갱신
             ref.invalidate(examTrendReportProvider);
+            ref.invalidate(examAnswerHomeEntryProvider);
             try {
               await ref.read(homeDataProvider.future);
             } catch (_) {
@@ -139,6 +142,8 @@ class _HomeContent extends ConsumerWidget {
         ? null
         : selectDailyStudyTip(examTrendReport.studyTips, AppClock.now());
     final greeting = data.greeting;
+    // 시험 직후 가답안 회차 (수집 중·공식 반영 기간만, 아니면 null > 구간 숨김, #1075)
+    final examAnswerEntry = ref.watch(examAnswerHomeEntryProvider).valueOrNull;
 
     final readiness = data.progress?.readiness;
     final dailySet = data.dailySet;
@@ -206,6 +211,10 @@ class _HomeContent extends ConsumerWidget {
           ],
         ),
       ),
+
+      // 가답안·가채점 (#1075): 시험 직후 가장 궁금한 것이라 상태 구간 바로 다음
+      if (examAnswerEntry != null)
+        ExamAnswerHomeSection(roundResponse: examAnswerEntry),
 
       // 오늘의 세트: 다른 구간과 같은 제목 줄(순위 ›는 세트가 있을 때만) > 버튼
       // 아직 안 푼 날은 다음에 할 일 카드가 시작 버튼을 맡아 구간째 숨김 (다 푼 날은 결과·순위)

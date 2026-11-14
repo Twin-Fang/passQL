@@ -41,7 +41,8 @@ public final class AdminSidebar {
                     item("mock-exams", "/admin/mock-exams", "clipboard-list", "모의고사"),
                     item("topics", "/admin/topics", "tags", "토픽/태그 관리"),
                     item("concepts", "/admin/concepts", "book", "개념 문서 관리"),
-                    item("exam-schedules", "/admin/exam-schedules", "calendar-days", "시험 일정"))),
+                    item("exam-schedules", "/admin/exam-schedules", "calendar-days", "시험 일정"),
+                    item("exam-answers", "/admin/exam-answers", "list-checks", "회차별 가답안"))),
             new Group("AI", List.of(
                     item("ai-connections", "/admin/ai-connections", "plug-zap", "AI 연결"),
                     item("prompts", "/admin/prompts", "message-square-code", "프롬프트 관리"),
