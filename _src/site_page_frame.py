@@ -6,7 +6,7 @@ SQLD·SQLP·일정·과목·합격 기준·공부 방법·FAQ 페이지가 같�
 import site_content as content
 from site_head import (
     build_crumbs, escape, render_crumbs, render_faq_section, render_footer, render_head, render_nav,
-    render_store_buttons, render_symbol,
+    render_store_buttons, render_symbol, to_asset_url,
 )
 from site_schema import build_breadcrumb_json_ld, build_faq_json_ld
 
@@ -80,8 +80,8 @@ def render_final_cta(root):
 
 
 def render_guide_page(path, h1_html, lead, body_html, faqs=(), faq_heading="자주 묻는 질문",
-                      extra_json_ld=(), hero_extra_html=""):
-    """안내 페이지 1장: 제목·설명은 GUIDE_PAGES[path], h1 은 페이지마다 하나"""
+                      extra_json_ld=(), hero_extra_html="", extra_stylesheet_paths=(), extra_script_paths=()):
+    """안내 페이지 1장: 제목·설명은 GUIDE_PAGES[path], h1 은 페이지마다 하나 (+ 페이지 전용 CSS·JS)"""
     page = content.GUIDE_PAGES[path]
     root = calculate_root(path)
     crumbs = build_crumbs(path)
@@ -90,7 +90,11 @@ def render_guide_page(path, h1_html, lead, body_html, faqs=(), faq_heading="자�
         json_ld_items.append(build_faq_json_ld(faqs))
     json_ld_items.extend(extra_json_ld)
     faq_html = "\n" + render_faq_section(faqs, faq_heading) if faqs else ""
-    return render_head(page["title"], page["description"], path, root, json_ld_items) + render_nav(root, path) + f"""
+    scripts = "".join(
+        f'<script src="{to_asset_url(root, script_path)}" defer></script>\n' for script_path in ("site.js", *extra_script_paths)
+    )
+    return render_head(page["title"], page["description"], path, root, json_ld_items,
+                       extra_stylesheet_paths=extra_stylesheet_paths) + render_nav(root, path) + f"""
 <main id="main">
 <header class="hero hero-guide">
   <div class="wrap">
@@ -101,4 +105,4 @@ def render_guide_page(path, h1_html, lead, body_html, faqs=(), faq_heading="자�
 </header>
 {body_html}{faq_html}{render_related_pages(root, path)}{render_final_cta(root)}
 </main>
-""" + f'<script src="{root}site.js" defer></script>\n' + render_footer(root)
+""" + scripts + render_footer(root)

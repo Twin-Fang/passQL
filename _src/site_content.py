@@ -25,8 +25,10 @@ OFFICIAL_EXAM_URL = "https://www.dataq.or.kr"
 # 공식 시험 일정·원서접수 페이지
 OFFICIAL_SCHEDULE_URL = "https://www.dataq.or.kr/www/accept/schedule.do"
 CONTACT_EMAIL = "chan4760@naver.com"
+# 운영 API 주소 (빌드 시 약관·가답안 스냅샷 읽기, 가채점 페이지 브라우저 호출 공용)
+API_BASE_URL = "https://api.passql.suhsaechan.kr"
 # 법적 문구 원본: 운영 DB legal 테이블 (관리자 > 약관 관리에서 수정) > 빌드 시 이 API 로 읽음
-LEGAL_API_URL = "https://api.passql.suhsaechan.kr/api/meta/legal/"
+LEGAL_API_URL = API_BASE_URL + "/api/meta/legal/"
 OG_IMAGE_URL = SITE_URL + "icon/og.png"
 
 
@@ -456,6 +458,13 @@ GUIDE_PAGES = {
         "description": "SQLD 모의고사를 실제 시험처럼 50문항 90분으로 풀고, 60점 합격·과목별 과락 기준으로 채점해 약한 주제를 찾는 순서를 정리했어요. passQL 앱에서 모의고사 1회를 무료로 체험할 수 있어요.",
         "summary": "50문항 90분 실전 연습과 채점 순서",
     },
+    # 회차별 가답안·가채점 목록 (#1075). 회차 페이지(sqld/63/ 등)는 build_site 가 site_answer_key_content 에서 등록
+    "sqld/answers/": {
+        "menu_name": "가답안·가채점", "parent": "sqld/", "priority": "0.8", "icon": "fact_check",
+        "title": "SQLD 가답안·가채점 — 회차별 정답 집계와 OMR 점수 계산 | passQL",
+        "description": "SQLD 시험이 끝나면 회차별 가답안을 문항 득표·합의율로 보고, OMR에 내 답을 찍어 과목별 점수·과락·합격 여부를 바로 가채점해요. 원문 문항 없이 번호와 출제 개념만 정리했어요.",
+        "summary": "회차별 가답안 집계와 OMR 가채점",
+    },
     "sqld/app/": {
         "menu_name": "SQLD 앱", "parent": "sqld/", "priority": "0.8", "icon": "quiz",
         "title": "SQLD 공부 앱 passQL — 교재 없이 SQL 자격증 준비 | passQL",
@@ -463,8 +472,10 @@ GUIDE_PAGES = {
         "summary": "개념, 문제, SQL 실행, AI 해설을 앱 하나로",
     },
 }
-# 상단 보조 메뉴 순서 (첫 화면 포함 모든 페이지)
-GUIDE_MENU_PATHS = ["sqld/schedule/", "sqld/subjects/", "sqld/pass/", "sqld/trend/", "sqld/study/", "sqld/faq/", "sqlp/"]
+# 상단 보조 메뉴 순서 (첫 화면 포함 모든 페이지). 진행 중 가채점 회차는 build_site 가 맨 앞에 끼움 (#1075)
+GUIDE_MENU_PATHS = ["sqld/answers/", "sqld/schedule/", "sqld/subjects/", "sqld/pass/", "sqld/trend/", "sqld/study/", "sqld/faq/", "sqlp/"]
+# 상단 메뉴 강조 경로 (시험 당일~합격자 발표 진행 중 가채점 회차, build_site 가 채움)
+NAV_LIVE_PATHS = set()
 
 # ── 공부 방법 페이지 ──
 # 원칙: (아이콘, 제목, 설명)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""소개 사이트 생성 (#505, #650, #1027): index·안내 7장·404·sitemap·robots·(도메인 이전 시) CNAME
+"""소개 사이트 생성 (#505, #650, #1027, #1075): index·안내 페이지·가답안 회차 페이지·404·sitemap·robots·(도메인 이전 시) CNAME
 실행: python3 -I _src/build_site.py  (gh-pages 루트에서, 결과물 덮어쓰기)
 시놀로지용: python3 -I _src/build_site.py --out <폴더> --custom-domain  (새 주소 기준 전체 사이트를 별도 폴더에, CNAME 없음)
 옛 주소 이동: python3 -I _src/build_site.py --redirect-to https://passql.suhsaechan.kr  (gh-pages 루트 페이지를 새 주소 이동 페이지로, sitemap 제거)
@@ -15,7 +15,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import site_answer_key_content as answer_content  # noqa: E402
 import site_content as content  # noqa: E402
+from site_answer_key_pages import (  # noqa: E402
+    ANSWER_KEY_SCRIPT_PATHS, ANSWER_KEY_STYLESHEET_PATH, register_answer_key_pages, render_answer_index_page,
+    render_answer_round_page,
+)
 from site_exam_pages import render_faq_page, render_pass_page, render_study_page, render_subjects_page  # noqa: E402
 from site_guides import render_sqld_page, render_sqlp_page  # noqa: E402
 from site_head import render_footer, render_head, render_nav  # noqa: E402
@@ -29,14 +34,15 @@ SITE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__))
 # 결과물 폴더 (기본 gh-pages 루트, --out 이면 그 폴더)
 output_directory = SITE_ROOT_DIRECTORY
 # --out 일 때 gh-pages 루트에서 그대로 복사하는 정적 자산 (생성하지 않는 파일)
-STATIC_ASSET_PATHS = ["style.css", "effects.css", "demo.css", "site.js", "demo.js", "favicon.ico", "icon", "shots"]
+STATIC_ASSET_PATHS = (["style.css", "effects.css", "demo.css", ANSWER_KEY_STYLESHEET_PATH, "site.js", "demo.js"]
+                      + ANSWER_KEY_SCRIPT_PATHS + ["favicon.ico", "icon", "shots"])
 # 손 관리 페이지 원본 폴더 (gh-pages 루트가 이동 페이지로 바뀌어도 원본 유지)
 HAND_MANAGED_DIRECTORY = os.path.join(SITE_ROOT_DIRECTORY, "_src", "hand_managed")
 # 주소만 현재 사이트로 바꿔 결과물에 쓰는 손 관리 페이지
 HAND_MANAGED_PAGE_PATHS = ["delete-account.html"]
 # --redirect-to 일 때 지우는 옛 주소 파일 (sitemap: 다른 호스트 주소를 담을 수 없음, CNAME: 커스텀 도메인 미사용)
 REDIRECT_REMOVED_PATHS = ["sitemap.xml", "CNAME"]
-# 안내 페이지 경로 > 생성 함수 (경로 목록은 site_content.GUIDE_PAGES 와 같아야 함)
+# 안내 페이지 경로 > 생성 함수 (경로 목록은 site_content.GUIDE_PAGES 와 같아야 함, 가답안 회차 페이지는 build_page_renderers 가 추가)
 GUIDE_PAGE_RENDERERS = {
     "sqld/": render_sqld_page,
     "sqld/schedule/": render_schedule_page,
@@ -48,6 +54,7 @@ GUIDE_PAGE_RENDERERS = {
     "sqld/trend/": render_trend_page,
     "sqld/mock-exam/": render_mock_exam_page,
     "sqld/app/": render_app_page,
+    "sqld/answers/": render_answer_index_page,
 }
 # sitemap 안내 외 주소 {경로: 우선순위}
 SITEMAP_EXTRA_PRIORITY_BY_PATH = {"privacy.html": "0.3", "terms.html": "0.3", "delete-account.html": "0.2"}
@@ -145,6 +152,16 @@ def write_redirect_site(target_site_url):
     print(f"[site build] redirect pages {len(page_paths) + 1} : -> {target_site_url}")
 
 
+def build_page_renderers():
+    """안내 페이지 + 가답안 회차 페이지 (회차마다 빌드 시 운영 API 스냅샷, 실패하면 빈 가답안) (#1075)"""
+    page_renderers = dict(GUIDE_PAGE_RENDERERS)
+    for answer_round in answer_content.ANSWER_KEY_ROUNDS:
+        snapshot = answer_content.fetch_answer_snapshot(answer_round)
+        page_renderers[answer_content.to_round_path(answer_round)] = (
+            lambda answer_round=answer_round, snapshot=snapshot: render_answer_round_page(answer_round, snapshot))
+    return page_renderers
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description="passQL 소개 사이트 생성")
     parser.add_argument("--out", help="결과물 폴더 (없으면 gh-pages 루트에 덮어쓰기)")
@@ -156,6 +173,8 @@ def parse_arguments():
 def main():
     global output_directory
     arguments = parse_arguments()
+    # 가답안 회차 페이지 등록 (이동 페이지·메뉴·sitemap 이 회차 경로를 알아야 해서 맨 먼저)
+    register_answer_key_pages()
     # 옛 주소 이동 (gh-pages 루트 전용, 다른 옵션과 같이 쓰지 않음)
     if arguments.redirect_to:
         if arguments.out or arguments.custom_domain:
@@ -172,16 +191,17 @@ def main():
     elif arguments.custom_domain:
         # gh-pages 루트를 새 주소로 덮어쓰면 github.io 라이브 canonical 이 바뀜 > --out 과 함께만 허용
         raise RuntimeError("[site build] --custom-domain requires --out")
-    if set(GUIDE_PAGE_RENDERERS) != set(content.GUIDE_PAGES):
-        raise RuntimeError("[site build] GUIDE_PAGE_RENDERERS <-> GUIDE_PAGES mismatch")
+    page_renderers = build_page_renderers()
+    if set(page_renderers) != set(content.GUIDE_PAGES):
+        raise RuntimeError("[site build] page renderers <-> GUIDE_PAGES mismatch")
     today_text = datetime.date.today().isoformat()
     write_file("index.html", render_home_page())
-    for path, render_page in GUIDE_PAGE_RENDERERS.items():
+    for path, render_page in page_renderers.items():
         write_file(path + "index.html", render_page())
     write_file("404.html", render_not_found_page())
     write_file("sitemap.xml", render_sitemap(today_text))
     write_file("robots.txt", render_robots())
-    written_count = 4 + len(GUIDE_PAGE_RENDERERS)
+    written_count = 4 + len(page_renderers)
     if arguments.out:
         copy_static_files()
     else:

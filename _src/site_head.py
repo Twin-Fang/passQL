@@ -3,10 +3,17 @@
 JSON-LD 내용은 site_schema.py, 페이지 목록·문구는 site_content.py
 """
 
+import hashlib
 import html
 import json
+import os
 
 import site_content as content
+
+# 정적 자산 원본 폴더 (gh-pages 루트) — 자산 주소 뒤 내용 지문 계산용
+SITE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# 자산 지문 길이 (md5 앞 8자)
+ASSET_FINGERPRINT_LENGTH = 8
 
 
 def escape(text):
@@ -15,12 +22,12 @@ def escape(text):
 
 # Material Symbols 아이콘 이름 원본 (웹폰트 icon_names 부분 집합 > 쓰는 글리프만 내려받음)
 MATERIAL_SYMBOL_NAMES = frozenset({
-    "arrow_forward", "auto_awesome", "calendar_month", "category", "celebration", "check_circle", "checklist",
-    "chevron_left", "chevron_right", "close", "compare_arrows", "description", "download", "edit_note", "event",
-    "expand_more", "fact_check", "flag", "forum", "help", "how_to_reg", "language", "lightbulb",
-    "local_fire_department", "mail", "menu_book", "notifications_active", "open_in_new", "payments", "person",
-    "quiz", "remove", "route", "schedule", "school", "shuffle", "speed", "terminal", "timer", "trending_up",
-    "update", "verified", "workspace_premium",
+    "arrow_forward", "auto_awesome", "calendar_month", "campaign", "category", "celebration", "check_circle", "checklist",
+    "chevron_left", "chevron_right", "close", "compare_arrows", "content_copy", "description", "download", "edit_note",
+    "event", "expand_more", "fact_check", "flag", "forum", "groups", "help", "how_to_reg", "image", "info", "keyboard",
+    "language", "lightbulb", "local_fire_department", "mail", "menu_book", "notifications_active", "open_in_new",
+    "payments", "person", "quiz", "remove", "restart_alt", "route", "schedule", "school", "share", "shuffle", "speed",
+    "terminal", "timer", "trending_up", "update", "verified", "workspace_premium",
 })
 # 글꼴: 본문 Pretendard, 아이콘 Material Symbols Rounded (채움 0..1 축만)
 PRETENDARD_STYLESHEET_URL = "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
@@ -40,9 +47,19 @@ def render_symbol(icon_name, extra_class=""):
     return f'<span class="{class_names}" aria-hidden="true">{icon_name}</span>'
 
 
-def render_head(title, description, path, root, json_ld_items=(), is_indexable=True):
-    """페이지 <head>: 제목·설명·canonical·OG·Twitter·스마트 배너·글꼴·JSON-LD"""
+def to_asset_url(root, relative_path):
+    """정적 자산 주소 + 내용 지문 (style.css > style.css?v=1a2b3c4d): nginx 7일 캐시에도 바뀐 파일은 새로 받음"""
+    with open(os.path.join(SITE_ROOT_DIRECTORY, relative_path), "rb") as file:
+        fingerprint = hashlib.md5(file.read()).hexdigest()[:ASSET_FINGERPRINT_LENGTH]
+    return f"{root}{relative_path}?v={fingerprint}"
+
+
+def render_head(title, description, path, root, json_ld_items=(), is_indexable=True, extra_stylesheet_paths=()):
+    """페이지 <head>: 제목·설명·canonical·OG·Twitter·스마트 배너·글꼴·JSON-LD (+ 페이지 전용 CSS)"""
     canonical_url = content.SITE_URL + path
+    extra_stylesheets = "".join(
+        f'<link rel="stylesheet" href="{to_asset_url(root, stylesheet_path)}">\n' for stylesheet_path in extra_stylesheet_paths
+    )
     robots_line = "" if is_indexable else '<meta name="robots" content="noindex">\n'
     json_ld_blocks = "".join(
         '<script type="application/ld+json">\n'
@@ -82,10 +99,10 @@ def render_head(title, description, path, root, json_ld_items=(), is_indexable=T
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{PRETENDARD_STYLESHEET_URL}">
 <link rel="stylesheet" href="{escape(MATERIAL_SYMBOLS_STYLESHEET_URL)}">
-<link rel="stylesheet" href="{root}style.css">
-<link rel="stylesheet" href="{root}effects.css">
-<link rel="stylesheet" href="{root}demo.css">
-<script>(function(h,n){{h.classList.add("js");var u=n.userAgent,isIpad=n.platform==="MacIntel"&&n.maxTouchPoints>1;if(/iPhone|iPad|iPod/.test(u)||isIpad)h.classList.add("is-ios");else if(/Android/.test(u))h.classList.add("is-android")}})(document.documentElement,navigator)</script>
+<link rel="stylesheet" href="{to_asset_url(root, "style.css")}">
+<link rel="stylesheet" href="{to_asset_url(root, "effects.css")}">
+<link rel="stylesheet" href="{to_asset_url(root, "demo.css")}">
+{extra_stylesheets}<script>(function(h,n){{h.classList.add("js");var u=n.userAgent,isIpad=n.platform==="MacIntel"&&n.maxTouchPoints>1;if(/iPhone|iPad|iPod/.test(u)||isIpad)h.classList.add("is-ios");else if(/Android/.test(u))h.classList.add("is-android")}})(document.documentElement,navigator)</script>
 {json_ld_blocks}</head>
 """
 
@@ -93,7 +110,8 @@ def render_head(title, description, path, root, json_ld_items=(), is_indexable=T
 def render_nav(root, current_path=None):
     """상단 바: 로고 + 안내 페이지 메뉴(모바일은 둘째 줄 가로 넘김) + 앱 받기"""
     menu_links = "".join(
-        f'\n      <a href="{root}{path}"{' aria-current="page"' if path == current_path else ''}>'
+        f'\n      <a href="{root}{path}"{' class="nav-live"' if path in content.NAV_LIVE_PATHS else ''}'
+        f'{' aria-current="page"' if path == current_path else ''}>'
         f'{escape(content.GUIDE_PAGES[path]["menu_name"])}</a>'
         for path in content.GUIDE_MENU_PATHS
     )

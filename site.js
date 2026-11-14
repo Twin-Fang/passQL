@@ -52,6 +52,13 @@
     });
   }
 
+  // 시험 당일에만 보이는 문구 (첫 화면 가채점 띠 '오늘 시험 끝!', #1075)
+  function showExamDayOnlyTexts() {
+    document.querySelectorAll("[data-exam-day-only]").forEach(function (element) {
+      element.hidden = calculateDaysUntil(element.getAttribute("data-exam-day-only")) !== 0;
+    });
+  }
+
   // 일정 페이지 회차 카드: 지난 회차 흐리게, 방문 날짜 기준 다음 회차 강조 (JS 없으면 모두 같은 모양)
   function markScheduleRounds() {
     var isNextFound = false;
@@ -203,6 +210,7 @@
   }
 
   renderExamCountdown();
+  showExamDayOnlyTexts();
   markScheduleRounds();
   applyAndroidStoreLinks();
   revealOnScroll();

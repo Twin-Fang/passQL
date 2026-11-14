@@ -7,12 +7,13 @@
 import site_content as content
 from site_head import (
     escape, render_faq_section, render_footer, render_head, render_nav, render_play_link_attribute,
-    render_store_buttons, render_symbol,
+    render_store_buttons, render_symbol, to_asset_url,
 )
 from site_schedule import find_next_exam_round, format_long_date, to_exam_name
 from site_schema import build_app_json_ld, build_faq_json_ld, build_organization_json_ld, build_website_json_ld
 from site_demo import render_award_section, render_hero_demo, render_review_section, render_story_section
 from site_showcase import render_exam_info_section, render_phone
+from site_answer_key_pages import render_home_answer_banner
 
 def render_hero(next_round):
     """첫 화면: 왼쪽 문구·스토어 버튼, 오른쪽 앱 재생 폰 (배경 빛·SQL 낱말은 demo.css)"""
@@ -150,10 +151,11 @@ def render_home_page():
     )
     faq_more_link = f'\n    <p class="faq-more"><a href="sqld/faq/">SQLD 시험 질문 더 보기 {render_symbol("arrow_forward")}</a></p>'
     body = "".join([
-        '\n<main id="main">', render_hero(next_round), render_award_section(), render_story_section(),
+        '\n<main id="main">', render_home_answer_banner(), render_hero(next_round), render_award_section(), render_story_section(),
         render_review_section(), render_exam_info_section(next_round), render_trend_section(), render_plan_section(),
         "\n" + render_faq_section(content.HOME_FAQS, more_link_html=faq_more_link), render_final_cta(next_round),
         "\n</main>\n", render_mobile_dock(),
     ])
     return (head + render_nav(root) + body
-            + '<script src="site.js" defer></script>\n<script src="demo.js" defer></script>\n' + render_footer(root))
+            + f'<script src="{to_asset_url(root, "site.js")}" defer></script>\n'
+            + f'<script src="{to_asset_url(root, "demo.js")}" defer></script>\n' + render_footer(root))
