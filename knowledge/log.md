@@ -253,3 +253,5 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-16 00:30 | W6 | issue 생성 open (#1077·#1076 SQLD 알아보기, 서버·사이트 배포, 앱 대기) + decision 2개 | ISS-0521, DEC-0318, DEC-0319
 - 2026-11-16 00:30 | W2 | 관련 이슈·활성 결정 줄 추가, members 갱신 | cluster-progress-stats, cluster-home, cluster-ci-deploy, cluster-dev-workflow, cluster-store-release
 - 2026-11-16 00:35 | W2 | 현재 상태 요약에 #1077 한 줄 추가 (W11 크기·요약 날짜 경고는 보고만: home, dev-workflow, store-release) | cluster-progress-stats
+- 2026-11-16 00:50 | W6 | issue + completion-report 생성 (#1096 잠금화면 turnScreenOn 화면 켜짐 반복, PR #1100) | ISS-0522-lock-screen-turn-screen-on-wake-loop, ISS-0522-lock-screen-turn-screen-on-wake-loop-report
+- 2026-11-16 00:50 | W2 | cluster-practice 관련 이슈 줄 추가, members 200 > 201 (W10 수정) | cluster-practice
