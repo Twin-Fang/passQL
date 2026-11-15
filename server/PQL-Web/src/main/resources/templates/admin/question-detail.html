@@ -63,6 +63,29 @@
         </div>
     </div>
 
+    <!-- 내부 관리 태그 (#1117): 네임스페이스 묶음 표시 + 전체 교체 편집, 회원에게 노출 안 됨 -->
+    <div class="card bg-base-100 shadow mb-4">
+        <div class="card-body">
+            <h3 class="card-title text-base mb-2">
+                <i data-lucide="tag" class="size-5"></i>
+                내부 태그
+                <span class="text-xs font-normal text-base-content/50">관리자 전용</span>
+            </h3>
+            <div class="mb-3">
+                <th:block th:replace="~{admin/fragments/question-internal-tags :: groups(${internalTagGroups})}"></th:block>
+            </div>
+            <div class="flex flex-col md:flex-row gap-2 items-start" th:data-uuid="${question.questionUuid}">
+                <textarea id="questionInternalTagInput" rows="2"
+                          class="textarea textarea-bordered textarea-sm font-mono w-full"
+                          placeholder="source:63-17, trend:t41, round:63, batch:batch06, concept:비등가조인, new-type"
+                          th:text="${#strings.listJoin(internalTags, ', ')}"></textarea>
+                <button id="questionInternalTagSaveBtn" type="button" class="btn btn-sm btn-primary"
+                        onclick="saveQuestionInternalTags(this.parentElement.dataset.uuid)">저장</button>
+            </div>
+            <p class="text-xs text-base-content/60 mt-1">쉼표·줄바꿈 구분, 입력 전체로 교체. 형식 네임스페이스:값, 공백 없이 64자 이하, 최대 20개</p>
+        </div>
+    </div>
+
     <!-- 품질 지표: 풀이·정답률·신고, 보기 키별 선택 분포 -->
     <div class="card bg-base-100 shadow mb-4">
         <div class="card-body">
@@ -212,6 +235,7 @@
 
 <th:block layout:fragment="js">
     <script th:src="@{/js/admin/question-activation.js}"></script>
+    <script th:src="@{/js/admin/question-internal-tags.js}"></script>
     <script>lucide.createIcons();</script>
 </th:block>
 </html>
