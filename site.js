@@ -59,7 +59,7 @@
     });
   }
 
-  // 가채점 진행 중 강조(상단 메뉴·첫 화면 띠): 합격자 발표일이 지나면 재빌드 없이 끔 (#1077)
+  // 가채점 진행 중 강조(상단 메뉴·첫 화면 띠): 강조 기간(시험일 + 7일)이 지나면 재빌드 없이 끔 (#1077)
   function expireLiveHighlights() {
     document.querySelectorAll("[data-live-until]").forEach(function (element) {
       if (calculateDaysUntil(element.getAttribute("data-live-until")) >= 0) return;
@@ -68,7 +68,7 @@
     });
   }
 
-  // 합격자 발표일 다음부터만 보이는 요소 (가답안 문항별 앱 연결, #1077)
+  // 강조 기간 다음부터만 보이는 요소 (가답안 문항별 앱 연결, #1077)
   function showAfterDateElements() {
     document.querySelectorAll("[data-show-after]").forEach(function (element) {
       element.hidden = calculateDaysUntil(element.getAttribute("data-show-after")) >= 0;

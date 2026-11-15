@@ -23,11 +23,20 @@ CHOICE_SYMBOLS = {"1": "①", "2": "②", "3": "③", "4": "④"}
 
 
 # ── 회차 등록 ──
+# 가채점 강조 기간: 시험일부터 7일 (#1077 사용자 결정, 이후는 지난 회차 페이지로 계속 열람)
+LIVE_DAYS_AFTER_EXAM = 7
+
+
+def to_live_until_date(exam_round):
+    """강조 마지막 날: 시험일 + 7일 (YYYY-MM-DD)"""
+    return (to_date(exam_round["exam"]) + datetime.timedelta(days=LIVE_DAYS_AFTER_EXAM)).isoformat()
+
+
 def is_round_live(answer_round, today=None):
-    """시험일 ~ 합격자 발표일 사이면 진행 중 (상단 메뉴 강조·첫 화면 띠)"""
+    """시험일 ~ 시험일 + 7일이면 진행 중 (상단 메뉴 강조·첫 화면 띠)"""
     today = today or datetime.date.today()
     exam_round = answer_content.find_exam_round(answer_round["round"])
-    return to_date(exam_round["exam"]) <= today <= to_date(exam_round["result"])
+    return to_date(exam_round["exam"]) <= today <= to_date(to_live_until_date(exam_round))
 
 
 def find_live_round(today=None):
@@ -46,7 +55,7 @@ def register_answer_key_pages(today=None):
         menu_index = content.GUIDE_MENU_PATHS.index(answer_content.ANSWER_KEY_INDEX_PATH)
         content.GUIDE_MENU_PATHS[menu_index] = live_path
         content.NAV_LIVE_PATHS.add(live_path)
-        content.NAV_LIVE_UNTIL_BY_PATH[live_path] = answer_content.find_exam_round(live_round["round"])["result"]
+        content.NAV_LIVE_UNTIL_BY_PATH[live_path] = to_live_until_date(answer_content.find_exam_round(live_round["round"]))
 
 
 # ── 첫 화면 띠 ──
@@ -58,7 +67,7 @@ def render_home_answer_banner(today=None):
         return ""
     exam_round = answer_content.find_exam_round(live_round["round"])
     return f"""
-<a class="live-banner" href="{answer_content.to_round_path(live_round)}" data-live-until="{exam_round['result']}">
+<a class="live-banner" href="{answer_content.to_round_path(live_round)}" data-live-until="{to_live_until_date(exam_round)}">
   <span class="live-dot" aria-hidden="true"></span>
   <span class="live-banner-text"><strong><span data-exam-day-only="{exam_round['exam']}" hidden>오늘 시험 끝! </span>SQLD {live_round['round']}회 가채점</strong><span>가답안 보고 OMR로 내 점수·합격 확인</span></span>
   <span class="live-banner-go">가채점하기{render_symbol("arrow_forward")}</span>
@@ -238,7 +247,7 @@ def render_tally_rows(item):
 
 def render_answer_row(item, result_date):
     """가답안 1행 (접기): 번호 > 정답 > 상태 > 합의율 > 개념 한 줄 > 내 채점 / 펼치면 보기 분포·메모·앱 연결
-    앱 연결은 합격자 발표일(result_date) 다음부터 보임 — 시험 직후 답 맞추러 온 방문자에게 문제 풀기 유도 안 함
+    앱 연결은 강조 기간(시험일 + 7일) 다음부터 보임 — 시험 직후 답 맞추러 온 방문자에게 문제 풀기 유도 안 함
     """
     question_number = item["questionNo"]
     status = item.get("answerStatus") or "UNKNOWN"
@@ -350,7 +359,7 @@ def render_answer_round_page(answer_round, snapshot):
     body = (
         render_omr_section(rule)
         + render_result_section(answer_round, rule)
-        + render_answer_key_section(rule, snapshot, exam_round["result"])
+        + render_answer_key_section(rule, snapshot, to_live_until_date(exam_round))
         + render_app_callout(root, "사전점수·합격 발표, 앱이 알려 드려요",
                              "passQL 앱은 사전점수 공개, 합격자 발표, 다음 회차 접수 시작을 알림으로 알려 줘요. 다음 시험은 일정 알림과 모의고사로 준비하세요.",
                              [("notifications_active", "발표일 알림"), ("calendar_month", "다음 회차 접수 알림"), ("timer", "실전 모의고사")])
