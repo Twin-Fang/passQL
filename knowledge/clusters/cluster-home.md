@@ -2,7 +2,7 @@
 type: cluster
 topic: home
 created: 2026-10-29
-members: 78
+members: 79
 status: active
 related: []
 ---
@@ -98,3 +98,4 @@ related: []
 - [[ISS-0395-home-countdown-badge-cleanup]] (resolved, GitHub #648) — 홈 첫 화면 인사 아래 시험 카운트다운 보조 문구가 시험 일정 카드와 겹침 (앱)
 - [[ISS-0405-home-first-load-skeleton-wait]] (resolved, GitHub #676) — 홈 첫 로딩 대기 시간 단축 — 지난 데이터 먼저 보여 주기
 - [[ISS-0413-app-home-ui-ux-redesign]] (resolved, GitHub #701) — 앱 홈 화면 UI/UX 개편
+- [[ISS-0521-sqld-exam-guide-and-yearly-stats]] (open, #1077·#1076): SQLD 알아보기(시험 소개, 연도별 응시자·합격률) — 서버 API·소개 사이트 sqld/stats/ 운영 반영, 앱 화면은 브랜치 대기(앱 출시 때 병합)

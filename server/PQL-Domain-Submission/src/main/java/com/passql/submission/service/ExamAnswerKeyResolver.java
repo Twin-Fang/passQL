@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 표시용 정답 결정 (순수 계산): 운영 가답안(LEADING·CONFIRMED·OFFICIAL) 우선 > 득표 1위 > 없음
+ * 표시용 정답 결정 (순수 계산): 운영 가답안(LEADING·CONFIRMED·OFFICIAL, DISPUTED 후보 답 포함) 우선 > 득표 1위 > 없음
  * 득표 집계: 답안 문자열 목록 > 문항별 보기 1~4 득표 수
  */
 public final class ExamAnswerKeyResolver {
@@ -40,9 +40,13 @@ public final class ExamAnswerKeyResolver {
 
     /** 문항 + 득표 수(인덱스 1~4) > 채점 기준 */
     public static ExamAnswerKey resolve(ExamAnswerItem item, int[] voteCountByChoice) {
-        boolean isOperatorAnswerUsed = item.getOperatorAnswerStatus().isOperatorAnswerTrusted()
-                && isValidChoice(item.getOperatorAnswer());
-        Integer answer = isOperatorAnswerUsed ? item.getOperatorAnswer() : findLeadingChoice(voteCountByChoice);
+        boolean hasValidOperatorAnswer = isValidChoice(item.getOperatorAnswer());
+        // 확정 채점: 신뢰 상태(LEADING·CONFIRMED·OFFICIAL)만, 갈림은 점수 범위 유지
+        boolean isOperatorAnswerUsed = item.getOperatorAnswerStatus().isOperatorAnswerTrusted() && hasValidOperatorAnswer;
+        // 표시: 갈림 문항도 운영 후보 답 우선 (참여 적을 때 '?' 방지, #1101)
+        boolean isOperatorAnswerShown = hasValidOperatorAnswer
+                && (isOperatorAnswerUsed || item.getOperatorAnswerStatus().isOperatorCandidateShown());
+        Integer answer = isOperatorAnswerShown ? item.getOperatorAnswer() : findLeadingChoice(voteCountByChoice);
 
         // 인정 보기: 표시용 정답 + 복수 정답
         Set<Integer> acceptedAnswers = new LinkedHashSet<>();
