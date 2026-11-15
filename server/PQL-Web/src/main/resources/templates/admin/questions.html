@@ -61,6 +61,14 @@
                            th:value="${condition.keyword}" placeholder="예: GROUP BY"/>
                 </div>
 
+                <!-- 내부 태그 필터 (#1117): 쉼표 구분 모두 만족, 끝 * 는 앞부분 일치 -->
+                <div class="form-control">
+                    <label class="label label-text text-xs">내부 태그</label>
+                    <input type="text" name="internalTags" class="input input-sm input-bordered w-56"
+                           th:value="${condition.internalTags != null ? #strings.listJoin(condition.internalTags, ',') : ''}"
+                           placeholder="예: source:63-*, trend:t41"/>
+                </div>
+
                 <!-- 정렬 (정답률·풀이·신고 집계 기준 포함) -->
                 <div class="form-control">
                     <label class="label label-text text-xs">정렬</label>
@@ -117,6 +125,18 @@
                                 <button type="button" id="bulkClassifyBtn" onclick="openBulkClassifyModal()" disabled>
                                     <i data-lucide="tags" class="size-4"></i>
                                     <span id="bulkClassifyLabel">토픽·난이도 변경</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" id="bulkInternalTagBtn" onclick="openBulkInternalTagModal()" disabled>
+                                    <i data-lucide="tag" class="size-4"></i>
+                                    <span id="bulkInternalTagLabel">내부 태그 붙이기·떼기</span>
+                                </button>
+                            </li>
+                            <li>
+                                <button type="button" onclick="openInternalTagSummaryModal()">
+                                    <i data-lucide="list-tree" class="size-4"></i>
+                                    내부 태그 요약
                                 </button>
                             </li>
                         </ul>
@@ -199,6 +219,7 @@
                         <th class="w-10"><input type="checkbox" id="selectAllCheckbox" class="checkbox checkbox-xs" onchange="toggleSelectAll(this)"/></th>
                         <th class="w-16">ID</th>
                         <th>지문 (50자)</th>
+                        <th class="w-48">내부 태그</th>
                         <th class="w-28">토픽</th>
                         <th class="w-20">난이도</th>
                         <th class="w-28">실행 모드</th>
@@ -221,6 +242,9 @@
                         <td class="font-mono text-xs" th:text="${#strings.substring(q.questionUuid.toString(), 0, 8)}">xxxxxxxx</td>
                         <td class="max-w-xs truncate text-sm" th:text="${q.stemPreview}">
                             다음 중 employees 테이블에서 부서별 평균 급여를...
+                        </td>
+                        <td>
+                            <th:block th:replace="~{admin/fragments/question-internal-tags :: groups(${q.internalTagGroups})}"></th:block>
                         </td>
                         <td>
                             <span class="badge badge-outline badge-sm" th:text="${q.topicCode ?: q.topicName}">SELECT</span>
@@ -258,7 +282,7 @@
 
                     <!-- Empty state -->
                     <tr th:if="${questions == null or questions.isEmpty()}">
-                        <td colspan="12" class="text-center text-base-content/50 py-12">
+                        <td colspan="13" class="text-center text-base-content/50 py-12">
                             <i data-lucide="file-x" class="size-10 mx-auto mb-2 opacity-40"></i>
                             <p>문제가 없습니다.</p>
                         </td>
@@ -271,12 +295,12 @@
             <!-- Pagination -->
             <div class="flex justify-center p-4" th:if="${questions != null and questions.totalPages > 1}">
                 <div class="join">
-                    <a th:href="@{/admin/questions(page=${questions.number - 1}, topic=${condition.topic}, difficulty=${condition.difficulty}, executionMode=${condition.executionMode}, keyword=${condition.keyword}, activeState=${condition.activeState}, sort=${condition.sort}, isReportedOnly=${condition.isReportedOnly})}"
+                    <a th:href="@{/admin/questions(page=${questions.number - 1}, topic=${condition.topic}, difficulty=${condition.difficulty}, executionMode=${condition.executionMode}, keyword=${condition.keyword}, activeState=${condition.activeState}, sort=${condition.sort}, isReportedOnly=${condition.isReportedOnly}, internalTags=${condition.internalTags})}"
                        class="join-item btn btn-sm"
                        th:classappend="${questions.first} ? 'btn-disabled'">«</a>
                     <button class="join-item btn btn-sm btn-active"
                             th:text="${questions.number + 1} + ' / ' + ${questions.totalPages}">1 / 10</button>
-                    <a th:href="@{/admin/questions(page=${questions.number + 1}, topic=${condition.topic}, difficulty=${condition.difficulty}, executionMode=${condition.executionMode}, keyword=${condition.keyword}, activeState=${condition.activeState}, sort=${condition.sort}, isReportedOnly=${condition.isReportedOnly})}"
+                    <a th:href="@{/admin/questions(page=${questions.number + 1}, topic=${condition.topic}, difficulty=${condition.difficulty}, executionMode=${condition.executionMode}, keyword=${condition.keyword}, activeState=${condition.activeState}, sort=${condition.sort}, isReportedOnly=${condition.isReportedOnly}, internalTags=${condition.internalTags})}"
                        class="join-item btn btn-sm"
                        th:classappend="${questions.last} ? 'btn-disabled'">»</a>
                 </div>
@@ -286,6 +310,8 @@
 
     <!-- 모달 (비활성화 확인, 대량 JSON 가이드, 붙여넣기, 가져오기 검증) -->
     <th:block th:replace="~{admin/fragments/question-list-modals :: modals}"></th:block>
+    <!-- 내부 태그 모달 (일괄 붙이기·떼기, 요약, #1117) -->
+    <th:block th:replace="~{admin/fragments/question-internal-tags :: modals}"></th:block>
 
 </th:block>
 
@@ -294,6 +320,7 @@
 <script th:src="@{/js/admin/question-list.js}"></script>
 <script th:src="@{/js/admin/question-activation.js}"></script>
 <script th:src="@{/js/admin/question-bulk-update.js}"></script>
+<script th:src="@{/js/admin/question-internal-tags.js}"></script>
 <script>lucide.createIcons();</script>
 </th:block>
 </html>

@@ -14,6 +14,7 @@ import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.entity.Question;
 import com.passql.question.service.AdminQuestionQualityService;
 import com.passql.question.service.QuestionGenerateService;
+import com.passql.question.service.QuestionInternalTagService;
 import com.passql.question.service.QuestionLatestTrendService;
 import com.passql.question.service.AdminQuestionSearchService;
 import com.passql.question.service.QuestionDetailService;
@@ -53,6 +54,7 @@ public class AdminQuestionController {
     private final QuestionLatestTrendService questionLatestTrendService;
     private final AdminQuestionQualityService adminQuestionQualityService;
     private final AdminQuestionBulkUpdateService adminQuestionBulkUpdateService;
+    private final QuestionInternalTagService questionInternalTagService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.QUESTIONS)
@@ -123,6 +125,9 @@ public class AdminQuestionController {
         model.addAttribute("question", question);
         model.addAttribute("isQuestionActive", questionService.isQuestionActive(uuid));
         model.addAttribute("quality", adminQuestionQualityService.getQualityDetail(uuid));
+        List<String> internalTags = questionInternalTagService.getTags(uuid);
+        model.addAttribute("internalTags", internalTags);
+        model.addAttribute("internalTagGroups", QuestionInternalTagService.toTagGroups(internalTags));
         return "admin/question-detail";
     }
 

@@ -76,12 +76,13 @@ def get_concepts(question):
 
 
 def get_trend(question):
-    """경향 태그: templates(템플릿 id), examRounds(근거 회차), isLatestTrend(최신 경향 표시)"""
+    """경향 태그: templates(템플릿 id), examRounds(근거 회차), isLatestTrend(최신 경향 표시), sources(파생 출처 '63-17')"""
     trend = question.get("trend") or {}
     return {
         "templates": [str(template) for template in (trend.get("templates") or [])],
         "examRounds": [int(round_number) for round_number in (trend.get("examRounds") or [])],
         "isLatestTrend": bool(trend.get("isLatestTrend")),
+        "sources": [str(source).strip() for source in (trend.get("sources") or [])],
     }
 
 

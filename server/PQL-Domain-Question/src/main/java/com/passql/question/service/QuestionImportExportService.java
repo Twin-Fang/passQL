@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 문제 JSON 가져오기·내보내기: 필터·UUID 내보내기, 배치 검증 집계, 등록/업데이트
+ * 문제 JSON 가져오기·내보내기: 필터·UUID 내보내기, 배치 검증 집계, 등록/업데이트 (내부 태그 포함, #1117)
  * 항목별 검증은 QuestionImportItemValidator, Oracle 문법 처리는 OracleSqlCompatibilityConverter
  */
 @Slf4j
@@ -46,6 +46,7 @@ public class QuestionImportExportService {
     private final QuestionImportItemValidator importItemValidator;
     private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
     private final CuratedChoiceSetWriter curatedChoiceSetWriter;
+    private final QuestionInternalTagService questionInternalTagService;
 
     // ── Export ────────────────────────────────────────────────────
 
@@ -199,6 +200,15 @@ public class QuestionImportExportService {
                 continue;
             }
 
+            // 내부 태그 규칙 재확인 (#1117, 전체 등록 모드도 적용)
+            QuestionInternalTagNormalizeResult tagResult = QuestionInternalTagRule.normalizeTags(item.internalTags());
+            if (!tagResult.isValid()) {
+                log.warn("[import-batch] skipped internal tag violation : index={}, reason={}", i, tagResult.rejectReason());
+                skipped++;
+                continue;
+            }
+
+            UUID savedQuestionUuid;
             if (item.questionUuid() != null && questionRepository.existsById(item.questionUuid())) {
                 questionService.updateQuestion(
                         item.questionUuid(), item.stem(), null,
@@ -208,6 +218,7 @@ public class QuestionImportExportService {
                 // choiceSetPolicy는 updateQuestion에 파라미터가 없으므로 별도 업데이트
                 questionService.updateChoiceSetPolicy(item.questionUuid(), policy);
                 saveCuratedChoicesIfPresent(item.questionUuid(), item.choices());
+                savedQuestionUuid = item.questionUuid();
                 updated++;
             } else {
                 Question createdQuestion = questionGenerateService.createQuestionOnly(
@@ -216,8 +227,10 @@ public class QuestionImportExportService {
                         item.schemaIntent(), savedAnswerSql, item.hint(),
                         policy);
                 saveCuratedChoicesIfPresent(createdQuestion.getQuestionUuid(), item.choices());
+                savedQuestionUuid = createdQuestion.getQuestionUuid();
                 created++;
             }
+            replaceInternalTagsIfPresent(savedQuestionUuid, item.internalTags());
         }
 
         log.info("[import-batch] created={}, updated={}, skipped={}", created, updated, skipped);
@@ -248,6 +261,13 @@ public class QuestionImportExportService {
     private void saveCuratedChoicesIfPresent(UUID questionUuid, List<CuratedChoiceDto> choices) {
         if (choices != null && !choices.isEmpty()) {
             curatedChoiceSetWriter.replaceCuratedSet(questionUuid, choices);
+        }
+    }
+
+    /** 태그 칸이 있으면 교체 (칸 없는 옛 파일 > 기존 태그 유지, #1117) */
+    private void replaceInternalTagsIfPresent(UUID questionUuid, List<String> internalTags) {
+        if (internalTags != null) {
+            questionInternalTagService.replaceTags(questionUuid, internalTags);
         }
     }
 
@@ -291,6 +311,9 @@ public class QuestionImportExportService {
         Map<UUID, String> topicCodeMap = topicRepository.findAllById(topicUuids).stream()
                 .collect(Collectors.toMap(Topic::getTopicUuid, Topic::getCode));
 
+        Map<UUID, List<String>> internalTagsByQuestionUuid = questionInternalTagService.getTagsByQuestionUuid(
+                questions.stream().map(Question::getQuestionUuid).toList());
+
         return questions.stream().map(q -> new QuestionExportDto(
                 q.getQuestionUuid(),
                 topicCodeMap.getOrDefault(q.getTopicUuid(), null),
@@ -303,7 +326,8 @@ public class QuestionImportExportService {
                 q.getSchemaSampleData(),
                 q.getSchemaIntent(),
                 q.getAnswerSql(),
-                q.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY ? questionChoiceSetQueryService.findActiveCuratedChoices(q.getQuestionUuid()) : null
+                q.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY ? questionChoiceSetQueryService.findActiveCuratedChoices(q.getQuestionUuid()) : null,
+                internalTagsByQuestionUuid.getOrDefault(q.getQuestionUuid(), List.of())
         )).toList();
     }
 }
