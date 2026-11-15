@@ -12,6 +12,7 @@ trend:
   templates: [T01]                  # 경향 카탈로그 템플릿 id
   examRounds: [61, 62]              # 근거 회차
   isLatestTrend: true               # 최신 회차 근거가 있을 때만 true (학습 화면 '최신 경향' 표시)
+  sources: ["62-17"]                # 파생 출처 문항 회차-실번호 > 내부 태그 source:62-17 (#1117)
 # (b) 출제 설계
 intent: NOT IN 서브쿼리에 NULL 포함 시 UNKNOWN
 trapDesign: 서브쿼리 결과에 NULL 1건을 섞어 NOT EXISTS 와 결과가 갈리게 함

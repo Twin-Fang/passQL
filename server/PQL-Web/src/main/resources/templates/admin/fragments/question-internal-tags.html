@@ -1,0 +1,53 @@
+<!doctype html>
+<!-- 문제 내부 관리 태그 (#1117): 네임스페이스 묶음 표시, 목록 화면 모달 2종(일괄 붙이기·떼기, 태그 요약) -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<!-- 네임스페이스 묶음 표시: 묶음마다 "출처 63-17, 63-22" 배지 1개 (태그 없으면 -) -->
+<th:block th:fragment="groups(tagGroups)">
+    <div class="flex flex-wrap gap-1" th:if="${tagGroups != null and !tagGroups.isEmpty()}">
+        <span th:each="tagGroup : ${tagGroups}" class="badge badge-ghost badge-sm whitespace-nowrap"
+              th:title="${tagGroup.namespacePrefix != null ? tagGroup.namespacePrefix + ':' : ''} + ${#strings.listJoin(tagGroup.values, ', ')}">
+            <span class="text-base-content/60 mr-1" th:text="${tagGroup.label}">출처</span>
+            <span th:text="${#strings.listJoin(tagGroup.values, ', ')}">63-17</span>
+        </span>
+    </div>
+    <span th:if="${tagGroups == null or tagGroups.isEmpty()}" class="text-base-content/40 text-xs">-</span>
+</th:block>
+
+<th:block th:fragment="modals">
+    <!-- 선택 문제 내부 태그 붙이기·떼기 -->
+    <dialog id="bulkInternalTagModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-2">내부 태그 붙이기·떼기</h3>
+            <p class="text-sm mb-4">
+                총 <span id="bulkInternalTagCount" class="font-bold">0</span>개 문제. 쉼표 또는 줄바꿈으로 여러 개 입력합니다.
+            </p>
+            <div class="form-control mb-3">
+                <label class="label label-text text-xs">붙일 태그</label>
+                <textarea id="bulkInternalTagAdd" rows="2" class="textarea textarea-bordered textarea-sm font-mono"
+                          placeholder="source:63-17, trend:t41, round:63"></textarea>
+            </div>
+            <div class="form-control mb-3">
+                <label class="label label-text text-xs">뗄 태그</label>
+                <textarea id="bulkInternalTagRemove" rows="2" class="textarea textarea-bordered textarea-sm font-mono"
+                          placeholder="new-type"></textarea>
+            </div>
+            <p class="text-xs text-base-content/60">형식: 네임스페이스:값 (source 출처, trend 유형, round 회차, batch 묶음, concept 개념), 공백 없이 64자 이하, 문제당 최대 20개</p>
+            <div class="modal-action">
+                <form method="dialog"><button class="btn btn-ghost">취소</button></form>
+                <button id="bulkInternalTagConfirmBtn" type="button" class="btn btn-primary" onclick="confirmBulkInternalTag()">적용</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- 네임스페이스별 태그 값·문제 수 (값 누르면 그 태그로 목록 필터) -->
+    <dialog id="internalTagSummaryModal" class="modal">
+        <div class="modal-box w-11/12 max-w-3xl max-h-[80vh] overflow-y-auto">
+            <h3 class="font-bold text-lg mb-4">내부 태그 요약</h3>
+            <div id="internalTagSummaryBody"></div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+</th:block>
+</html>

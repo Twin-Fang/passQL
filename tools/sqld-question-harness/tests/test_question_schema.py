@@ -68,4 +68,4 @@ def test_duplicate_id_is_error(not_in_question):
 
 
 def test_get_trend_defaults_for_v1_question():
-    assert get_trend({}) == {"templates": [], "examRounds": [], "isLatestTrend": False}
+    assert get_trend({}) == {"templates": [], "examRounds": [], "isLatestTrend": False, "sources": []}

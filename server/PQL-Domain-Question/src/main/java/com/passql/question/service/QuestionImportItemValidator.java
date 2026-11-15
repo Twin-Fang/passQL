@@ -10,11 +10,12 @@ import com.passql.question.dto.PostgresCompatibleSql;
 import com.passql.question.dto.QuestionFormatCheckResult;
 import com.passql.question.dto.QuestionFormatInput;
 import com.passql.question.dto.QuestionExportDto;
+import com.passql.question.dto.QuestionInternalTagNormalizeResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * 가져오기 항목 1건 검증: 필수 필드·고정 보기·형식 규칙·토픽·실행 모드 확인, Oracle 문법 치환·감지, 정답 SQL 샌드박스 실행
+ * 가져오기 항목 1건 검증: 필수 필드·내부 태그·고정 보기·형식 규칙·토픽·실행 모드 확인, Oracle 문법 치환·감지, 정답 SQL 샌드박스 실행
  * 결과 상태 3개: OK(실행 성공), SKIP(개념 문제·Oracle 전용 문법), FAIL(사유 기록)
  */
 @Component
@@ -25,7 +26,7 @@ public class QuestionImportItemValidator {
     private final SandboxExecutor sandboxExecutor;
     private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
 
-    /** 가져오기 항목 1건 검증: 필수 필드 > 고정 보기 > 형식 규칙 > 토픽 > 실행 모드 > Oracle 문법 > 샌드박스 실행 */
+    /** 가져오기 항목 1건 검증: 필수 필드 > 내부 태그 > 고정 보기 > 형식 규칙 > 토픽 > 실행 모드 > Oracle 문법 > 샌드박스 실행 */
     public ImportItemResult validate(int index, QuestionExportDto item, String stemPreview, String importAction) {
         // 필수 필드 검증
         if (item.topicCode() == null || item.topicCode().isBlank()
@@ -35,6 +36,13 @@ public class QuestionImportItemValidator {
             return new ImportItemResult(index, stemPreview, item.topicCode(), item.difficulty(),
                     item.executionMode(), "FAIL", null, null,
                     "필수 필드 누락 (topicCode, difficulty, executionMode, stem)", importAction);
+        }
+
+        // 내부 관리 태그 검증 (형식·길이·개수, #1117)
+        QuestionInternalTagNormalizeResult tagResult = QuestionInternalTagRule.normalizeTags(item.internalTags());
+        if (!tagResult.isValid()) {
+            return new ImportItemResult(index, stemPreview, item.topicCode(), item.difficulty(),
+                    item.executionMode(), "FAIL", null, null, "내부 태그 규칙 위반: " + tagResult.rejectReason(), importAction);
         }
 
         // 고정 보기 검증 (CURATED_ONLY 필수, #511)

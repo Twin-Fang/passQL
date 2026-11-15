@@ -9,6 +9,7 @@ from .duplicate_detector import find_duplicate_findings
 from .explanation_hook import FieldExplanationDrafter, find_explanation_findings
 from .findings import has_blocking_finding
 from .import_exporter import to_import_item
+from .internal_tags import find_internal_tag_findings
 from .oracle_compatibility import find_oracle_compatibility_findings
 from .quality_linter import find_answer_position_findings, lint_question
 from .question_schema import find_duplicate_id_findings, find_structure_findings
@@ -60,6 +61,7 @@ def run_offline_checks(questions, catalog, pool_items=None, explanation_drafter=
     for question in questions:
         findings = find_structure_findings(question) + find_trend_findings(question, catalog) + lint_question(question)
         findings += find_oracle_compatibility_findings(question)
+        findings += find_internal_tag_findings(question)
         explanation = drafter.draft(question)
         findings += find_explanation_findings(question, explanation)
         outcomes.append(QuestionOutcome(question=question, findings=findings, explanation=explanation))
