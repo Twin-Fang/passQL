@@ -208,8 +208,8 @@ def render_share_panel():
         <div class="share-buttons">
           <button type="button" class="btn btn-primary btn-small" data-share-image>{render_symbol("image")}이미지로 공유</button>
           <button type="button" class="btn btn-ghost btn-small" data-share-copy>{render_symbol("content_copy")}링크 복사</button>
-          <button type="button" class="btn btn-small share-kakao" data-share-kakao>카카오톡</button>
-          <button type="button" class="btn btn-small share-x" data-share-x>X에 올리기</button>
+          <button type="button" class="btn btn-ghost btn-small" data-share-kakao>카카오톡</button>
+          <button type="button" class="btn btn-ghost btn-small" data-share-x>X에 올리기</button>
         </div>
         <p class="share-toast" data-share-toast role="status" aria-live="polite"></p>
       </div>
@@ -325,7 +325,7 @@ def build_page_config(answer_round, exam_round, rule, path):
         "apiBaseUrl": content.API_BASE_URL + answer_content.ANSWER_KEY_API_PATH,
         "pageUrl": content.SITE_URL + path,
         "siteHost": content.SITE_URL.split("//", 1)[1].rstrip("/"),
-        "markImageUrl": calculate_root(path) + "icon/mark.png",
+        "logoImageUrl": calculate_root(path) + "icon/logo.png",
         "storageKeyPrefix": answer_content.STORAGE_KEY_PREFIX,
         "liveRefreshSeconds": answer_content.LIVE_REFRESH_SECONDS,
         "rules": rule,

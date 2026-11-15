@@ -1,4 +1,4 @@
-// SQLD 가채점 공유 (#1075): 점수 공개 선택 > 결과 카드 canvas(1080x1350, 사이트 밝은 바탕·보라 강조) > 이미지 공유·링크 복사·카카오톡·X
+// SQLD 가채점 공유 (#1075): 점수 공개 선택 > 결과 카드 canvas(1080x1350, 흰 바탕·로고·글자만, #1109) > 이미지 공유·링크 복사·카카오톡·X
 // exam-answer.js 가 window.PassqlExamAnswer.createShare(options) 로 사용, 색은 style.css 토큰
 (function () {
   "use strict";
@@ -22,9 +22,9 @@
 
     var shareCanvas = document.querySelector("[data-share-canvas]");
     var scorePublicCheckbox = document.querySelector("[data-share-score-public]");
-    var markImage = new Image();
-    markImage.src = config.markImageUrl;
-    markImage.onload = function () { drawShareCard(); };
+    var logoImage = new Image();
+    logoImage.src = config.logoImageUrl;
+    logoImage.onload = function () { drawShareCard(); };
 
     function isScorePublic() {
       return !!(scorePublicCheckbox && scorePublicCheckbox.checked && getState().gradeResult && getState().gradeResult.passStatus !== "PENDING");
@@ -44,139 +44,80 @@
       return roundName + " 가답안 나왔어요. OMR에 답 찍으면 점수·합격 여부 바로 나와요!";
     }
 
-    /** 공유 카드 그리기 (1080x1350): 배경 > 로고 > 회차 > 점수·판정(공개 시) > 과목 막대 > 주소 */
+    // 공유 카드 배치 (1080x1350 기준 px): 바깥 여백, 로고 높이(logo.png 213x58 원본), 본문 시작 줄, 바닥 구분선 위치
+    var SHARE_CARD_PADDING_PIXELS = 96;
+    var SHARE_LOGO_HEIGHT_PIXELS = 72;
+    var SHARE_BODY_TOP_PIXELS = 500;
+    var SHARE_FOOTER_LINE_TOP_PIXELS = 1180;
+
+    /** 공유 카드 그리기 (1080x1350): 흰 바탕 > 로고 > 회차 가채점 > 판정·점수(공개 시) 또는 초대 문구 > 구분선 > 주소
+     *  그라데이션·빛 번짐·알약·과목 막대 없음 (#1109, 앱 공유 이미지와 같은 구성) */
     function drawShareCard() {
       if (!shareCanvas || !shareCanvas.getContext) return;
       var context = shareCanvas.getContext("2d");
       var width = SHARE_CARD_WIDTH_PIXELS;
       var height = SHARE_CARD_HEIGHT_PIXELS;
+      var left = SHARE_CARD_PADDING_PIXELS;
       var colors = {
-        accent: readToken("--accent"), accent2: readToken("--accent-2"), accentText: readToken("--accent-text"),
-        accentGlow: readToken("--accent-glow"), text: readToken("--text"), muted: readToken("--muted"), dim: readToken("--dim"),
-        bgSoft: readToken("--bg-soft"), line: readToken("--line"),
-        surface: readToken("--surface"), surface2: readToken("--surface-2"), onAccent: readToken("--on-accent"),
-        wrong: readToken("--wrong"), confirmed: readToken("--status-confirmed"), disputed: readToken("--status-disputed"),
-        unknown: readToken("--status-unknown")
+        surface: readToken("--surface"), text: readToken("--text"), muted: readToken("--muted"), dim: readToken("--dim"),
+        line: readToken("--line"), wrong: readToken("--wrong"), confirmed: readToken("--status-confirmed"),
+        disputed: readToken("--status-disputed"), unknown: readToken("--status-unknown")
       };
       var fontFamily = '"Pretendard Variable", Pretendard, -apple-system, sans-serif';
       var result = getState().gradeResult;
       var isPublic = isScorePublic();
 
-      // 배경: 사이트 첫 화면처럼 밝은 바탕 + 보라 빛 두 개
-      context.fillStyle = colors.bgSoft;
+      context.fillStyle = colors.surface;
       context.fillRect(0, 0, width, height);
-      drawGlow(context, width * 0.85, height * 0.12, 620, colors.accentGlow);
-      drawGlow(context, width * 0.1, height * 0.9, 560, colors.accentGlow);
-      // 흰 카드 (사이트 카드: 흰 바탕 + 선)
-      fillRoundRect(context, 64, 220, width - 128, height - 440, 48, colors.line);
-      fillRoundRect(context, 66, 222, width - 132, height - 444, 46, colors.surface);
+      context.textAlign = "left";
+      context.textBaseline = "alphabetic";
 
-      // 머리: 앱 아이콘 + passQL + 회차
-      context.textBaseline = "middle";
-      if (markImage.complete && markImage.naturalWidth) context.drawImage(markImage, 64, 72, 104, 104);
-      context.fillStyle = colors.text;
-      context.font = "800 54px " + fontFamily;
-      context.fillText("passQL", 188, 106);
+      // 로고 (원본 비율 유지)
+      if (logoImage.complete && logoImage.naturalWidth) {
+        var logoWidth = logoImage.naturalWidth * SHARE_LOGO_HEIGHT_PIXELS / logoImage.naturalHeight;
+        context.drawImage(logoImage, left, SHARE_CARD_PADDING_PIXELS, logoWidth, SHARE_LOGO_HEIGHT_PIXELS);
+      }
+
       context.fillStyle = colors.muted;
-      context.font = "600 30px " + fontFamily;
-      context.fillText("SQLD 문제 풀이 앱", 188, 152);
-
-      context.textAlign = "center";
-      context.fillStyle = colors.accentText;
-      context.font = "700 40px " + fontFamily;
-      context.fillText("SQLD 제" + config.roundNumber + "회 가채점", width / 2, 310);
+      context.font = "600 44px " + fontFamily;
+      context.fillText("SQLD 제" + config.roundNumber + "회 가채점", left, SHARE_BODY_TOP_PIXELS);
 
       if (isPublic) {
-        var verdictColor = result.passStatus === "PASS" ? colors.confirmed : result.passStatus === "FAIL" ? colors.wrong
+        // 판정 (의미색 글자) > 총점
+        context.fillStyle = result.passStatus === "PASS" ? colors.confirmed : result.passStatus === "FAIL" ? colors.wrong
           : result.passStatus === "BORDERLINE" ? colors.disputed : colors.unknown;
-        var scoreGradient = context.createLinearGradient(width / 2 - 200, 0, width / 2 + 200, 0);
-        scoreGradient.addColorStop(0, colors.accent);
-        scoreGradient.addColorStop(1, colors.accent2);
-        context.fillStyle = scoreGradient;
-        context.font = "800 230px " + fontFamily;
-        context.fillText(String(result.totalScore), width / 2, 480);
-        context.fillStyle = colors.dim;
-        context.font = "700 40px " + fontFamily;
-        context.fillText("/ 100점", width / 2, 625);
-        drawPill(context, width / 2, 715, config.verdictLabels[result.passStatus], verdictColor, colors.onAccent, fontFamily);
-        drawSubjectBars(context, result, colors, fontFamily, 820);
-        if (getState().percentile != null) {
-          context.fillStyle = colors.text;
-          context.font = "700 38px " + fontFamily;
-          context.fillText("참여자 중 상위 " + Math.max(1, Math.round(getState().percentile)) + "%", width / 2, 1070);
-        }
-      } else {
+        context.font = "800 72px " + fontFamily;
+        context.fillText(config.verdictLabels[result.passStatus], left, SHARE_BODY_TOP_PIXELS + 104);
         context.fillStyle = colors.text;
-        context.font = "800 92px " + fontFamily;
-        context.fillText(result ? "가채점 완료!" : "내 점수는 몇 점?", width / 2, 500);
+        context.font = "800 280px " + fontFamily;
+        var scoreText = String(result.totalScore);
+        context.fillText(scoreText, left - 12, SHARE_BODY_TOP_PIXELS + 384);
+        var scoreWidth = context.measureText(scoreText).width;
+        context.fillStyle = colors.dim;
+        context.font = "700 56px " + fontFamily;
+        context.fillText("/ 100점", left + scoreWidth + 8, SHARE_BODY_TOP_PIXELS + 384);
+      } else {
+        // 점수 비공개: 판정도 싣지 않고 초대 문구만
+        context.fillStyle = colors.text;
+        context.font = "800 88px " + fontFamily;
+        context.fillText(result ? "가채점 완료!" : "내 점수는 몇 점?", left, SHARE_BODY_TOP_PIXELS + 120);
         context.fillStyle = colors.muted;
-        context.font = "600 40px " + fontFamily;
-        context.fillText("OMR에 답만 찍으면", width / 2, 640);
-        context.fillText("과목별 점수·과락·합격 여부가 바로", width / 2, 700);
-        drawPill(context, width / 2, 830, "나도 가채점 해 보기", colors.accent, colors.onAccent, fontFamily);
+        context.font = "600 42px " + fontFamily;
+        context.fillText("OMR에 답만 찍으면", left, SHARE_BODY_TOP_PIXELS + 230);
+        context.fillText("과목별 점수, 과락, 합격 여부가 바로", left, SHARE_BODY_TOP_PIXELS + 292);
         if (getState().answerKey.participantCount > 0) {
-          context.fillStyle = colors.text;
-          context.font = "700 38px " + fontFamily;
-          context.fillText(getState().answerKey.participantCount.toLocaleString("ko-KR") + "명이 함께 맞춰 보는 중", width / 2, 990);
+          context.fillStyle = colors.dim;
+          context.font = "600 38px " + fontFamily;
+          context.fillText(getState().answerKey.participantCount.toLocaleString("ko-KR") + "명이 함께 맞춰 보는 중", left, SHARE_BODY_TOP_PIXELS + 400);
         }
       }
-      // 바닥: 주소
-      context.fillStyle = colors.accentText;
-      context.font = "700 38px " + fontFamily;
-      context.fillText(config.siteHost + "/sqld/" + config.roundNumber, width / 2, height - 120);
-      context.textAlign = "left";
-    }
 
-    /** 부드러운 원형 빛 (첫 화면 오로라 배경과 같은 느낌) */
-    function drawGlow(context, centerX, centerY, radius, color) {
-      var glow = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-      glow.addColorStop(0, color);
-      glow.addColorStop(1, "rgba(0, 0, 0, 0)");
-      context.fillStyle = glow;
-      context.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
-    }
-
-    function drawSubjectBars(context, result, colors, fontFamily, top) {
-      var left = 160;
-      var barWidth = SHARE_CARD_WIDTH_PIXELS - left * 2;
-      result.subjects.forEach(function (subjectResult, index) {
-        var y = top + index * 120;
-        var subject = subjectResult.subject;
-        context.textAlign = "left";
-        context.fillStyle = colors.text;
-        context.font = "700 34px " + fontFamily;
-        context.fillText(subject.name.split(" · ")[0], left, y);
-        context.textAlign = "right";
-        context.fillText(subjectResult.score + " / " + subject.maxScore + "점", left + barWidth, y);
-        fillRoundRect(context, left, y + 32, barWidth, 22, 11, colors.surface2);
-        var fillWidth = Math.max(22, barWidth * subjectResult.score / subject.maxScore);
-        fillRoundRect(context, left, y + 32, fillWidth, 22, 11, subjectResult.isFailCut ? colors.wrong : colors.accent);
-        // 과락선
-        var cutX = left + barWidth * subject.failUnderScore / subject.maxScore;
-        context.fillStyle = colors.wrong;
-        context.fillRect(cutX - 2, y + 24, 4, 38);
-      });
-      context.textAlign = "center";
-    }
-
-    function drawPill(context, centerX, centerY, text, background, foreground, fontFamily) {
-      context.font = "800 44px " + fontFamily;
-      var pillWidth = context.measureText(text).width + 96;
-      fillRoundRect(context, centerX - pillWidth / 2, centerY - 44, pillWidth, 88, 44, background);
-      context.fillStyle = foreground;
-      context.fillText(text, centerX, centerY + 2);
-    }
-
-    function fillRoundRect(context, x, y, width, height, radius, color) {
-      context.beginPath();
-      context.moveTo(x + radius, y);
-      context.arcTo(x + width, y, x + width, y + height, radius);
-      context.arcTo(x + width, y + height, x, y + height, radius);
-      context.arcTo(x, y + height, x, y, radius);
-      context.arcTo(x, y, x + width, y, radius);
-      context.closePath();
-      context.fillStyle = color;
-      context.fill();
+      // 바닥: 구분선 > 회차 주소
+      context.fillStyle = colors.line;
+      context.fillRect(left, SHARE_FOOTER_LINE_TOP_PIXELS, width - left * 2, 2);
+      context.fillStyle = colors.muted;
+      context.font = "600 38px " + fontFamily;
+      context.fillText(config.siteHost + "/sqld/" + config.roundNumber, left, SHARE_FOOTER_LINE_TOP_PIXELS + 76);
     }
 
     /** 이미지 공유: 파일 공유 지원 기기는 공유 시트, 아니면 PNG 내려받기 */
