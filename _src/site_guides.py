@@ -3,8 +3,11 @@
 
 import site_content as content
 from site_head import render_store_buttons, render_subject_cards
-from site_page_frame import render_guide_page, select_exam_faqs
+from site_page_frame import render_guide_page, render_page_link_cards, select_exam_faqs
 from site_schema import build_app_json_ld
+
+# 허브의 '기출과 개념 정리' 카드 경로 (#1088)
+SQLD_STUDY_LINK_PATHS = ["sqld/past/", "sqld/guide/null-traps/", "sqld/guide/window-functions/", "sqld/guide/join-types/"]
 
 
 def render_sqld_page():
@@ -42,6 +45,14 @@ def render_sqld_page():
       <li><span class="step-num">3</span><div><h3>틀린 문제는 해설로 끝내기</h3><p>AI 해설로 오답 이유를 확인하고, 오답 노트로 다시 풀어 같은 실수를 줄입니다.</p></div></li>
     </ol>
     <p class="table-note"><a href="study/">2주 · 4주 공부 로드맵 보기</a></p>
+  </div>
+</section>
+<section class="band">
+  <div class="wrap">
+    <h2>기출 복원과 개념 정리</h2>
+    <p class="sec-lead">회차별 공개 문항을 풀어 보고, 자주 틀리는 개념은 예시 결과로 정리한 글로 확인하세요.</p>
+    <div class="related-grid">{render_page_link_cards("../", SQLD_STUDY_LINK_PATHS)}
+    </div>
   </div>
 </section>
 """

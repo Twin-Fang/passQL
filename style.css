@@ -676,3 +676,81 @@ main > section:not(.section):not(.final-cta):not(.section-tight):not(.callout-se
 
 /* 가채점 강조 종료 (#1077): 발표일 지나면 site.js 가 hidden 부여 */
 .live-banner[hidden] { display: none; }
+
+/* SQLD 기출 복원 (#1088): 회차 카드, 공개 문항(지문 > 표 > SQL > 보기 > 정답 펼침), 면책
+   코드 글꼴은 demo.css --demo-code-font (모든 생성 페이지가 demo.css 를 읽음) */
+.past-round-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-sm); }
+.past-round-card {
+  display: flex; flex-direction: column; gap: var(--space-2xs); padding: 20px; border-radius: var(--radius);
+  background: var(--surface); border: 1px solid var(--line); color: var(--text); transition: transform 0.15s var(--ease), border-color 0.15s;
+}
+.past-round-card:hover { text-decoration: none; transform: translateY(-2px); border-color: var(--accent); }
+.past-round-card strong { font-size: var(--font-xl); letter-spacing: -0.02em; }
+.past-round-date { color: var(--muted); font-size: var(--font-sm); }
+.past-round-count { color: var(--accent-text); font-weight: 700; font-size: var(--font-sm); }
+.past-round-go { display: inline-flex; align-items: center; gap: var(--space-2xs); margin-top: var(--space-xs); font-weight: 700; font-size: var(--font-md); color: var(--accent-text); }
+.past-revision-note { display: flex; gap: var(--space-xs); margin: 0; padding: var(--space-md) 18px; border-radius: var(--radius-sm); background: var(--accent-tint); max-width: 48em; }
+.past-revision-note .ms { color: var(--accent-text); margin-top: 3px; }
+.fact-grid.past-distribution { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 560px; }
+.past-question-list { display: grid; gap: var(--space-md); max-width: 860px; }
+.past-question { padding: var(--space-lg); border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card); scroll-margin-top: 120px; }
+.past-question-head { display: flex; align-items: baseline; gap: var(--space-sm); flex-wrap: wrap; margin: 0; }
+.past-question-head strong { font-size: var(--font-xl); color: var(--accent-text); }
+.past-question-head span { color: var(--muted); font-size: var(--font-sm); font-weight: 600; }
+.past-stem { margin: var(--space-sm) 0 0; font-size: var(--font-lg); font-weight: 600; line-height: 1.6; white-space: pre-line; }
+.past-table { margin-top: var(--space-md); }
+.past-table-name { margin: 0 0 var(--space-2xs); font-size: var(--font-sm); font-weight: 700; color: var(--muted); }
+.past-table .table-scroll { display: inline-block; max-width: 100%; vertical-align: top; }
+.sample-table { border-collapse: collapse; font-family: var(--demo-code-font); font-size: var(--font-sm); }
+.sample-table th, .sample-table td { padding: var(--space-xs) var(--space-sm); border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+.sample-table thead th { background: var(--surface-2); color: var(--muted); }
+.sample-table tbody tr:last-child td { border-bottom: 0; }
+.sample-table .is-null { color: var(--dim); font-style: italic; }
+.sql-block {
+  margin: var(--space-md) 0 0; padding: var(--space-sm) var(--space-md); overflow-x: auto; border-radius: var(--radius-sm);
+  background: var(--bg-soft); border: 1px solid var(--line); font-family: var(--demo-code-font); font-size: var(--font-sm); line-height: 1.55; white-space: pre;
+}
+.sql-block code { font-family: inherit; }
+.past-choices { list-style: none; margin: var(--space-md) 0 0; padding: 0; display: grid; gap: var(--space-xs); }
+.past-choices li { display: grid; grid-template-columns: 28px minmax(0, 1fr); align-items: start; gap: var(--space-xs); padding: 10px var(--space-sm); border-radius: var(--radius-sm); background: var(--bg-soft); font-size: var(--font-md); }
+.past-choice-number { font-weight: 800; color: var(--accent-text); }
+.past-choices .sql-block.is-choice { margin: 0; padding: 0; border: 0; background: transparent; }
+.past-answer { margin-top: var(--space-md); border-radius: var(--radius-sm); border: 1px solid var(--line); }
+.past-answer summary { display: flex; justify-content: space-between; align-items: center; min-height: var(--touch-target); padding: 0 var(--space-md); cursor: pointer; font-weight: 700; color: var(--accent-text); list-style: none; }
+.past-answer summary::-webkit-details-marker { display: none; }
+.past-answer[open] .faq-chevron { transform: rotate(180deg); }
+.past-answer p { margin: 0; padding: 0 var(--space-md) var(--space-md); display: flex; align-items: baseline; gap: var(--space-xs); flex-wrap: wrap; }
+.past-answer strong { font-size: var(--font-xl); color: var(--correct); }
+.past-answer span { color: var(--muted); font-size: var(--font-sm); }
+.past-round-nav { display: flex; justify-content: space-between; align-items: center; gap: var(--space-sm); padding-top: var(--space-lg); padding-bottom: var(--space-lg); font-weight: 700; }
+.past-round-nav a { display: inline-flex; align-items: center; gap: var(--space-2xs); min-height: var(--touch-target); }
+.past-disclaimer { padding: 20px var(--space-lg); border-radius: var(--radius); background: var(--bg-soft); border: 1px solid var(--line); color: var(--muted); font-size: var(--font-sm); }
+.past-disclaimer h2 { display: flex; align-items: center; gap: var(--space-xs); margin: 0 0 var(--space-xs); font-size: var(--font-lg); color: var(--text); }
+.past-disclaimer ul { margin: 0 0 var(--space-xs); padding-left: 20px; }
+
+/* SQLD 개념 정리 글 (#1088) */
+.guide-section + .guide-section { margin-top: var(--space-xl); padding-top: var(--space-lg); border-top: 1px solid var(--line); }
+.guide-section h2 { font-size: clamp(22px, 2.8vw, 28px); margin: 0 0 var(--space-sm); }
+.guide-section p, .guide-section li { color: var(--muted); line-height: 1.75; }
+.guide-section ul { padding-left: 20px; }
+.guide-article code { padding: 1px 6px; border-radius: 6px; background: var(--surface-2); color: var(--text); font-family: var(--demo-code-font); font-size: 0.9em; }
+.guide-article .sql-block code { padding: 0; background: transparent; font-size: inherit; }
+.guide-tip { display: flex; gap: var(--space-xs); padding: 14px var(--space-md); border-radius: var(--radius-sm); background: var(--accent-tint); }
+.guide-tip .ms { color: var(--accent-text); margin-top: 3px; }
+.guide-tip span { color: var(--text); }
+.guide-sample-links { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-xs); }
+.guide-sample-links a {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) 20px; align-items: center; gap: var(--space-sm);
+  padding: 14px 18px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--line); color: var(--text);
+}
+.guide-sample-links a:hover { text-decoration: none; border-color: var(--accent); }
+.guide-sample-links span:not(.ms) { color: var(--muted); font-size: var(--font-sm); }
+
+@media (max-width: 1000px) {
+  .past-round-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .past-round-grid { grid-template-columns: 1fr; }
+  .past-question { padding: var(--space-md); }
+  .past-stem { font-size: var(--font-md); }
+}

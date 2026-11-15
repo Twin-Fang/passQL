@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""소개 사이트 생성 (#505, #650, #1027, #1075): index·안내 페이지·가답안 회차 페이지·404·sitemap·robots·(도메인 이전 시) CNAME
+"""소개 사이트 생성 (#505, #650, #1027, #1075, #1088): index·안내 페이지·가답안 회차 페이지·기출 복원·개념 글·404·sitemap·robots·(도메인 이전 시) CNAME
 실행: python3 -I _src/build_site.py  (gh-pages 루트에서, 결과물 덮어쓰기)
 시놀로지용: python3 -I _src/build_site.py --out <폴더> --custom-domain  (새 주소 기준 전체 사이트를 별도 폴더에, CNAME 없음)
 옛 주소 이동: python3 -I _src/build_site.py --redirect-to https://passql.suhsaechan.kr  (gh-pages 루트 페이지를 새 주소 이동 페이지로, sitemap 제거)
@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import site_answer_key_content as answer_content  # noqa: E402
 import site_content as content  # noqa: E402
+import site_past_exam_content as past_content  # noqa: E402
 from site_answer_key_pages import (  # noqa: E402
     ANSWER_KEY_SCRIPT_PATHS, ANSWER_KEY_STYLESHEET_PATH, register_answer_key_pages, render_answer_index_page,
     render_answer_round_page,
@@ -27,9 +28,13 @@ from site_guides import render_sqld_page, render_sqlp_page  # noqa: E402
 from site_head import render_footer, render_head, render_nav  # noqa: E402
 from site_home import render_home_page  # noqa: E402
 from site_legal import LEGAL_PAGES, render_legal_page  # noqa: E402
+from site_past_exam_pages import (  # noqa: E402
+    build_past_exam_page_renderers, register_past_exam_pages, render_past_index_page,
+)
 from site_redirect import render_redirect_page, render_redirect_robots, to_redirect_file_path  # noqa: E402
 from site_schedule import render_schedule_page  # noqa: E402
 from site_search_guides import render_app_page, render_mock_exam_page, render_trend_page  # noqa: E402
+from site_study_guide_pages import build_study_guide_page_renderers  # noqa: E402
 
 SITE_ROOT_DIRECTORY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 결과물 폴더 (기본 gh-pages 루트, --out 이면 그 폴더)
@@ -43,7 +48,8 @@ HAND_MANAGED_DIRECTORY = os.path.join(SITE_ROOT_DIRECTORY, "_src", "hand_managed
 HAND_MANAGED_PAGE_PATHS = ["delete-account.html"]
 # --redirect-to 일 때 지우는 옛 주소 파일 (sitemap: 다른 호스트 주소를 담을 수 없음, CNAME: 커스텀 도메인 미사용)
 REDIRECT_REMOVED_PATHS = ["sitemap.xml", "CNAME"]
-# 안내 페이지 경로 > 생성 함수 (경로 목록은 site_content.GUIDE_PAGES 와 같아야 함, 가답안 회차 페이지는 build_page_renderers 가 추가)
+# 안내 페이지 경로 > 생성 함수 (경로 목록은 site_content.GUIDE_PAGES 와 같아야 함)
+# 가답안 회차·기출 복원 목록과 회차·개념 글은 공개 문항 원본이 필요해 build_page_renderers 가 추가
 GUIDE_PAGE_RENDERERS = {
     "sqld/": render_sqld_page,
     "sqld/schedule/": render_schedule_page,
@@ -154,9 +160,14 @@ def write_redirect_site(target_site_url):
     print(f"[site build] redirect pages {len(page_paths) + 1} : -> {target_site_url}")
 
 
-def build_page_renderers():
-    """안내 페이지 + 가답안 회차 페이지 (회차마다 빌드 시 운영 API 스냅샷, 실패하면 빈 가답안) (#1075)"""
+def build_page_renderers(samples_by_round):
+    """안내 페이지 + 가답안 회차 페이지 (회차마다 빌드 시 운영 API 스냅샷, 실패하면 빈 가답안) (#1075)
+    + 기출 복원 목록·회차 페이지와 개념 글 (공개 문항 원본 공용) (#1088)
+    """
     page_renderers = dict(GUIDE_PAGE_RENDERERS)
+    page_renderers[past_content.PAST_EXAM_INDEX_PATH] = lambda: render_past_index_page(samples_by_round)
+    page_renderers.update(build_past_exam_page_renderers(samples_by_round))
+    page_renderers.update(build_study_guide_page_renderers(samples_by_round))
     for answer_round in answer_content.ANSWER_KEY_ROUNDS:
         snapshot = answer_content.fetch_answer_snapshot(answer_round)
         page_renderers[answer_content.to_round_path(answer_round)] = (
@@ -177,6 +188,9 @@ def main():
     arguments = parse_arguments()
     # 가답안 회차 페이지 등록 (이동 페이지·메뉴·sitemap 이 회차 경로를 알아야 해서 맨 먼저)
     register_answer_key_pages()
+    # 기출 복원 회차 페이지 등록 (같은 이유로 맨 먼저, #1088)
+    samples_by_round = past_content.load_samples_by_round()
+    register_past_exam_pages(samples_by_round)
     # 옛 주소 이동 (gh-pages 루트 전용, 다른 옵션과 같이 쓰지 않음)
     if arguments.redirect_to:
         if arguments.out or arguments.custom_domain:
@@ -193,7 +207,7 @@ def main():
     elif arguments.custom_domain:
         # gh-pages 루트를 새 주소로 덮어쓰면 github.io 라이브 canonical 이 바뀜 > --out 과 함께만 허용
         raise RuntimeError("[site build] --custom-domain requires --out")
-    page_renderers = build_page_renderers()
+    page_renderers = build_page_renderers(samples_by_round)
     if set(page_renderers) != set(content.GUIDE_PAGES):
         raise RuntimeError("[site build] page renderers <-> GUIDE_PAGES mismatch")
     today_text = datetime.date.today().isoformat()

@@ -185,10 +185,16 @@ def render_operator_lines():
             f'<span>문의 <a href="mailto:{content.CONTACT_EMAIL}">{content.CONTACT_EMAIL}</a></span></p>')
 
 
+def is_listed_in_related(page):
+    """관련 안내 카드·첫 화면 시험 정보·하단 링크 노출 여부 (기출 복원 회차처럼 목록 페이지가 대신 연결하면 False, #1088)"""
+    return page.get("is_listed_in_related", True)
+
+
 def render_footer(root):
     """하단: 브랜드 + 링크 3묶음(SQLD 시험 정보·앱·약관) + 운영자 표기"""
     exam_links = "".join(
         f'<li><a href="{root}{path}">{escape(page["menu_name"])}</a></li>' for path, page in content.GUIDE_PAGES.items()
+        if is_listed_in_related(page)
     )
     play_link = (f'<li><a href="{content.PLAY_STORE_URL}" rel="noopener">Google Play</a></li>'
                  if content.IS_PLAY_STORE_PUBLIC else "")

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """소개 사이트 문구·주소 단일 원본 (#505, #650, #1027): build_site.py 가 읽어 페이지·sitemap·JSON-LD 생성
 문제 총 개수·"N문제 이상" 같은 문제 은행 규모 수치는 쓰지 않음 (#636, #660)
-학습 콘텐츠(개념 글·문제) 원문은 싣지 않음 — 공개 시험 정보와 앱 소개만 (#1027)
+앱 학습 콘텐츠(개념 글·문제) 원문은 싣지 않음 — 공개 시험 정보와 앱 소개만 (#1027)
+예외 (#1088, DEC-0295 일부 변경): 기출 복원 회차마다 5문항(지문·보기·정답) 공개, 사이트 전용 개념 글 3편
 """
 
 from urllib.parse import urlparse
@@ -472,6 +473,32 @@ GUIDE_PAGES = {
         "description": "SQLD 시험이 끝나면 회차별 가답안을 문항 득표·합의율로 보고, OMR에 내 답을 찍어 과목별 점수·과락·합격 여부를 바로 가채점해요. 원문 문항 없이 번호와 출제 개념만 정리했어요.",
         "summary": "회차별 가답안 집계와 OMR 가채점",
     },
+    # 기출 복원 (#1088): 회차 페이지(sqld/past/62/ 등)는 build_site 가 site_past_exam_content 에서 등록
+    "sqld/past/": {
+        "menu_name": "기출 복원", "parent": "sqld/", "priority": "0.8", "icon": "quiz",
+        "title": "SQLD 기출 복원 문제 — 제52~62회 회차별 공개 문항과 정답 | passQL",
+        "description": "SQLD 제52회부터 제62회까지 응시자 후기로 다시 구성한 기출 문항을 회차마다 5문항씩 지문, 보기, 정답과 함께 공개해요. 해설과 회차별 50문항 전체는 passQL 앱에서 풀어 보세요.",
+        "summary": "제52~62회 회차마다 5문항 공개",
+    },
+    # 개념 정리 글 3편 (#1088): 본문 원본은 site_study_guide_content.py
+    "sqld/guide/null-traps/": {
+        "menu_name": "NULL 함정 정리", "parent": "sqld/", "priority": "0.7", "icon": "lightbulb",
+        "title": "SQLD NULL 함정 정리 — NOT IN, 집계, 비교, COALESCE | passQL",
+        "description": "SQLD에 자주 나오는 NULL 함정을 예시 결과로 정리했어요. = NULL 비교가 0행인 이유, NOT IN 목록의 NULL, COUNT와 AVG의 NULL 처리, 정렬 위치, NVL과 COALESCE, NULLIF 차이까지.",
+        "summary": "NOT IN, 집계, 비교에서 NULL이 움직이는 규칙",
+    },
+    "sqld/guide/window-functions/": {
+        "menu_name": "윈도우 함수 정리", "parent": "sqld/", "priority": "0.7", "icon": "lightbulb",
+        "title": "SQLD 윈도우 함수 정리 — RANK, 누적 합, LAG와 LEAD | passQL",
+        "description": "SQLD 윈도우 함수를 예시 결과로 정리했어요. RANK, DENSE_RANK, ROW_NUMBER 차이, 누적 합의 기본 범위(RANGE)와 ROWS 차이, LAG와 LEAD, PERCENT_RANK 같은 비율 함수까지.",
+        "summary": "순위 함수, 누적 합 범위, LAG와 LEAD",
+    },
+    "sqld/guide/join-types/": {
+        "menu_name": "조인 종류 정리", "parent": "sqld/", "priority": "0.7", "icon": "lightbulb",
+        "title": "SQLD 조인 종류 정리 — INNER, OUTER, CROSS, 셀프 조인 | passQL",
+        "description": "SQLD 조인 문제의 결과 행 수를 같은 두 테이블로 비교했어요. INNER, LEFT와 RIGHT와 FULL OUTER, CROSS, NATURAL과 USING, 셀프 조인, 비등가 조인, ON과 WHERE 조건 차이까지.",
+        "summary": "조인 종류별 결과 행 수와 ON, WHERE 차이",
+    },
     "sqld/app/": {
         "menu_name": "SQLD 앱", "parent": "sqld/", "priority": "0.8", "icon": "quiz",
         "title": "SQLD 공부 앱 passQL — 교재 없이 SQL 자격증 준비 | passQL",
@@ -480,7 +507,7 @@ GUIDE_PAGES = {
     },
 }
 # 상단 보조 메뉴 순서 (첫 화면 포함 모든 페이지). 진행 중 가채점 회차는 build_site 가 맨 앞에 끼움 (#1075)
-GUIDE_MENU_PATHS = ["sqld/answers/", "sqld/schedule/", "sqld/subjects/", "sqld/pass/", "sqld/stats/", "sqld/trend/", "sqld/study/", "sqld/faq/", "sqlp/"]
+GUIDE_MENU_PATHS = ["sqld/answers/", "sqld/past/", "sqld/schedule/", "sqld/subjects/", "sqld/pass/", "sqld/stats/", "sqld/trend/", "sqld/study/", "sqld/faq/", "sqlp/"]
 # 상단 메뉴 강조 경로 (시험 당일~합격자 발표 진행 중 가채점 회차, build_site 가 채움)
 NAV_LIVE_PATHS = set()
 # 진행 중 회차 경로 > 강조를 끌 날짜(합격자 발표일). site.js 가 방문 날짜로 판정해 재빌드 없이 꺼짐

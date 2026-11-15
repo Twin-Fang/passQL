@@ -5,7 +5,7 @@ SQLD·SQLP·일정·과목·합격 기준·공부 방법·FAQ 페이지가 같�
 
 import site_content as content
 from site_head import (
-    build_crumbs, escape, render_crumbs, render_faq_section, render_footer, render_head, render_nav,
+    build_crumbs, escape, is_listed_in_related, render_crumbs, render_faq_section, render_footer, render_head, render_nav,
     render_store_buttons, render_symbol, to_asset_url,
 )
 from site_schema import build_breadcrumb_json_ld, build_faq_json_ld
@@ -25,23 +25,28 @@ def select_exam_faqs(*keys):
     return [faq_by_key[key] for key in keys]
 
 
-def render_related_pages(root, current_path):
-    """관련 안내 카드: 현재 페이지를 뺀 안내 페이지 전부 (내부 링크)"""
-    cards = "".join(
+def render_page_link_cards(root, paths):
+    """안내 페이지 링크 카드 (아이콘, 메뉴 이름, 한 줄 요약)"""
+    return "".join(
         f"""
       <a class="related-card" href="{root}{path}">
-        <span class="related-icon">{render_symbol(page["icon"])}</span>
-        <span><strong>{escape(page["menu_name"])}</strong><small>{escape(page["summary"])}</small></span>
+        <span class="related-icon">{render_symbol(content.GUIDE_PAGES[path]["icon"])}</span>
+        <span><strong>{escape(content.GUIDE_PAGES[path]["menu_name"])}</strong><small>{escape(content.GUIDE_PAGES[path]["summary"])}</small></span>
         {render_symbol("arrow_forward", "related-arrow")}
       </a>"""
-        for path, page in content.GUIDE_PAGES.items() if path != current_path
+        for path in paths
     )
+
+
+def render_related_pages(root, current_path):
+    """관련 안내 카드: 현재 페이지를 뺀 안내 페이지 전부 (내부 링크, 목록 제외 페이지 빼고)"""
+    paths = [path for path, page in content.GUIDE_PAGES.items() if path != current_path and is_listed_in_related(page)]
     return f"""
 <section class="section related">
   <div class="wrap">
     <p class="kicker">함께 보면 좋은 안내</p>
     <h2>SQLD 준비, 여기서 한 번에</h2>
-    <div class="related-grid">{cards}
+    <div class="related-grid">{render_page_link_cards(root, paths)}
     </div>
   </div>
 </section>"""

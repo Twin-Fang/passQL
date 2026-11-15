@@ -4,7 +4,7 @@
 """
 
 import site_content as content
-from site_head import escape, render_symbol
+from site_head import escape, is_listed_in_related, render_symbol
 from site_schedule import format_step_dates, to_exam_name
 
 # 첫 화면 시험 정보 카드에 보이는 기본 정보 항목 (SQLD_EXAM_FACTS 의 항목 이름)
@@ -44,7 +44,7 @@ def render_exam_info_section(next_round):
         f"""
         <a class="related-card" href="{path}"><span class="related-icon">{render_symbol(page["icon"])}</span>"""
         f"""<span><strong>{escape(page["menu_name"])}</strong><small>{escape(page["summary"])}</small></span>{render_symbol("arrow_forward", "related-arrow")}</a>"""
-        for path, page in content.GUIDE_PAGES.items()
+        for path, page in content.GUIDE_PAGES.items() if is_listed_in_related(page)
     )
     return f"""
 <section id="exam" class="section">
