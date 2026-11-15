@@ -1,5 +1,5 @@
 {
- "basis": "passQL 운영 가답안 초안 (응시 후기 종합, 2026-11-16 00:25)",
+ "basis": "passQL 운영 가답안 초안 (응시 후기 종합, 2026-11-16 01:00)",
  "items": [
   {
    "questionNo": 1,
@@ -694,12 +694,11 @@
     "카티션 곱"
    ],
    "topicCode": "sql_join",
-   "answer": null,
+   "answer": 3,
    "answerStatus": "DISPUTED",
    "alternativeAnswers": [
     1,
-    2,
-    3
+    2
    ],
    "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
   },
