@@ -14,7 +14,7 @@ public record ExamAnswerItemResponse(
     @Schema(description = "출제 개념 한 줄 (없으면 null)") String conceptTitle,
     @Schema(description = "개념 태그") List<String> conceptTags,
     @Schema(description = "연결 토픽 코드 (없으면 null)") String topicCode,
-    @Schema(description = "표시용 정답 1~4: 상태 OFFICIAL·CONFIRMED·LEADING 이면 운영 가답안, 아니면 득표 1위 (득표 없으면 null)") Integer answer,
+    @Schema(description = "표시용 정답 1~4: 상태 OFFICIAL·CONFIRMED·LEADING·DISPUTED 이고 운영 답이 있으면 운영 가답안, 아니면 득표 1위 (득표 없으면 null)") Integer answer,
     @Schema(description = "운영 가답안 상태: UNKNOWN 모름, LEADING 우세, DISPUTED 갈림, CONFIRMED 확정, OFFICIAL 공식") String answerStatus,
     @Schema(description = "복수 정답 인정 보기 (없으면 빈 목록)") List<Integer> alternativeAnswers,
     @Schema(description = "보기별 득표 수 (키 \"1\"~\"4\")") Map<String, Integer> tally,
