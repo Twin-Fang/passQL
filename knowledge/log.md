@@ -263,3 +263,7 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-16 02:26 | W6 | issue 생성 + completion-report, issue resolved + resolution 연결 (#1111 과락선 여유 문항·점수 올리기 좋은 영역, PR #1114, 릴리스 PR #1115) | ISS-0525, ISS-0525-pass-fail-margin-score-gain-topics-report
 - 2026-11-16 02:26 | W4 | decision 생성 2건 (점수 올리기 좋은 영역 계산·노출, 과락·합격선 여유 단일 지점; 충돌 없음) | DEC-0322, DEC-0323
 - 2026-11-16 02:26 | W2 | 활성 결정·관련 이슈·현재 상태 요약 줄 추가, members 실제 수로 갱신(W10 수정, W11 크기·요약 날짜 경고는 보고만) | cluster-design-system, cluster-practice, cluster-progress-stats, cluster-billing
+- 2026-11-16 08:40 | W6 | issue 생성 + completion-report, issue resolved + resolution 연결 (#1117 문제 내부 관리 태그, PR #1120, 릴리스 #1121) | ISS-0526, ISS-0526-question-internal-tags-report
+- 2026-11-16 08:40 | W6 | issue 생성 + completion-report, issue resolved + resolution 연결 (#1122 63회 신유형 batch07, 태그 백필) | ISS-0527, ISS-0527-sqld-round63-batch07-internal-tags-report
+- 2026-11-16 08:40 | W4 | decision 생성 2건 (내부 태그 형식·네임스페이스, 옛 파일 갱신 시 태그 유지; 충돌 없음, DEC-0038 확장) | DEC-0324, DEC-0325
+- 2026-11-16 08:40 | W2 | 활성 결정·관련 이슈 줄 추가, members 실제 수로 갱신(W10 수정, W11 크기·요약 날짜 경고는 보고만) | cluster-question-bank, cluster-admin

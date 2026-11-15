@@ -1,10 +1,10 @@
-"""등록 산출물: 가져오기 JSON 은 v1 필드·순서 유지, v2 메타는 별도"""
+"""등록 산출물: 가져오기 JSON 은 v1 필드·순서 + internalTags, 나머지 v2 메타는 별도"""
 from sqld_harness.import_exporter import render_stem, to_import_item, to_question_metadata
 
-# 서버 QuestionExportDto 필드 순서 (#511 v1 출력과 동일)
+# 서버 QuestionExportDto 필드 순서 (#511 v1 출력 + #1117 internalTags)
 IMPORT_ITEM_FIELDS = [
     "questionUuid", "topicCode", "difficulty", "executionMode", "choiceSetPolicy", "stem", "hint",
-    "schemaDdl", "schemaSampleData", "schemaIntent", "answerSql", "choices",
+    "schemaDdl", "schemaSampleData", "schemaIntent", "answerSql", "choices", "internalTags",
 ]
 
 

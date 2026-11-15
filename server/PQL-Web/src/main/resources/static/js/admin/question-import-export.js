@@ -47,8 +47,9 @@ function updateExportButtonState() {
         deleteLabel.textContent = count > 0 ? `선택 비활성화 (${count})` : '선택 비활성화';
     }
 
-    // 일괄 변경 버튼 상태 (활성화, 토픽·난이도 변경)
-    [['bulkActivateBtn', 'bulkActivateLabel', '선택 활성화'], ['bulkClassifyBtn', 'bulkClassifyLabel', '토픽·난이도 변경']]
+    // 일괄 변경 버튼 상태 (활성화, 토픽·난이도 변경, 내부 태그)
+    [['bulkActivateBtn', 'bulkActivateLabel', '선택 활성화'], ['bulkClassifyBtn', 'bulkClassifyLabel', '토픽·난이도 변경'],
+        ['bulkInternalTagBtn', 'bulkInternalTagLabel', '내부 태그 붙이기·떼기']]
         .forEach(([buttonId, labelId, baseLabel]) => {
             const button = document.getElementById(buttonId);
             const label = document.getElementById(labelId);

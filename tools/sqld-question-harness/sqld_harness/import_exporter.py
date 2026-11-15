@@ -1,8 +1,9 @@
 """
 등록 산출물: 지문 렌더(지문 + SQL, 데이터는 ddl·data 스키마 표로만 #905) > 관리자 가져오기 JSON 항목 (서버 QuestionExportDto 모양 그대로)
-v2 메타(경향·개념·해설 초안)는 가져오기 JSON 에 넣지 않고 별도 메타 파일로 (서버 DTO 변경 전까지 호환 유지)
+경향·개념은 internalTags(관리자 전용 태그, #1117)로 가져오기 JSON 에 싣고, 해설 초안 등 나머지 v2 메타는 별도 메타 파일로
 """
 from .constants import CHOICE_KEYS
+from .internal_tags import build_internal_tags
 from .question_schema import get_choices, get_concepts, get_schema_version, get_trend
 
 # 운영 샌드박스는 PostgreSQL > Oracle 기준 검증 문제는 실행 대상 아님 (서버 ExecutionMode)
@@ -20,7 +21,7 @@ def render_stem(question):
 
 
 def to_import_item(question):
-    """문제 YAML > 가져오기 JSON 항목 1건 (v1 출력과 같은 필드·순서)"""
+    """문제 YAML > 가져오기 JSON 항목 1건 (v1 필드·순서 + 끝에 internalTags)"""
     choices = [
         {
             "choiceKey": CHOICE_KEYS[index],
@@ -44,6 +45,7 @@ def to_import_item(question):
         "schemaIntent": question.get("intent"),
         "answerSql": question.get("answerSql"),
         "choices": choices,
+        "internalTags": build_internal_tags(question),
     }
 
 

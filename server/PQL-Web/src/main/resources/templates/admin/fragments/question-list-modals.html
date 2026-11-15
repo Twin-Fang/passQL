@@ -135,7 +135,8 @@
     "schemaDdl":      "CREATE TABLE ...",       // EXECUTABLE 필수, CONCEPT_ONLY면 null
     "schemaSampleData": "INSERT INTO ...",      // 선택
     "schemaIntent":   "테이블 의도 한 줄",         // 선택
-    "answerSql":      "SELECT ..."              // EXECUTABLE 필수, CONCEPT_ONLY면 null
+    "answerSql":      "SELECT ...",             // EXECUTABLE 필수, CONCEPT_ONLY면 null
+    "internalTags":   ["source:63-17", "trend:t41"] // 선택, 관리자 전용 태그 (없으면 갱신 시 기존 태그 유지, []면 전부 제거)
   },
   { ... }
 ]</pre>

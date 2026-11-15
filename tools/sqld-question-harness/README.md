@@ -14,7 +14,8 @@
                   oracle_compatibility.py 23ai 전용 문법 탐지 (시험 기준 19c 와 다른 동작)
                   duplicate_detector.py 묶음 안·기존 풀 대비 중복
 (e) 해설 초안     explanation_hook.py   #521 구조화 해설 5필드 초안 + 검증 (생성기 교체 가능)
-(f) 등록·리포트   import_exporter.py    관리자 가져오기 JSON (v1 과 같은 모양) + v2 메타 파일
+(f) 등록·리포트   import_exporter.py    관리자 가져오기 JSON (v1 모양 + internalTags) + v2 메타 파일
+                  internal_tags.py      내부 태그 (출처·회차·유형·묶음·개념) 생성·검증
                   report_markdown.py / report_html.py / question_statistics.py
 조립              pipeline.py, harness.py (CLI)
 ```
@@ -48,7 +49,22 @@ $H/.venv/bin/python -I $H/harness.py verify $Q --output import.json --metadata m
 $H/.venv/bin/python -I $H/harness.py report $Q --results results.json --html report.html
 ```
 등록: 관리자 문제 관리 > JSON 가져오기 (검증 > 성공 항목만 등록). 가져오기 JSON 은 `executionMode=CONCEPT_ONLY`, `choiceSetPolicy=CURATED_ONLY` (운영 샌드박스는 PostgreSQL 이라 Oracle 기준 문제는 실행 대상 아님).
-v2 메타(경향·개념·해설 초안)는 서버 DTO 가 아직 받지 않아 `--metadata` 별도 파일로만 낸다.
+경향·회차·출처·개념은 가져오기 JSON 의 `internalTags`(관리자 전용 내부 태그, 회원 화면 미노출, #1117)로 함께 등록된다. 해설 초안 등 나머지 v2 메타는 `--metadata` 별도 파일로만 낸다.
+
+### 내부 태그 (`internalTags`, #1117)
+verify 출력 항목마다 아래 순서로 채운다 (`sqld_harness/internal_tags.py`). 형식은 소문자 `네임스페이스:값`, 공백·`*`·쉼표 금지, 64자 이하, 문제당 최대 20개 (서버 `QuestionInternalTagRule` 과 같은 규칙, 영문만 소문자화).
+
+| 태그 | 원본 | 예 |
+| --- | --- | --- |
+| `source:{회차}-{실번호}` | `trend.sources` (그 회차 그 실번호 문항의 출제 개념에서 파생, 여러 개 가능) | `trend.sources: ["63-17", "63-22"]` > `source:63-17`, `source:63-22` |
+| `round:{회차}` | `trend.examRounds` | `round:63` |
+| `trend:{템플릿}` | `trend.templates` (소문자) | `T41` > `trend:t41` |
+| `batch:{묶음}` | 원본 파일명 첫 하이픈 앞 | `batch06-round63a-window.yaml` > `batch:batch06` |
+| `concept:{개념}` | `concepts` (공백·`*`·쉼표 > 하이픈, 64자 넘으면 자름) | `NULL 3값 논리` > `concept:null-3값-논리` |
+| 그 외 | YAML 최상위 `internalTags` 목록 그대로 (규칙 위반은 제외 + `tag.invalid` 경고) | `new-type` |
+
+`trend.isLatestTrend` 는 태그가 아니라 기존 최신 경향 플래그로 그대로 둔다. 등록 후에는 관리자 문제 목록에서 태그 필터(`source:63-17` 정확 일치, `source:63-*` 앞부분 일치)·요약·일괄 붙이기·떼기를 쓴다.
+`internalTags` 칸이 없는 옛 가져오기 파일로 갱신하면 기존 태그를 유지하고, 빈 목록 `[]` 이면 전부 지운다.
 
 ## 문제 YAML v2 스키마
 v1 문제(`schemaVersion` 없음)는 그대로 동작한다. v2 는 `schemaVersion: 2` 를 쓰고 아래 ★ 필드가 필수다. 전체 예시는 `harness.py scaffold`.
@@ -60,6 +76,8 @@ v1 문제(`schemaVersion` 없음)는 그대로 동작한다. v2 는 `schemaVersi
 | `trend.templates` | v2 권장 | 경향 카탈로그 템플릿 id (`T01`~) |
 | `trend.examRounds` | 선택 | 근거 회차 목록 |
 | `trend.isLatestTrend` | 선택 | 학습 화면 "최신 경향" 표시. true 면 카탈로그 `latestExamRounds` 중 하나가 examRounds 에 있어야 함 |
+| `trend.sources` | 선택 | 파생 출처 문항 `"{회차}-{실번호}"` 목록 (예 `["63-17"]`) > 내부 태그 `source:63-17` |
+| `internalTags` | 선택 | 추가 내부 태그 (`new-type` 등, 위 「내부 태그」 규칙) |
 | `intent` | 권장 | 출제 의도 한 줄 |
 | `trapDesign` ★ | v2 | 꼬는 포인트 (어디서 학습자가 걸리는가) |
 | `difficultyReason` ★ | v2 | 난이도 근거 (결합 개념 수, 추적 단계 수) |
@@ -111,6 +129,7 @@ v1 문제(`schemaVersion` 없음)는 그대로 동작한다. v2 는 `schemaVersi
 | `duplicate.identical` / `duplicate.similar` | error / warning | 같은 정답 SQL·보기 / 정규화 유사도 0.9 이상 (묶음 안, `--against` 기존 풀) |
 | `trend.*` | error·warning·info | 카탈로그에 없는 템플릿, 최신 경향 근거 회차 없음, v2 템플릿 누락, 최신 회차 근거인데 플래그 없음 |
 | `explanation.*` | error·warning·info | correctReason·choiceAnalysis(A~D, 정답 표시 일치) 필수, keyConcepts 1~5개, 짧은 정답 값은 correctReason 에 언급 |
+| `tag.source-format` / `tag.invalid` | error / warning | `trend.sources` 가 `{회차}-{실번호}` 형식 아님 / YAML `internalTags` 규칙 위반 (가져오기 JSON 에서 제외) |
 | `trend.concept-combination` | info | v2 concepts 1개 (2026 경향: 2~3개 결합) |
 | `compat.oracle-23ai-syntax` | warning | 23ai 부터 허용된 문법 5종 (GROUP BY·HAVING 의 SELECT 별칭, FROM 없는 SELECT, 다중 행 VALUES, BOOLEAN, IF [NOT] EXISTS). 오류 기대 보기라면 의도대로이니 21c 검증 결과로 확인 |
 
