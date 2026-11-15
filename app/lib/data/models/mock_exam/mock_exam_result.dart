@@ -19,6 +19,10 @@ class MockExamResultResponse with _$MockExamResultResponse {
     required String roundUuid,
     required int roundNumber,
     required String title,
+    // 회차 종류 (기출 복원이면 결과 아래 안내, #1079)
+    @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+    @Default(MockExamRoundType.mock)
+    MockExamRoundType roundType,
     @JsonKey(unknownEnumValue: MockExamSubmitReason.unknown)
     required MockExamSubmitReason submitReason,
     required String startedAt,

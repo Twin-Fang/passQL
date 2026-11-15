@@ -7,6 +7,7 @@ import com.passql.submission.dto.mockexam.AdminMockExamComposeResult;
 import com.passql.submission.dto.mockexam.AdminMockExamEligibleCount;
 import com.passql.submission.dto.mockexam.AdminMockExamItemReplaceRequest;
 import com.passql.submission.dto.mockexam.AdminMockExamItemStat;
+import com.passql.submission.dto.mockexam.AdminMockExamPastRoundCreateRequest;
 import com.passql.submission.dto.mockexam.AdminMockExamPublishCheck;
 import com.passql.submission.dto.mockexam.AdminMockExamRoundDetail;
 import com.passql.submission.dto.mockexam.AdminMockExamRoundRow;
@@ -30,6 +31,12 @@ public interface AdminMockExamApiControllerDocs {
     @ApiLogs({@ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 866, description = "모의고사 회차 자동 구성 API 추가")})
     @Operation(summary = "회차 자동 구성 (초안)", description = "토픽별 문항 수(생략 시 기본 비율, 합계 10/40) > 출제 가능 세트가 있는 문제에서 최근 3개 회차 겹침을 피해 난이도 섞어 고름. 모자라면 경고")
     ResponseEntity<AdminMockExamComposeResult> compose(AdminMockExamComposeRequest request);
+
+    @ApiLogs({@ApiLog(date = "2026.11.16", author = Author.SUHSAECHAN, issueNumber = 1079, description = "기출 복원 회차 생성 API 추가")})
+    @Operation(summary = "기출 복원 회차 생성 (초안)", description = "examRoundNumber·examDate·title·questionUuids 50개(순서 = 시험 번호). "
+        + "1~10번 1과목·11~50번 2과목 토픽, 문제 중복·출제 불가 문제는 400 INVALID_INPUT_VALUE, 같은 회차 번호는 409 MOCK_EXAM_ROUND_NUMBER_DUPLICATED. "
+        + "보기는 문제의 관리자 고정 세트 우선(없으면 최신 출제 가능 세트, 경고). 공개는 기존 공개 API")
+    ResponseEntity<AdminMockExamComposeResult> createPastRound(AdminMockExamPastRoundCreateRequest request);
 
     @ApiLogs({@ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 866, description = "모의고사 회차 상세 API 추가")})
     @Operation(summary = "회차 상세", description = "50문항 표(토픽·난이도·지문 앞부분·세트 출처·지금 출제 가능 여부), 공개 검사, 응시 수")

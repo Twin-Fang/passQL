@@ -33,11 +33,24 @@ public class MockExamEligibleSetFinder {
 
     /** 문제 UUID > 출제할 세트 1개 (출제 가능 세트가 있는 활성 문제만) */
     public Map<UUID, QuestionChoiceSet> findPreferredSetByQuestion() {
+        return toPreferredSetByQuestion(choiceSetRepository.findMockExamEligibleSets(ChoiceSetStatus.OK,
+            ExecutionMode.CONCEPT_ONLY, ChoiceSetSource.CURATED_SOURCES, MockExamRule.CHOICE_COUNT_PER_QUESTION));
+    }
+
+    /** 주어진 문제만: 문제 UUID > 출제할 세트 1개 (출제 가능 세트 없는 문제는 빠짐, 기출 회차 구성 #1079) */
+    public Map<UUID, QuestionChoiceSet> findPreferredSetByQuestionAmong(Collection<UUID> questionUuids) {
+        if (questionUuids.isEmpty()) {
+            return Map.of();
+        }
+        return toPreferredSetByQuestion(choiceSetRepository.findMockExamEligibleSetsOfQuestions(ChoiceSetStatus.OK,
+            ExecutionMode.CONCEPT_ONLY, ChoiceSetSource.CURATED_SOURCES, MockExamRule.CHOICE_COUNT_PER_QUESTION,
+            questionUuids));
+    }
+
+    private static Map<UUID, QuestionChoiceSet> toPreferredSetByQuestion(Collection<QuestionChoiceSet> eligibleSets) {
         Map<UUID, QuestionChoiceSet> preferredSetByQuestion = new HashMap<>();
-        choiceSetRepository.findMockExamEligibleSets(ChoiceSetStatus.OK, ExecutionMode.CONCEPT_ONLY,
-                ChoiceSetSource.CURATED_SOURCES, MockExamRule.CHOICE_COUNT_PER_QUESTION)
-            .forEach(choiceSet -> preferredSetByQuestion.merge(choiceSet.getQuestionUuid(), choiceSet,
-                (current, candidate) -> PREFERRED_SET_ORDER.compare(current, candidate) <= 0 ? current : candidate));
+        eligibleSets.forEach(choiceSet -> preferredSetByQuestion.merge(choiceSet.getQuestionUuid(), choiceSet,
+            (current, candidate) -> PREFERRED_SET_ORDER.compare(current, candidate) <= 0 ? current : candidate));
         return preferredSetByQuestion;
     }
 

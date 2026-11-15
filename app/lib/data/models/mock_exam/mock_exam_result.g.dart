@@ -13,6 +13,13 @@ _$MockExamResultResponseImpl _$$MockExamResultResponseImplFromJson(
   roundUuid: json['roundUuid'] as String,
   roundNumber: (json['roundNumber'] as num).toInt(),
   title: json['title'] as String,
+  roundType:
+      $enumDecodeNullable(
+        _$MockExamRoundTypeEnumMap,
+        json['roundType'],
+        unknownValue: MockExamRoundType.unknown,
+      ) ??
+      MockExamRoundType.mock,
   submitReason: $enumDecode(
     _$MockExamSubmitReasonEnumMap,
     json['submitReason'],
@@ -77,6 +84,7 @@ Map<String, dynamic> _$$MockExamResultResponseImplToJson(
   'roundUuid': instance.roundUuid,
   'roundNumber': instance.roundNumber,
   'title': instance.title,
+  'roundType': _$MockExamRoundTypeEnumMap[instance.roundType]!,
   'submitReason': _$MockExamSubmitReasonEnumMap[instance.submitReason]!,
   'startedAt': instance.startedAt,
   'submittedAt': instance.submittedAt,
@@ -96,6 +104,12 @@ Map<String, dynamic> _$$MockExamResultResponseImplToJson(
   'reviews': instance.reviews,
   'nextStep': instance.nextStep,
   'lockedSections': instance.lockedSections,
+};
+
+const _$MockExamRoundTypeEnumMap = {
+  MockExamRoundType.mock: 'MOCK',
+  MockExamRoundType.pastExam: 'PAST_EXAM',
+  MockExamRoundType.unknown: 'unknown',
 };
 
 const _$MockExamSubmitReasonEnumMap = {

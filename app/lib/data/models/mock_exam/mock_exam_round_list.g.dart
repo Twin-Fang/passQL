@@ -114,7 +114,17 @@ _$MockExamRoundSummaryImpl _$$MockExamRoundSummaryImplFromJson(
   roundUuid: json['roundUuid'] as String,
   roundNumber: (json['roundNumber'] as num).toInt(),
   title: json['title'] as String,
+  roundType:
+      $enumDecodeNullable(
+        _$MockExamRoundTypeEnumMap,
+        json['roundType'],
+        unknownValue: MockExamRoundType.unknown,
+      ) ??
+      MockExamRoundType.mock,
+  examRoundNumber: (json['examRoundNumber'] as num?)?.toInt(),
+  examDate: json['examDate'] as String?,
   isFreeTrialRound: json['isFreeTrialRound'] as bool,
+  isFreePastExamRound: json['isFreePastExamRound'] as bool? ?? false,
   canStart: json['canStart'] as bool,
   startBlockReason: $enumDecodeNullable(
     _$MockExamStartBlockReasonEnumMap,
@@ -142,7 +152,11 @@ Map<String, dynamic> _$$MockExamRoundSummaryImplToJson(
   'roundUuid': instance.roundUuid,
   'roundNumber': instance.roundNumber,
   'title': instance.title,
+  'roundType': _$MockExamRoundTypeEnumMap[instance.roundType]!,
+  'examRoundNumber': instance.examRoundNumber,
+  'examDate': instance.examDate,
   'isFreeTrialRound': instance.isFreeTrialRound,
+  'isFreePastExamRound': instance.isFreePastExamRound,
   'canStart': instance.canStart,
   'startBlockReason':
       _$MockExamStartBlockReasonEnumMap[instance.startBlockReason],
@@ -152,6 +166,12 @@ Map<String, dynamic> _$$MockExamRoundSummaryImplToJson(
   'bestAttemptFailReason':
       _$MockExamFailReasonEnumMap[instance.bestAttemptFailReason],
   'lastAttempt': instance.lastAttempt,
+};
+
+const _$MockExamRoundTypeEnumMap = {
+  MockExamRoundType.mock: 'MOCK',
+  MockExamRoundType.pastExam: 'PAST_EXAM',
+  MockExamRoundType.unknown: 'unknown',
 };
 
 const _$MockExamStartBlockReasonEnumMap = {

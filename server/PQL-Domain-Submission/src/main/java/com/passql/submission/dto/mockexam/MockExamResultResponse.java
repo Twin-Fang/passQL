@@ -2,6 +2,7 @@ package com.passql.submission.dto.mockexam;
 
 import com.passql.question.dto.QuestionSchemaTable;
 import com.passql.submission.constant.MockExamFailReason;
+import com.passql.submission.constant.MockExamRoundType;
 import com.passql.submission.constant.MockExamSubject;
 import com.passql.submission.constant.MockExamSubmitReason;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,6 +21,7 @@ public record MockExamResultResponse(
     UUID roundUuid,
     int roundNumber,
     String title,
+    @Schema(description = "회차 종류 (MOCK 모의고사, PAST_EXAM 기출 복원, #1079)") MockExamRoundType roundType,
     MockExamSubmitReason submitReason,
     LocalDateTime startedAt,
     LocalDateTime submittedAt,
@@ -76,14 +78,14 @@ public record MockExamResultResponse(
     public MockExamResultResponse withoutProSections(List<String> addedLockedSections) {
         List<String> mergedLockedSections = new ArrayList<>(lockedSections);
         mergedLockedSections.addAll(addedLockedSections);
-        return new MockExamResultResponse(attemptUuid, roundUuid, roundNumber, title, submitReason, startedAt,
+        return new MockExamResultResponse(attemptUuid, roundUuid, roundNumber, title, roundType, submitReason, startedAt,
             submittedAt, elapsedSeconds, totalScore, maxScore, passScore, correctCount, questionCount, isPassed,
             failReason, passMarginText, ranking, List.of(), List.of(), questionMarks, List.of(), null, mergedLockedSections);
     }
 
     /** 다음에 할 일 붙이기 */
     public MockExamResultResponse withNextStep(MockExamNextStep plannedNextStep) {
-        return new MockExamResultResponse(attemptUuid, roundUuid, roundNumber, title, submitReason, startedAt,
+        return new MockExamResultResponse(attemptUuid, roundUuid, roundNumber, title, roundType, submitReason, startedAt,
             submittedAt, elapsedSeconds, totalScore, maxScore, passScore, correctCount, questionCount, isPassed,
             failReason, passMarginText, ranking, subjects, topics, questionMarks, reviews, plannedNextStep, lockedSections);
     }

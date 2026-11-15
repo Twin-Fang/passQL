@@ -68,14 +68,22 @@ class MockExamInProgressAttempt with _$MockExamInProgressAttempt {
       _$MockExamInProgressAttemptFromJson(json);
 }
 
-/// 회차 1개: 시작 가능 여부·막힌 이유는 서버 판정
+/// 회차 1개: 시작 가능 여부·막힌 이유·무료 회차는 서버 판정
 @freezed
 class MockExamRoundSummary with _$MockExamRoundSummary {
   const factory MockExamRoundSummary({
     required String roundUuid,
     required int roundNumber,
     required String title,
+    // 회차 종류·실제 시험 회차·시험일 (기출 복원만, #1079)
+    @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+    @Default(MockExamRoundType.mock)
+    MockExamRoundType roundType,
+    int? examRoundNumber,
+    String? examDate,
     required bool isFreeTrialRound,
+    // 무료 기출 회차 (가장 최근 기출, 체험 횟수와 별개, #1079)
+    @Default(false) bool isFreePastExamRound,
     required bool canStart,
     @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
     MockExamStartBlockReason? startBlockReason,

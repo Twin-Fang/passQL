@@ -10,10 +10,11 @@ import '../../design/design.dart';
 import '../common/app_toast.dart';
 import '../pro/pro_offer_sheet.dart';
 
-/// 회차 행 상태 5종 (첫 줄 표시 기준, 위에서부터 우선)
-enum _RoundRowState { inProgress, attempted, locked, freeTrial, notStarted }
+/// 회차 행 상태 5종 (첫 줄 표시 기준, 위에서부터 우선, freeRound = 무료 체험·무료 기출)
+enum _RoundRowState { inProgress, attempted, locked, freeRound, notStarted }
 
 /// 회차 행: 번호 배지 + 첫 줄(최고 점수·합격 배지 / 진행 / 미응시·무료·PRO) + 작은 둘째 줄 + 쉐브론
+/// 기출 복원 회차(#1079)는 둘째 줄에 실제 회차·시험일, 무료 배지는 "무료"
 /// 제목은 번호 배지와 겹쳐 화면에서 빼고 읽기 문구에만 둠
 /// 탭: 풀이 중 > 이어 풀기, 시작 가능 > 안내, 체험 소진·이용권 필요 > (지난 결과 있으면 결과) 아니면 이용권 안내, 다른 회차 풀이 중 > 안내 문구
 class MockExamRoundRow extends ConsumerWidget {
@@ -54,8 +55,9 @@ class MockExamRoundRow extends ConsumerWidget {
     }
     if (round.bestScore != null) return _RoundRowState.attempted;
     if (_isLocked) return _RoundRowState.locked;
-    if (round.isFreeTrialRound && round.canStart) {
-      return _RoundRowState.freeTrial;
+    if ((round.isFreeTrialRound || round.isFreePastExamRound) &&
+        round.canStart) {
+      return _RoundRowState.freeRound;
     }
     return _RoundRowState.notStarted;
   }
@@ -112,9 +114,12 @@ class MockExamRoundRow extends ConsumerWidget {
       text: _notStartedText,
       trailing: PassqlPlanChip(isPro: true),
     ),
-    _RoundRowState.freeTrial => const _HeadlineLine(
+    _RoundRowState.freeRound => _HeadlineLine(
       text: _notStartedText,
-      trailing: PassqlBadge(text: '무료 1회', kind: PassqlBadgeKind.success),
+      trailing: PassqlBadge(
+        text: _freeBadgeText,
+        kind: PassqlBadgeKind.success,
+      ),
     ),
     _RoundRowState.notStarted => const _HeadlineLine(text: _notStartedText),
   };
@@ -130,13 +135,29 @@ class MockExamRoundRow extends ConsumerWidget {
       ?_bestResultText,
     ].join(' '),
     _RoundRowState.locked => '$_notStartedText, PRO',
-    _RoundRowState.freeTrial => '$_notStartedText, 무료 1회',
+    _RoundRowState.freeRound => '$_notStartedText, $_freeBadgeText',
     _RoundRowState.notStarted => _notStartedText,
   };
 
+  /// 무료 배지: 무료 기출은 횟수 제한 없음, 무료 체험은 1회
+  String get _freeBadgeText => round.isFreePastExamRound ? '무료' : '무료 1회';
+
+  /// 안 푼 회차 둘째 줄: 모의고사 "50문항 | 90분", 기출 "62회 | 2026.08.22 | 50문항"
+  String get _ruleText {
+    if (round.roundType != MockExamRoundType.pastExam) {
+      return '${rule.questionCount}문항 | ${rule.durationMinutes}분';
+    }
+    final examDate = DateTime.tryParse(round.examDate ?? '');
+    return [
+      '${round.examRoundNumber ?? round.roundNumber}회',
+      if (examDate != null) formatDottedDate(examDate),
+      '${rule.questionCount}문항',
+    ].join(' | ');
+  }
+
   /// 상태 > 둘째 줄 (풀이 중 남은 시간 / 마지막 결과·응시 횟수 / 시험 형식)
   String _subtitleOf(_RoundRowState state) {
-    final ruleText = '${rule.questionCount}문항 | ${rule.durationMinutes}분';
+    final ruleText = _ruleText;
     if (state == _RoundRowState.inProgress) {
       final ownAttempt = _ownInProgressAttempt;
       if (ownAttempt == null) return ruleText;

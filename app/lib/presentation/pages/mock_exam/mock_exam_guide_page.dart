@@ -12,13 +12,15 @@ import '../../design/design.dart';
 import '../../providers/mock_exam_countdown.dart';
 import '../../providers/mock_exam_providers.dart';
 import '../../widgets/common/app_toast.dart';
+import '../../widgets/mock_exam/mock_exam_past_exam_notice.dart';
 import '../../widgets/mock_exam/mock_exam_rule_rows.dart';
 import '../../widgets/pro/pro_access_feedback.dart';
 import '../../widgets/pro/pro_offer_sheet.dart';
 
 /// 시험 안내 (#866): 형식·합격 기준·과락·자동 제출·이어 풀기·풀이 중 정답 없음 > 시작 확인 > 풀이
 /// 풀이 중 회차면 남은 시간·답한 문항 안내 > 확인 없이 이어 풀기 (#902)
-/// 무료 체험 회차면 "체험 1회" 안내. 시작 판정은 서버 (거부되면 이용권 안내·문구)
+/// 무료 체험 회차면 "체험 1회", 무료 기출 회차면 "무료" 안내. 기출 복원 회차는 맨 아래 면책 한 줄 (#1079)
+/// 시작 판정은 서버 (거부되면 이용권 안내·문구)
 class MockExamGuidePage extends ConsumerStatefulWidget {
   const MockExamGuidePage({super.key, required this.roundUuid});
 
@@ -128,6 +130,21 @@ class _MockExamGuidePageState extends ConsumerState<MockExamGuidePage> {
                               '무료 체험은 1회예요. 점수와 합격 여부는 바로 보이고, 과목별 분석과 문항 해설은 PRO로 볼 수 있어요.',
                             ),
                           ),
+                        ],
+                        if (round != null && round.isFreePastExamRound) ...[
+                          const SizedBox(height: PassqlSpacing.lg),
+                          const PassqlCallout(
+                            kind: PassqlCalloutKind.accent,
+                            icon: CupertinoIcons.gift,
+                            label: '무료',
+                            child: Text(
+                              '가장 최근 기출 회차는 무료로 풀 수 있어요. 과목별 분석과 문항 해설은 PRO로 볼 수 있어요.',
+                            ),
+                          ),
+                        ],
+                        if (round?.roundType == MockExamRoundType.pastExam) ...[
+                          const SizedBox(height: PassqlSpacing.lg),
+                          const MockExamPastExamNotice(),
                         ],
                       ],
                     ),
