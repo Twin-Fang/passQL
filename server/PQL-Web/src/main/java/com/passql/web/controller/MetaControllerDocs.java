@@ -7,6 +7,7 @@ import com.passql.meta.dto.AppLinksResponse;
 import com.passql.meta.dto.AppNoticePageResponse;
 import com.passql.meta.dto.AppNoticeResponse;
 import com.passql.meta.dto.LegalResponse;
+import com.passql.meta.dto.SqldExamGuideResponse;
 import com.passql.meta.dto.TopicTree;
 import com.passql.meta.dto.ConceptTagResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -103,6 +104,30 @@ public interface MetaControllerDocs {
           """
   )
   ResponseEntity<AppLinksResponse> getAppLinks();
+
+  @ApiLogs({
+      @ApiLog(date = "2026.11.14", author = Author.SUHSAECHAN, issueNumber = 1077, description = "SQLD 알아보기(시험 소개·역대 통계) 조회 API 추가"),
+  })
+  @Operation(
+      summary = "SQLD 알아보기 조회",
+      description = """
+          ## 인증(JWT): **불필요**
+          앱 'SQLD 알아보기' 화면과 소개 사이트 통계 페이지 빌드가 같은 응답을 읽는다.
+
+          ## 요청 파라미터
+          - 없음
+
+          ## 반환값 (SqldExamGuideResponse)
+          - 시험 소개: oneLineDefinition, organizerName, certificationNumber, recommendedFor, subjects(name·questionCount·points),
+            examDurationMinutes, passingTotalScore, failingSubjectPercent(과목 배점 대비 %, 미만 과락), examFeeWon, validityDescription, faqs
+          - yearlyStatistics: 연도별 공식 통계 (연도 오름차순, 접수자·응시자·취득자·합격률)
+          - roundNotes: 회차 메모 (체감 난이도, 알려진 합격률). isOfficial=false 면 수험생 전언·후기
+          - comparisons: 다른 자격 합격률 비교 (SQLP)
+          - insights: 최신 연도, 비교 연도(previousYear, 바로 앞 통계 연도), 7년 전 대비 응시자 배수, 비교 연도 대비 합격률 증감(%p). 연도 2건 미만이면 null
+          - sources: 출처 이름·주소(없으면 null)·확인일
+          """
+  )
+  ResponseEntity<SqldExamGuideResponse> getSqldExamGuide();
 
   @ApiLogs({
       @ApiLog(date = "2026.10.15", author = Author.SUHSAECHAN, issueNumber = 464, description = "앱 시작 설정 조회 API 추가 — 최소/권장 버전, 점검, 공지"),

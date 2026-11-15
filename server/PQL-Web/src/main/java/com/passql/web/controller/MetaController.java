@@ -6,6 +6,7 @@ import com.passql.meta.dto.AppLinksResponse;
 import com.passql.meta.dto.AppNoticePageResponse;
 import com.passql.meta.dto.AppNoticeResponse;
 import com.passql.meta.dto.LegalResponse;
+import com.passql.meta.dto.SqldExamGuideResponse;
 import com.passql.meta.dto.TopicTree;
 import com.passql.meta.dto.ConceptTagResponse;
 import com.passql.meta.service.AppNoticeService;
@@ -13,6 +14,7 @@ import com.passql.meta.service.AppOperationService;
 import com.passql.meta.service.AppSettingService;
 import com.passql.meta.service.LegalService;
 import com.passql.meta.service.MetaService;
+import com.passql.meta.service.SqldExamGuideService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +32,7 @@ public class MetaController implements MetaControllerDocs {
     private final AppSettingService appSettingService;
     private final AppOperationService appOperationService;
     private final AppNoticeService appNoticeService;
+    private final SqldExamGuideService sqldExamGuideService;
 
     @GetMapping("/meta/topics")
     public ResponseEntity<List<TopicTree>> getTopics() {
@@ -51,6 +54,12 @@ public class MetaController implements MetaControllerDocs {
     @GetMapping("/meta/app-links")
     public ResponseEntity<AppLinksResponse> getAppLinks() {
         return ResponseEntity.ok(appSettingService.getAppLinks());
+    }
+
+    /** SQLD 알아보기 (시험 소개·역대 통계) — 인증 불필요, 앱 화면·소개 사이트 빌드 공용 (#1076, #1077) */
+    @GetMapping("/meta/exam-guide/sqld")
+    public ResponseEntity<SqldExamGuideResponse> getSqldExamGuide() {
+        return ResponseEntity.ok(sqldExamGuideService.getSqldExamGuide());
     }
 
     /** 앱 시작 설정 (버전 정책·점검·공지) — 인증 불필요, 점검 중에도 응답 (#464) */

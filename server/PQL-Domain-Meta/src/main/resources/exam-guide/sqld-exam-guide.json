@@ -1,0 +1,63 @@
+{
+  "oneLineDefinition": "SQL로 데이터를 다루는 능력을 확인하는 국가공인 자격증이에요",
+  "organizerName": "한국데이터산업진흥원",
+  "certificationNumber": "국가공인 제2022-04호",
+  "recommendedFor": [
+    "데이터, 백엔드 직무를 준비하는 취업 준비생",
+    "SQL을 처음 배우는 비전공자",
+    "공기업, IT 기업 가산점이 필요한 분",
+    "학점은행제 학점(6학점)이 필요한 분"
+  ],
+  "subjects": [
+    {"name": "데이터 모델링의 이해", "questionCount": 10, "points": 20},
+    {"name": "SQL 기본 및 활용", "questionCount": 40, "points": 80}
+  ],
+  "examDurationMinutes": 90,
+  "passingTotalScore": 60,
+  "failingSubjectPercent": 40,
+  "examFeeWon": 50000,
+  "validityDescription": "합격일로부터 2년, 보수교육을 마치면 영구",
+  "faqs": [
+    {"question": "응시 자격이 있나요?", "answer": "제한이 없어요. 누구나 응시할 수 있어요."},
+    {"question": "시험은 1년에 몇 번 있나요?", "answer": "연 4회 정기 시험이 있어요. 보통 3월, 5월, 8월, 11월이에요."},
+    {"question": "과락은 어떻게 되나요?", "answer": "총점 60점 이상이어도 한 과목이라도 배점의 40% 미만이면 불합격이에요. 1과목은 8점(4문항) 이상, 2과목은 32점(16문항) 이상 맞아야 해요."},
+    {"question": "SQLP와 무엇이 다른가요?", "answer": "SQLP는 상위 자격(SQL 전문가)이에요. 실기가 있고 합격률이 한 자릿수일 때가 많아요. 보통 SQLD부터 시작해요."},
+    {"question": "어떤 문제가 나오나요?", "answer": "50문항 모두 4지선다 객관식이에요. 2024년 52회부터 과목과 출제 방식이 바뀌었어요."}
+  ],
+  "yearlyStatistics": [
+    {"year": 2011, "applicantCount": 717, "examineeCount": 543, "passerCount": 172, "passRatePercent": 31.68},
+    {"year": 2012, "applicantCount": 1097, "examineeCount": 844, "passerCount": 267, "passRatePercent": 31.64},
+    {"year": 2013, "applicantCount": 2725, "examineeCount": 2241, "passerCount": 644, "passRatePercent": 28.74},
+    {"year": 2014, "applicantCount": 3725, "examineeCount": 3042, "passerCount": 829, "passRatePercent": 27.25},
+    {"year": 2015, "applicantCount": 5435, "examineeCount": 4194, "passerCount": 1499, "passRatePercent": 35.74},
+    {"year": 2016, "applicantCount": 4256, "examineeCount": 3682, "passerCount": 1393, "passRatePercent": 37.83},
+    {"year": 2017, "applicantCount": 5451, "examineeCount": 4550, "passerCount": 1442, "passRatePercent": 31.69},
+    {"year": 2018, "applicantCount": 6611, "examineeCount": 5472, "passerCount": 2077, "passRatePercent": 37.96},
+    {"year": 2019, "applicantCount": 11768, "examineeCount": 9663, "passerCount": 4707, "passRatePercent": 48.71},
+    {"year": 2020, "applicantCount": 13822, "examineeCount": 10933, "passerCount": 6399, "passRatePercent": 58.53},
+    {"year": 2021, "applicantCount": 29144, "examineeCount": 23391, "passerCount": 13225, "passRatePercent": 56.54},
+    {"year": 2022, "applicantCount": 42193, "examineeCount": 32474, "passerCount": 15845, "passRatePercent": 48.79},
+    {"year": 2023, "applicantCount": 62122, "examineeCount": 48794, "passerCount": 23329, "passRatePercent": 47.81},
+    {"year": 2024, "applicantCount": 75042, "examineeCount": 59202, "passerCount": 33916, "passRatePercent": 57.29},
+    {"year": 2025, "applicantCount": 88440, "examineeCount": 62664, "passerCount": 26121, "passRatePercent": 41.68}
+  ],
+  "roundNotes": [
+    {"round": 56, "examDate": "2025-03-08", "difficultyNote": "개정 이후 난도가 오르기 시작한 회차", "passRatePercent": null, "isOfficial": false},
+    {"round": 57, "examDate": "2025-05-31", "difficultyNote": "어려웠다는 후기가 많은 회차", "passRatePercent": null, "isOfficial": false},
+    {"round": 58, "examDate": "2025-08-23", "difficultyNote": "역대급으로 어려웠다는 회차", "passRatePercent": null, "isOfficial": false},
+    {"round": 59, "examDate": "2025-11-16", "difficultyNote": "앞 회차보다 확실히 쉬워진 회차", "passRatePercent": null, "isOfficial": false},
+    {"round": 60, "examDate": "2026-03-07", "difficultyNote": "무난했다는 평이 많은 회차", "passRatePercent": null, "isOfficial": false},
+    {"round": 61, "examDate": "2026-05-31", "difficultyNote": "생각보다 어려웠다는 회차", "passRatePercent": 26.0, "isOfficial": false},
+    {"round": 62, "examDate": "2026-08-22", "difficultyNote": "쉬운 편이었지만 복수 정답이 나온 회차", "passRatePercent": null, "isOfficial": false}
+  ],
+  "comparisons": [
+    {"certificationName": "SQLP (SQL 전문가)", "year": 2024, "passRatePercent": 9.13},
+    {"certificationName": "SQLP (SQL 전문가)", "year": 2025, "passRatePercent": 3.59}
+  ],
+  "sources": [
+    {"name": "민간자격정보서비스 자격취득현황 (연도별 통계)", "url": "https://www.pqi.or.kr/inf/qul/infQulBasDetail.do?qulId=3675", "checkedDate": "2026-11-14"},
+    {"name": "공공데이터포털 데이터 자격 검정 상세정보", "url": "https://www.data.go.kr/data/15148115/fileData.do", "checkedDate": "2026-11-14"},
+    {"name": "데이터자격검정 시험 안내", "url": "https://www.dataq.or.kr/www/sub/a_04.do", "checkedDate": "2026-11-14"},
+    {"name": "회차별 체감 난이도, 61회 합격률: 수험생 후기 모음 (비공식)", "url": null, "checkedDate": "2026-11-14"}
+  ]
+}

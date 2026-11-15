@@ -1740,6 +1740,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/meta/exam-guide/sqld": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * SQLD 알아보기 조회
+         * @description ## 인증(JWT): **불필요**
+         *     앱 'SQLD 알아보기' 화면과 소개 사이트 통계 페이지 빌드가 같은 응답을 읽는다.
+         *
+         *     ## 요청 파라미터
+         *     - 없음
+         *
+         *     ## 반환값 (SqldExamGuideResponse)
+         *     - 시험 소개: oneLineDefinition, organizerName, certificationNumber, recommendedFor, subjects(name·questionCount·points),
+         *       examDurationMinutes, passingTotalScore, failingSubjectPercent(과목 배점 대비 %, 미만 과락), examFeeWon, validityDescription, faqs
+         *     - yearlyStatistics: 연도별 공식 통계 (연도 오름차순, 접수자·응시자·취득자·합격률)
+         *     - roundNotes: 회차 메모 (체감 난이도, 알려진 합격률). isOfficial=false 면 수험생 전언·후기
+         *     - comparisons: 다른 자격 합격률 비교 (SQLP)
+         *     - insights: 최신 연도, 비교 연도(previousYear, 바로 앞 통계 연도), 7년 전 대비 응시자 배수, 비교 연도 대비 합격률 증감(%p). 연도 2건 미만이면 null
+         *     - sources: 출처 이름·주소(없으면 null)·확인일
+         */
+        get: operations["getSqldExamGuide"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/meta/legal/{type}": {
         parameters: {
             query?: never;
@@ -2682,6 +2715,13 @@ export interface components {
             registrationNumber: string | null;
             representativeName: string | null;
         };
+        CertificationComparison: {
+            certificationName: string;
+            /** Format: double */
+            passRatePercent: number;
+            /** Format: int32 */
+            year: number;
+        };
         ChoiceAnalysis: {
             /** @description 보기 키 (A~D) */
             choiceKey: string;
@@ -3385,6 +3425,10 @@ export interface components {
              */
             kind: "CORRECT_REASON" | "EXAM_TIP" | "KEY_CONCEPTS" | "CONFUSING_POINTS" | "CHOICE_ANALYSES";
         };
+        Faq: {
+            answer: string;
+            question: string;
+        };
         FeedbackSubmitRequest: {
             content: string;
         };
@@ -3442,6 +3486,18 @@ export interface components {
             /** Format: uuid */
             roundUuid: string;
             title: string;
+        };
+        Insights: {
+            /** Format: double */
+            examineeGrowthMultiple: number;
+            /** Format: int32 */
+            growthBaseYear: number;
+            /** Format: int32 */
+            latestYear: number;
+            /** Format: double */
+            passRateChangePoints: number;
+            /** Format: int32 */
+            previousYear: number;
         };
         KeyConcept: {
             /** @description 개념 설명 한두 줄 */
@@ -3935,6 +3991,19 @@ export interface components {
         ReportStatusResponse: {
             reported: boolean;
         };
+        RoundNote: {
+            difficultyNote: string;
+            examDate: string;
+            /** @description 공식 수치 여부 (false: 수험생 전언·후기) */
+            isOfficial: boolean;
+            /**
+             * Format: double
+             * @description 알려진 합격률 (없으면 null)
+             */
+            passRatePercent: number | null;
+            /** Format: int32 */
+            round: number;
+        };
         RoundSummary: {
             /**
              * @description 최고 점수 응시(동점이면 최근)의 불합격 이유
@@ -4000,6 +4069,38 @@ export interface components {
             sorted: boolean;
             unsorted: boolean;
         };
+        Source: {
+            checkedDate: string;
+            name: string;
+            url: string | null;
+        };
+        SqldExamGuideResponse: {
+            certificationNumber: string;
+            comparisons: components["schemas"]["CertificationComparison"][];
+            /** Format: int32 */
+            examDurationMinutes: number;
+            /** Format: int32 */
+            examFeeWon: number;
+            /**
+             * Format: int32
+             * @description 과목별 과락 기준 (배점 대비 %, 미만이면 과락)
+             */
+            failingSubjectPercent: number;
+            faqs: components["schemas"]["Faq"][];
+            insights: components["schemas"]["Insights"] | null;
+            oneLineDefinition: string;
+            organizerName: string;
+            /** Format: int32 */
+            passingTotalScore: number;
+            recommendedFor: string[];
+            /** @description 회차 메모 (체감 난이도, 비공식 합격률) */
+            roundNotes: components["schemas"]["RoundNote"][];
+            sources: components["schemas"]["Source"][];
+            subjects: components["schemas"]["Subject"][];
+            validityDescription: string;
+            /** @description 연도별 공식 통계 (연도 오름차순) */
+            yearlyStatistics: components["schemas"]["YearlyStatistic"][];
+        };
         SqldExamScheduleOverviewResponse: {
             /** Format: date-time */
             lastCollectedAt: string;
@@ -4041,6 +4142,13 @@ export interface components {
             /** Format: int32 */
             totalStudyDayCount: number;
             weekdayAttemptCounts: number[];
+        };
+        Subject: {
+            name: string;
+            /** Format: int32 */
+            points: number;
+            /** Format: int32 */
+            questionCount: number;
         };
         SubjectResult: {
             /** Format: int32 */
@@ -4173,6 +4281,18 @@ export interface components {
             items: components["schemas"]["WrongQuestionItem"][];
             /** Format: int64 */
             totalCount: number;
+        };
+        YearlyStatistic: {
+            /** Format: int32 */
+            applicantCount: number;
+            /** Format: int32 */
+            examineeCount: number;
+            /** Format: double */
+            passRatePercent: number;
+            /** Format: int32 */
+            passerCount: number;
+            /** Format: int32 */
+            year: number;
         };
     };
     responses: never;
@@ -5589,6 +5709,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AppLinksResponse"];
+                };
+            };
+        };
+    };
+    getSqldExamGuide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SqldExamGuideResponse"];
                 };
             };
         };
