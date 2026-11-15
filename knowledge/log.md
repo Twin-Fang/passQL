@@ -250,3 +250,6 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-15 22:03 | W6 | completion-report 생성, issue resolved + resolution 연결 (#1074 닫힘, 릴리스 PR #1094 배포) | ISS-0519-sqld-round63-trend-new-questions-report, ISS-0519
 - 2026-11-15 22:03 | W6 | completion-report 생성, issue resolved + resolution 연결 (#1075 닫힘, 릴리스 PR #1094 배포·63회 운영 가답안 입력) | ISS-0520-sqld-round-answer-key-omr-grading-report, ISS-0520
 - 2026-11-15 22:03 | W2 | 관련 이슈 줄 open > resolved 갱신, members 변동 없음(W10 0) | cluster-question-bank, cluster-practice, cluster-store-release, cluster-admin
+- 2026-11-16 00:30 | W6 | issue 생성 open (#1077·#1076 SQLD 알아보기, 서버·사이트 배포, 앱 대기) + decision 2개 | ISS-0521, DEC-0318, DEC-0319
+- 2026-11-16 00:30 | W2 | 관련 이슈·활성 결정 줄 추가, members 갱신 | cluster-progress-stats, cluster-home, cluster-ci-deploy, cluster-dev-workflow, cluster-store-release
+- 2026-11-16 00:35 | W2 | 현재 상태 요약에 #1077 한 줄 추가 (W11 크기·요약 날짜 경고는 보고만: home, dev-workflow, store-release) | cluster-progress-stats
