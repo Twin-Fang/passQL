@@ -11,7 +11,7 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 import java.lang.ref.WeakReference
 
 /**
- * 잠금화면 위 문제 화면: 잠금 위 표시·화면 켜기 > 캐시 엔진(lockScreenMain) 붙이기 > 보일 때마다 Dart 에 알림
+ * 잠금화면 위 문제 화면: 잠금 위 표시(화면은 켜지 않음) > 캐시 엔진(lockScreenMain) 붙이기 > 보일 때마다 Dart 에 알림
  * 해제는 KeyguardManager 로 잠금을 풀고(사용자 인증) 나서 앱 열기 (Play 정책: 광고·결제는 잠금 해제 후 앱에서)
  */
 // MainActivity 와 같은 FlutterFragmentActivity: 엔진에 붙는 네이버 로그인 플러그인이 활동을 이 타입으로 캐스팅함 (#1002)
@@ -48,16 +48,13 @@ class LockScreenActivity : FlutterFragmentActivity() {
         LockScreenEngine.notifyShown()
     }
 
+    // 잠금 위 표시만 (화면 켜기 금지: 서비스가 화면 꺼짐 때 미리 띄워 켜면 꺼짐 > 켜짐 반복, #1096)
     @Suppress("DEPRECATION")
     private fun showOverKeyguard() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
-            setTurnScreenOn(true)
         } else {
-            window.addFlags(
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON,
-            )
+            window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
         }
     }
 
