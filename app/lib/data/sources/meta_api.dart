@@ -3,6 +3,7 @@ import 'package:retrofit/retrofit.dart';
 import '../models/legal/legal_models.dart';
 import '../models/meta/app_config.dart';
 import '../models/meta/app_notice_page.dart';
+import '../models/meta/sqld_exam_guide.dart';
 import '../models/meta/topic_tree.dart';
 
 part 'meta_api.g.dart';
@@ -33,4 +34,8 @@ abstract class MetaApiClient {
   /// 공지 1건. 없음·비활성·노출 전이면 404 APP_NOTICE_NOT_FOUND (#529)
   @GET('/meta/notices/{noticeUuid}')
   Future<AppNotice> getNotice(@Path('noticeUuid') String noticeUuid);
+
+  /// SQLD 알아보기 (시험 소개·역대 통계). 공개 API (#1076, #1077)
+  @GET('/meta/exam-guide/sqld')
+  Future<SqldExamGuide> getSqldExamGuide();
 }

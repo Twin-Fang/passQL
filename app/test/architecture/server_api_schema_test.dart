@@ -22,6 +22,15 @@ const Map<String, String> _specSchemaByAppClass = {
   'AppPlatformVersionPolicy': 'AppPlatformVersionResponse',
   'BusinessInfo': 'BusinessInfoResponse',
   'QuestionListResponse': 'PageQuestionSummary',
+  // SQLD 알아보기 (#1077): 서버 안쪽 record 이름이 짧아 앱은 Sqld 접두사
+  'SqldExamGuide': 'SqldExamGuideResponse',
+  'SqldExamSubject': 'Subject',
+  'SqldExamFaq': 'Faq',
+  'SqldYearlyStatistic': 'YearlyStatistic',
+  'SqldRoundNote': 'RoundNote',
+  'SqldCertificationComparison': 'CertificationComparison',
+  'SqldExamInsights': 'Insights',
+  'SqldExamSource': 'Source',
   // 모의고사 (#866): 서버 안쪽 record 이름이 짧아 앱은 MockExam 접두사
   'MockExamRule': 'MockExamRuleResponse',
   'MockExamSubjectRule': 'SubjectRule',
