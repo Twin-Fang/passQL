@@ -17,6 +17,7 @@ class ExamScheduleContent extends StatelessWidget {
     required this.onApplyPressed,
     required this.onMockExamPressed,
     required this.onOfficialGuidePressed,
+    required this.onExamGuidePressed,
   });
 
   final SqldExamScheduleOverviewResponse overview;
@@ -24,6 +25,7 @@ class ExamScheduleContent extends StatelessWidget {
   final VoidCallback onApplyPressed;
   final VoidCallback onMockExamPressed;
   final VoidCallback onOfficialGuidePressed;
+  final VoidCallback onExamGuidePressed;
 
   static const EdgeInsets _padding = EdgeInsets.fromLTRB(
     PassqlSpacing.md,
@@ -55,7 +57,10 @@ class ExamScheduleContent extends StatelessWidget {
           ),
           const SizedBox(height: PassqlSpacing.xl),
         ],
-        ExamScheduleInfoSection(onOfficialGuidePressed: onOfficialGuidePressed),
+        ExamScheduleInfoSection(
+          onOfficialGuidePressed: onOfficialGuidePressed,
+          onExamGuidePressed: onExamGuidePressed,
+        ),
         const SizedBox(height: PassqlSpacing.md),
         Text(
           examScheduleSourceTextOf(overview.lastCollectedAt, today),

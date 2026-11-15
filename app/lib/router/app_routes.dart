@@ -229,6 +229,9 @@ abstract final class AppRoutes {
   /// SQLD 시험 일정 (#991). 홈 D-day 배지·푸시 EXAM_SCHEDULE 에서 진입 (서버 PushLinkTarget.EXAM_SCHEDULE_APP_ROUTE 와 같은 값)
   static const String examSchedule = '/exam-schedule';
 
+  /// SQLD 알아보기 (#1076, #1077): 시험 소개·역대 통계. 시험 일정 화면·홈 첫 방문 안내에서 진입
+  static const String examGuide = '/exam-guide';
+
   // SQLD 모의고사 (#866)
   /// 회차 목록. 홈 모의고사 구간·문제 탭 모의고사 행에서 진입
   static const String mockExams = '/mock-exams';

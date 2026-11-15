@@ -3,9 +3,9 @@
   "organizerName": "한국데이터산업진흥원",
   "certificationNumber": "국가공인 제2022-04호",
   "recommendedFor": [
-    "데이터·백엔드 직무를 준비하는 취업 준비생",
+    "데이터, 백엔드 직무를 준비하는 취업 준비생",
     "SQL을 처음 배우는 비전공자",
-    "공기업·IT 기업 가산점이 필요한 분",
+    "공기업, IT 기업 가산점이 필요한 분",
     "학점은행제 학점(6학점)이 필요한 분"
   ],
   "subjects": [
@@ -58,6 +58,6 @@
     {"name": "민간자격정보서비스 자격취득현황 (연도별 통계)", "url": "https://www.pqi.or.kr/inf/qul/infQulBasDetail.do?qulId=3675", "checkedDate": "2026-11-14"},
     {"name": "공공데이터포털 데이터 자격 검정 상세정보", "url": "https://www.data.go.kr/data/15148115/fileData.do", "checkedDate": "2026-11-14"},
     {"name": "데이터자격검정 시험 안내", "url": "https://www.dataq.or.kr/www/sub/a_04.do", "checkedDate": "2026-11-14"},
-    {"name": "회차별 체감 난이도·61회 합격률: 수험생 후기 모음 (비공식)", "url": null, "checkedDate": "2026-11-14"}
+    {"name": "회차별 체감 난이도, 61회 합격률: 수험생 후기 모음 (비공식)", "url": null, "checkedDate": "2026-11-14"}
   ]
 }

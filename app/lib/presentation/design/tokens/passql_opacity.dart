@@ -10,4 +10,7 @@ abstract final class PassqlOpacity {
 
   // 토스트 배경 (label 위, 뒤 화면이 살짝 비침)
   static const double toastBackground = 0.88;
+
+  // 통계 차트에서 선택 안 된 막대 (#1077, 선택 막대는 accent 100%)
+  static const double chartBarResting = 0.35;
 }
