@@ -4,8 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/error/app_exception.dart';
 import '../../core/error/error_code.dart';
+import '../../core/lock_screen/lock_screen_ox_turn_rule.dart';
 import '../../core/logging/app_logger.dart';
 import '../../core/monitoring/app_analytics.dart';
+import '../../core/storage/device_preferences.dart';
+import '../../core/storage/storage_keys.dart';
 import '../../data/models/question/choice_set_summary.dart';
 import '../../data/models/question/lock_screen_question_response.dart';
 import '../../data/models/question/question_detail.dart';
@@ -13,6 +16,7 @@ import '../../data/models/question/sse_event.dart';
 import '../../data/models/question/submit_request.dart';
 import '../../data/sources/api_providers.dart';
 import 'auth_provider.dart';
+import 'lock_screen_ox_card_notifier.dart';
 import 'lock_screen_providers.dart';
 import 'lock_screen_question_state.dart';
 import 'plan_providers.dart';
@@ -20,7 +24,7 @@ import 'settings_providers.dart';
 
 export 'lock_screen_question_state.dart';
 
-/// 잠금화면 문제 흐름 (잠금 엔진 전용): 표시 > 로그인·크레딧 확인 > 문제 받기 > 탭 즉시 제출 > 한 문제 더(무료는 크레딧 소진 시 소진 화면)
+/// 잠금화면 문제 흐름 (잠금 엔진 전용): 표시 > 로그인 > OX 차례(문제 3번 > OX 1번, #1110)면 OX 카드 > 크레딧 확인 > 문제 받기 > 탭 즉시 제출 > 한 문제 더(무료는 크레딧 소진 시 소진 화면)
 /// 조용히 닫는 경우 4개: 미로그인, 낼 문제 없음(204), 네트워크·서버 오류, READY 세트 없음(1회 재시도 뒤)
 /// 선택지 방식은 앱 "새 보기로 풀기" 실효 모드를 따름: 연습 = 상세의 READY(OK) 세트, 새 보기 = SSE 생성(20초 넘거나 실패면 READY 세트로 대체)
 class LockScreenQuestionNotifier extends Notifier<LockScreenQuestionState> {
@@ -42,13 +46,15 @@ class LockScreenQuestionNotifier extends Notifier<LockScreenQuestionState> {
     return const LockScreenQuestionState();
   }
 
-  /// 잠금화면이 새로 보임: 처음 상태 > 로그인 확인 > 등급(크레딧 0 이면 소진 화면) > 문제
+  /// 잠금화면이 새로 보임: 처음 상태 > 로그인 확인 > OX 차례면 OX 카드(크레딧 무관) > 등급(크레딧 0 이면 소진 화면) > 문제
   Future<void> show() async {
     final generation = ++_showGeneration;
     state = const LockScreenQuestionState();
     final isSignedIn = await _isSignedIn();
     if (!_isCurrent(generation)) return;
     if (!isSignedIn) return _dismissQuietly('not signed in');
+    if (await _tryShowOxCard(generation)) return;
+    if (!_isCurrent(generation)) return;
     await _waitForPlan();
     if (!_isCurrent(generation)) return;
     if (ref.read(freeRemainingSolvesProvider) == 0) return _showExhausted();
@@ -221,6 +227,22 @@ class LockScreenQuestionNotifier extends Notifier<LockScreenQuestionState> {
       choiceSet == null
       ? null
       : (choiceSetId: choiceSet.choiceSetUuid, items: choiceSet.items);
+
+  /// OX 차례 판정(기기 표시 횟수) > 차례면 카드 1장 받기 > OX 화면 (카드 0장·실패면 false: 문제로 대체)
+  /// 표시 횟수는 차례와 무관하게 표시마다 1 올림 (OX 를 못 띄운 차례는 건너뜀)
+  Future<bool> _tryShowOxCard(int generation) async {
+    final previousShownCount =
+        await DevicePreferences.readInt(StorageKeys.lockScreenShownCount) ?? 0;
+    await DevicePreferences.writeInt(
+      StorageKeys.lockScreenShownCount,
+      previousShownCount + 1,
+    );
+    if (!LockScreenOxTurnRule.isOxCardTurn(previousShownCount)) return false;
+    final hasCard = await ref.read(lockScreenOxCardProvider.notifier).load();
+    if (!hasCard || !_isCurrent(generation)) return false;
+    state = const LockScreenQuestionState(phase: LockScreenPhase.oxCard);
+    return true;
+  }
 
   /// 크레딧 소진 화면 (그날은 다시 안 띄우게 네이티브에 기록)
   void _showExhausted() {

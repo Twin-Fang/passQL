@@ -60,6 +60,7 @@ public enum ErrorCode {
     TOPIC_NOT_FOUND(HttpStatus.NOT_FOUND, "토픽을 찾을 수 없습니다."),
     CONCEPT_NOT_FOUND(HttpStatus.NOT_FOUND, "개념을 찾을 수 없습니다."),
     CONCEPT_CHECK_QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "확인 문제를 찾을 수 없습니다."),
+    OX_CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "OX 카드를 찾을 수 없습니다."),
     TOPIC_DUPLICATE(HttpStatus.CONFLICT, "이미 있는 토픽 코드입니다."),
     TOPIC_HAS_QUESTIONS(HttpStatus.CONFLICT, "소속 문제가 있는 토픽·서브토픽은 삭제할 수 없습니다."),
     EXAM_SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "시험 일정을 찾을 수 없습니다."),

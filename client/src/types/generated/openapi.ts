@@ -2108,6 +2108,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ox/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * OX 답 기록
+         * @description ## 인증(JWT): **필요**
+         *     - 요청 OxAnswerRequest { cardKey, isCorrect } (채점은 앱)
+         *     - 맞히면 칸 +1(최대 5), 틀리면 1칸. 칸별 다음 출제 간격 1, 2, 4, 7, 14일 (처음 푸는 카드는 1칸에서 시작)
+         *     - 열 수 없는 카드(없음, 잠긴 단원) > 404 OX_CARD_NOT_FOUND
+         *     ## 반환값 (OxAnswerResponse)
+         *     - cardKey, box, nextReviewDate, correctStreak, todayAnsweredCount
+         */
+        post: operations["answer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ox/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * OX 카드 묶음
+         * @description ## 인증(JWT): **필요** | 무료는 개념 학습 무료 단원 카드만, 프로는 전부
+         *     - 카드 원천: 개념 자세히 본문의 바로 확인 표 (개념 학습 비공개면 빈 목록)
+         *     - 순서: 기한 지난 복습 카드(오래 밀린 순, 낮은 칸) > 처음 보는 카드(단원·개념 순서)
+         *     - size (기본 10, 1~20 보정)
+         *     ## 반환값 (OxCardSetResponse)
+         *     - cards[]: cardKey, conceptUuid, conceptTitle, topicName, statement, isTrue, reason, box(처음이면 null)
+         *     - dueCardCount, newCardCount, todayAnsweredCount, dailyGoalCount(20), hasLockedTopics
+         */
+        get: operations["getCardSet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/progress": {
         parameters: {
             query?: never;
@@ -2221,6 +2272,35 @@ export interface paths {
          *     - AI 호출 latency를 고려해 프론트엔드에서 비동기 로딩 권장
          */
         get: operations["getAiComment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/progress/expected-pass": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 예상 합격률
+         * @description ## 인증(JWT): **필요** | 등급 제한 없음
+         *     ## 계산 기준
+         *     - 채점된 모의고사 응시 최근 최대 5회 (회차 무관, 제출 최신 순)
+         *     - expectedPassPercent = 합격(60점 이상 + 과락 없음) 횟수 / 응시 수 × 100 (정수)
+         *     - 과락 위험(isFailRisk): 과목 평균이 과락 기준 + 4점 이하
+         *     ## 반환값 (ExpectedPassResponse)
+         *     - expectedPassPercent, averageScore: 응시 0회면 null
+         *     - basisAttemptCount, passedAttemptCount, passScore
+         *     - subjectAverages[]: subject, subjectName, averageScore, maxScore, failBelowScore, isFailRisk (응시 0회면 빈 목록)
+         *     - officialPassRatePercent, officialStatisticYear: 공식 최근 연도 합격률 (SQLD 알아보기 통계 마지막 연도)
+         */
+        get: operations["getExpectedPass"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3238,7 +3318,7 @@ export interface components {
          * @description 서버 ErrorCode enum 이름 (응답 errorCode 값)
          * @enum {string}
          */
-        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "REQUEST_TOO_LARGE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "CONCEPT_NOT_FOUND" | "CONCEPT_CHECK_QUESTION_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "EXAM_ANSWER_ROUND_NOT_FOUND" | "EXAM_ANSWER_ROUND_DUPLICATE" | "EXAM_ANSWER_ROUND_CLOSED" | "EXAM_ANSWER_SHEET_NOT_FOUND" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_SERVER_REQUEST_REJECTED" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_UNAVAILABLE" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "QUESTION_FORMAT_VIOLATION" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "FEEDBACK_IMAGE_TOO_MANY" | "FEEDBACK_IMAGE_INVALID" | "FEEDBACK_ATTACHMENT_TOO_LARGE" | "FEEDBACK_ATTACHMENT_INVALID" | "FEEDBACK_DAILY_LIMIT_EXCEEDED" | "FEEDBACK_STORAGE_UNAVAILABLE" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED" | "AD_BONUS_DAILY_LIMIT_REACHED" | "AD_BONUS_VERIFICATION_PENDING" | "AD_BONUS_APP_UPDATE_REQUIRED" | "MOCK_EXAM_ROUND_NOT_FOUND" | "MOCK_EXAM_ATTEMPT_NOT_FOUND" | "MOCK_EXAM_ATTEMPT_IN_PROGRESS" | "MOCK_EXAM_FREE_TRIAL_USED" | "MOCK_EXAM_TIME_OVER" | "MOCK_EXAM_ALREADY_SUBMITTED" | "MOCK_EXAM_NOT_SUBMITTED" | "MOCK_EXAM_ROUND_NOT_EDITABLE" | "MOCK_EXAM_ROUND_NUMBER_DUPLICATED" | "MOCK_EXAM_PUBLISH_CHECK_FAILED";
+        ErrorCode: "INTERNAL_SERVER_ERROR" | "INVALID_REQUEST" | "INVALID_INPUT_VALUE" | "REQUEST_TOO_LARGE" | "UNAUTHORIZED" | "ACCESS_DENIED" | "RESOURCE_NOT_FOUND" | "METHOD_NOT_ALLOWED" | "UNSUPPORTED_MEDIA_TYPE" | "DATABASE_ERROR" | "ILLEGAL_ARGUMENT" | "VALIDATION_ERROR" | "MESSAGE_NOT_READABLE" | "MISSING_PARAMETER" | "TYPE_MISMATCH" | "DATA_INTEGRITY_VIOLATION" | "EXTERNAL_API_ERROR" | "NETWORK_ERROR" | "SQL_SYNTAX" | "SQL_SEMANTIC" | "NOT_SELECT" | "MULTIPLE_STATEMENTS" | "TOO_LONG" | "SANDBOX_TIMEOUT" | "ROW_LIMIT_EXCEEDED" | "RATE_LIMITED" | "AI_UNAVAILABLE" | "AI_TIMEOUT" | "QUESTION_NOT_FOUND" | "SANDBOX_DB_NOT_FOUND" | "SETTING_NOT_FOUND" | "SETTING_SENSITIVE_UPDATE_FORBIDDEN" | "SETTING_SECRET_DECRYPT_FAILED" | "EMBEDDING_INDEX_TARGET_EMPTY" | "EMBEDDING_INDEX_ALREADY_RUNNING" | "PROMPT_NOT_FOUND" | "PROMPT_HISTORY_NOT_FOUND" | "PROMPT_ACTIVE_DELETE_FORBIDDEN" | "TOPIC_NOT_FOUND" | "CONCEPT_NOT_FOUND" | "CONCEPT_CHECK_QUESTION_NOT_FOUND" | "OX_CARD_NOT_FOUND" | "TOPIC_DUPLICATE" | "TOPIC_HAS_QUESTIONS" | "EXAM_SCHEDULE_NOT_FOUND" | "EXAM_SCHEDULE_DUPLICATE" | "EXAM_ANSWER_ROUND_NOT_FOUND" | "EXAM_ANSWER_ROUND_DUPLICATE" | "EXAM_ANSWER_ROUND_CLOSED" | "EXAM_ANSWER_SHEET_NOT_FOUND" | "DAILY_CHALLENGE_QUESTION_INACTIVE" | "DAILY_CHALLENGE_RANGE_INVALID" | "DAILY_CHALLENGE_TOO_MANY_QUESTIONS" | "DAILY_SET_ALREADY_COMPLETED" | "DAILY_SET_NOT_FOUND" | "MEMBER_NOT_FOUND" | "MEMBER_ALREADY_WITHDRAWN" | "MEMBER_SUSPENDED" | "INVALID_SUSPEND_UNTIL" | "NICKNAME_DUPLICATE" | "NICKNAME_GENERATION_FAILED" | "NICKNAME_COOLDOWN" | "NICKNAME_INVALID" | "NICKNAME_FORBIDDEN" | "AI_SERVER_UNAVAILABLE" | "AI_SERVER_REQUEST_REJECTED" | "AI_FALLBACK_FAILED" | "AI_RESPONSE_PARSE_FAILED" | "AI_STRUCTURED_SCHEMA_VIOLATION" | "GENERATION_FAILED" | "CHOICE_SET_GENERATION_FAILED" | "CHOICE_SET_VALIDATION_NO_CORRECT" | "CHOICE_SET_VALIDATION_MULTIPLE_CORRECT" | "CHOICE_SET_NOT_FOUND" | "CHOICE_SET_UNAVAILABLE" | "CHOICE_SET_ITEM_NOT_FOUND" | "CHOICE_SET_POLICY_NOT_IMPLEMENTED" | "SANDBOX_SETUP_FAILED" | "SANDBOX_ANSWER_SQL_FAILED" | "INVALID_EXECUTION_MODE" | "QUIZ_SESSION_NOT_FOUND" | "QUIZ_SESSION_ALREADY_COMPLETED" | "QUIZ_SESSION_INDEX_OUT_OF_RANGE" | "QUIZ_SESSION_CHOICE_SET_MISMATCH" | "QUIZ_SESSION_INSUFFICIENT_QUESTIONS" | "QUESTION_IN_ACTIVE_SESSION" | "QUESTION_GENERATE_INPUT_INVALID" | "QUESTION_FORMAT_VIOLATION" | "FEEDBACK_NOT_FOUND" | "FEEDBACK_CONTENT_EMPTY" | "FEEDBACK_CONTENT_TOO_LONG" | "FEEDBACK_IMAGE_TOO_MANY" | "FEEDBACK_IMAGE_INVALID" | "FEEDBACK_ATTACHMENT_TOO_LARGE" | "FEEDBACK_ATTACHMENT_INVALID" | "FEEDBACK_DAILY_LIMIT_EXCEEDED" | "FEEDBACK_STORAGE_UNAVAILABLE" | "SERVICE_UNDER_MAINTENANCE" | "APP_VERSION_FORMAT_INVALID" | "APP_NOTICE_NOT_FOUND" | "APP_NOTICE_INPUT_INVALID" | "APP_NOTICE_PERIOD_INVALID" | "APP_MAINTENANCE_PERIOD_INVALID" | "IMPORT_LIMIT_EXCEEDED" | "EXPORT_NO_DATA" | "REPORT_ALREADY_EXISTS" | "REPORT_NOT_FOUND" | "REPORT_ALREADY_RESOLVED" | "REPORT_CHOICE_SET_REQUIRED" | "COMMUNITY_POST_NOT_FOUND" | "COMMUNITY_SOLVE_REQUIRED" | "COMMUNITY_CONTENT_INVALID" | "COMMUNITY_CONTENT_FORBIDDEN_WORD" | "COMMUNITY_POST_DUPLICATE" | "COMMUNITY_POST_RATE_LIMITED" | "COMMUNITY_POST_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_POST_FORBIDDEN" | "COMMUNITY_SELF_REPORT_FORBIDDEN" | "COMMUNITY_SELF_BLOCK_FORBIDDEN" | "COMMUNITY_BLOCK_NOT_FOUND" | "COMMUNITY_IMAGE_STORAGE_UNAVAILABLE" | "COMMUNITY_IMAGE_INVALID_FORMAT" | "COMMUNITY_IMAGE_TOO_LARGE" | "COMMUNITY_IMAGE_DIMENSION_EXCEEDED" | "COMMUNITY_IMAGE_UPLOAD_RATE_LIMITED" | "COMMUNITY_IMAGE_DAILY_LIMIT_EXCEEDED" | "COMMUNITY_IMAGE_QUOTA_EXCEEDED" | "COMMUNITY_IMAGE_NOT_FOUND" | "COMMUNITY_IMAGE_TOO_MANY" | "COMMUNITY_IMAGE_INVALID_ATTACHMENT" | "ADMIN_ACCOUNT_NOT_FOUND" | "ADMIN_ACCOUNT_DUPLICATE" | "ADMIN_ACCOUNT_ENVIRONMENT_MANAGED" | "ADMIN_ACCOUNT_SELF_CHANGE_FORBIDDEN" | "ADMIN_PASSWORD_TOO_WEAK" | "ADMIN_WRITE_FORBIDDEN" | "ADMIN_ACCOUNT_SELF_DELETE_FORBIDDEN" | "ADMIN_ACCOUNT_DELETE_REQUIRES_DISABLED" | "ADMIN_ACCOUNT_LAST_ADMIN_FORBIDDEN" | "PUSH_TARGET_MEMBER_REQUIRED" | "PUSH_LINK_QUESTION_REQUIRED" | "PUSH_INACTIVE_DAYS_INVALID" | "PUSH_SCHEDULE_TIME_INVALID" | "PUSH_NOT_SCHEDULED" | "PUSH_RETRACT_NOT_DISPATCHED" | "PUSH_TEMPLATE_NOT_FOUND" | "PUSH_SEND_HISTORY_NOT_FOUND" | "PUSH_ALREADY_RETRACTED" | "EXPIRED_FIREBASE_TOKEN" | "INVALID_FIREBASE_TOKEN" | "FIREBASE_SERVER_ERROR" | "ACCESS_TOKEN_EXPIRED" | "REFRESH_TOKEN_EXPIRED" | "INVALID_TOKEN" | "UNAUTHENTICATED_REQUEST" | "UNSUPPORTED_AUTH_PROVIDER" | "SOCIAL_LOGIN_UNAVAILABLE" | "INVALID_SOCIAL_AUTHORIZATION_CODE" | "INVALID_SOCIAL_TOKEN" | "PRO_REQUIRED" | "FREE_DAILY_LIMIT_REACHED" | "FAIR_USE_DAILY_LIMIT_REACHED" | "AD_BONUS_DAILY_LIMIT_REACHED" | "AD_BONUS_VERIFICATION_PENDING" | "AD_BONUS_APP_UPDATE_REQUIRED" | "MOCK_EXAM_ROUND_NOT_FOUND" | "MOCK_EXAM_ATTEMPT_NOT_FOUND" | "MOCK_EXAM_ATTEMPT_IN_PROGRESS" | "MOCK_EXAM_FREE_TRIAL_USED" | "MOCK_EXAM_TIME_OVER" | "MOCK_EXAM_ALREADY_SUBMITTED" | "MOCK_EXAM_NOT_SUBMITTED" | "MOCK_EXAM_ROUND_NOT_EDITABLE" | "MOCK_EXAM_ROUND_NUMBER_DUPLICATED" | "MOCK_EXAM_PUBLISH_CHECK_FAILED";
         /** @description API 에러 응답 표준 형식 */
         ErrorResponse: {
             errorCode: components["schemas"]["ErrorCode"];
@@ -3572,6 +3652,66 @@ export interface components {
              * @example SELECT * FROM EMP
              */
             sql: string;
+        };
+        ExpectedPassResponse: {
+            /**
+             * Format: double
+             * @description 최근 응시 평균 총점 (소수 1자리), 응시 0회면 null
+             */
+            averageScore: number | null;
+            /**
+             * Format: int32
+             * @description 계산에 쓴 응시 수 (최대 5)
+             */
+            basisAttemptCount: number;
+            /**
+             * Format: int32
+             * @description 최근 응시 중 합격 비율 (%, 정수), 응시 0회면 null
+             */
+            expectedPassPercent: number | null;
+            /**
+             * Format: double
+             * @description 공식 최근 연도 합격률 (%), 통계 없으면 null
+             */
+            officialPassRatePercent: number | null;
+            /**
+             * Format: int32
+             * @description 공식 합격률 연도, 통계 없으면 null
+             */
+            officialStatisticYear: number | null;
+            /**
+             * Format: int32
+             * @description 합격 총점 (점, 이상)
+             */
+            passScore: number;
+            /**
+             * Format: int32
+             * @description 그중 합격 응시 수
+             */
+            passedAttemptCount: number;
+            subjectAverages: components["schemas"]["ExpectedPassSubjectAverage"][];
+        };
+        ExpectedPassSubjectAverage: {
+            /**
+             * Format: double
+             * @description 최근 응시 과목 평균 점수 (소수 1자리)
+             */
+            averageScore: number;
+            /**
+             * Format: int32
+             * @description 과락 기준 점수 (점, 미만이면 과락)
+             */
+            failBelowScore: number;
+            /** @description 과락 위험: 평균이 과락 기준 + 4점 이하 */
+            isFailRisk: boolean;
+            /**
+             * Format: int32
+             * @description 과목 만점 (점)
+             */
+            maxScore: number;
+            /** @enum {string} */
+            subject: "SUBJECT_ONE" | "SUBJECT_TWO";
+            subjectName: string;
         };
         ExplainErrorRequest: {
             errorMessage?: string;
@@ -3987,6 +4127,75 @@ export interface components {
             isComebackEnabled: boolean;
             isExamCountdownEnabled: boolean;
             isStudyReminderEnabled: boolean;
+        };
+        OxAnswerRequest: {
+            cardKey: string;
+            isCorrect: boolean;
+        };
+        OxAnswerResponse: {
+            /**
+             * Format: int32
+             * @description 갱신된 Leitner 칸 (1~5)
+             */
+            box: number;
+            cardKey: string;
+            /**
+             * Format: int32
+             * @description 이 카드 연속 정답 수
+             */
+            correctStreak: number;
+            /**
+             * Format: date
+             * @description 다음 출제일 (KST)
+             */
+            nextReviewDate: string;
+            /**
+             * Format: int32
+             * @description 오늘(KST) 푼 카드 수
+             */
+            todayAnsweredCount: number;
+        };
+        OxCardItem: {
+            /**
+             * Format: int32
+             * @description 현재 Leitner 칸 (1~5), 처음 보는 카드면 null
+             */
+            box: number | null;
+            /** @description 카드 식별 키 ({개념 uuid}:{문장 해시 16자}) */
+            cardKey: string;
+            conceptTitle: string;
+            /** Format: uuid */
+            conceptUuid: string;
+            /** @description 정답 (true: O, false: X) */
+            isTrue: boolean;
+            reason: string;
+            statement: string;
+            topicName: string;
+        };
+        OxCardSetResponse: {
+            cards: components["schemas"]["OxCardItem"][];
+            /**
+             * Format: int32
+             * @description 오늘 목표 장 수
+             */
+            dailyGoalCount: number;
+            /**
+             * Format: int32
+             * @description 지금 복습할 카드 전체 수 (이번 묶음 밖 포함)
+             */
+            dueCardCount: number;
+            /** @description 잠긴 단원(무료 회원)에 카드가 더 있을 수 있음 */
+            hasLockedTopics: boolean;
+            /**
+             * Format: int32
+             * @description 아직 안 푼 카드 전체 수 (이번 묶음 밖 포함)
+             */
+            newCardCount: number;
+            /**
+             * Format: int32
+             * @description 오늘(KST) 푼 카드 수 (같은 카드 여러 번은 1장)
+             */
+            todayAnsweredCount: number;
         };
         PageQuestionSummary: {
             content: components["schemas"]["QuestionSummary"][];
@@ -6302,6 +6511,52 @@ export interface operations {
             };
         };
     };
+    answer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OxAnswerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OxAnswerResponse"];
+                };
+            };
+        };
+    };
+    getCardSet: {
+        parameters: {
+            query?: {
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OxCardSetResponse"];
+                };
+            };
+        };
+    };
     getProgress: {
         parameters: {
             query?: never;
@@ -6360,6 +6615,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AiCommentResponse"];
+                };
+            };
+        };
+    };
+    getExpectedPass: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExpectedPassResponse"];
                 };
             };
         };

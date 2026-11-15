@@ -10,8 +10,8 @@ typedef PreparedLockScreenChoices = ({
   List<ChoiceItem> items,
 });
 
-/// 잠금화면 화면 단계 3개: 불러오는 중, 문제, 크레딧 소진
-enum LockScreenPhase { loading, question, exhausted }
+/// 잠금화면 화면 단계 4개: 불러오는 중, 문제, OX 복습 카드(#1110, 카드 상태는 lockScreenOxCardProvider), 크레딧 소진
+enum LockScreenPhase { loading, question, oxCard, exhausted }
 
 /// 잠금화면 문제 상태 (미리보기도 같은 모양으로 본문을 그림)
 @immutable

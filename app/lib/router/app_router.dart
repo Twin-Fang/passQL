@@ -46,6 +46,7 @@ import '../presentation/pages/questions/topic_list_page.dart';
 import '../presentation/pages/questions/chapter_page.dart';
 import '../presentation/pages/questions/chapter_result_page.dart';
 import '../presentation/pages/questions/hardest_questions_page.dart';
+import '../presentation/pages/ox_quiz/ox_quiz_page.dart';
 import '../presentation/pages/questions/random_practice_summary_page.dart';
 import '../presentation/pages/questions/question_detail_page.dart';
 import '../presentation/pages/result/result_page.dart';
@@ -301,6 +302,12 @@ abstract final class AppRouter {
         path: AppRoutes.hardestPractice,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const ChapterPage(flow: HardestFlow()),
+      ),
+      // OX 퀴즈 (#1083)
+      GoRoute(
+        path: AppRoutes.oxQuiz,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const OxQuizPage(),
       ),
       // 즐겨찾기 목록·풀기 (#1082)
       GoRoute(
