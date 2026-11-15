@@ -350,6 +350,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/bookmarks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 즐겨찾기 목록
+         * @description ## 인증(JWT): **필요** | 등급 제한 없음
+         *     ## 요청 파라미터
+         *     - page (기본 0), size (기본 20, 1~50 보정)
+         *     ## 반환값 (QuestionBookmarksResponse)
+         *     - items[]: questionUuid, stemPreview(50자), topicName, subject(SUBJECT_ONE | SUBJECT_TWO), bookmarkedAt
+         *     - totalCount, page, hasNext
+         *     - 활성 문제만, 최근 추가 순
+         */
+        get: operations["getBookmarks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bookmarks/practice-set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 즐겨찾기 풀기 묶음
+         * @description ## 인증(JWT): **필요** | 등급 제한 없음 (풀이는 문제 상세의 기존 크레딧 규칙)
+         *     - size (기본 10, 1~10 보정)
+         *     - 반환 QuestionBookmarkPracticeSetResponse { questionUuids }: 활성 즐겨찾기 문제 무작위, 없으면 빈 목록
+         */
+        get: operations["getPracticeSet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/community/feed": {
         parameters: {
             query?: never;
@@ -2283,7 +2331,56 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 오답 노트 조회
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 등급
+         *     - 프로 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED)
+         *
+         *     ## 요청 파라미터
+         *     - subject (optional): SUBJECT_ONE 1과목(토픽 data_modeling) | SUBJECT_TWO 2과목(그 외), 없으면 전체
+         *     - sort (optional): RECENT 최근 틀린 순(기본) | MOST_WRONG 많이 틀린 순
+         *     - includeResolved (기본 false): true 면 정리된 문제(그 문제 최신 제출이 정답)도 포함
+         *     - size (기본 20, 1~100 보정)
+         *     - 없는 subject·sort 값 > 400 INVALID_INPUT_VALUE
+         *
+         *     ## 반환값 (WrongQuestionsResponse)
+         *     - items[]: questionUuid, stemPreview(50자), topicName, lastWrongAt, wrongCount(틀린 횟수), isResolved, subject
+         *     - totalCount: 필터 적용 전체 수 (size 제한 전)
+         *     - 활성 문제만
+         */
         get: operations["getWrongQuestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/progress/wrong-questions/retry-set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 오답 다시 풀기 묶음
+         * @description ## 인증(JWT): **필요**
+         *
+         *     ## 등급
+         *     - 프로 전용 (오답 노트와 같은 기능 단위)
+         *
+         *     ## 요청 파라미터
+         *     - subject (optional): SUBJECT_ONE | SUBJECT_TWO, 없으면 전체
+         *     - size (기본 10, 1~10 보정)
+         *
+         *     ## 반환값 (WrongQuestionRetrySetResponse)
+         *     - questionUuids: 정리 안 된 활성 오답 문제, 많이 틀린 순(같으면 최근 틀린 순). 없으면 빈 목록
+         */
+        get: operations["getWrongQuestionRetrySet"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2304,6 +2401,38 @@ export interface paths {
          * @description 토픽 골라 풀기 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED). latestTrend=true 면 최신 출제 경향 문제만. 응답 isLatestTrend 는 '최신 경향' 배지 표시 여부. size 최대 50 으로 보정.
          */
         get: operations["getQuestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/questions/hardest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 오답률 TOP
+         * @description ## 인증(JWT): **필요** | 등급 제한 없음 (풀이는 문제 상세 열기의 크레딧 규칙)
+         *
+         *     ## 집계
+         *     - 활성 문제별 회원 첫 제출만 셈 (테스트 계정 제외)
+         *     - 오답률 = 첫 제출 오답 회원 수 / 첫 제출 회원 수, 첫 제출 회원 20명 미만 문제 제외
+         *     - 오답률 내림차순 (같으면 첫 제출 회원 많은 순), 서버 메모리 1시간 보관 (기동 후 첫 요청에서 계산)
+         *
+         *     ## 요청 파라미터
+         *     - limit (기본 30, 1~30 보정)
+         *
+         *     ## 반환값 (HardestQuestionsResponse)
+         *     - items[]: rank, questionUuid, stemPreview(50자), topicName, subject(SUBJECT_ONE | SUBJECT_TWO), wrongRatePercent(소수 1자리), attemptCount
+         *     - aggregatedAt: 집계 기준 시각, minimumAttemptCount: 20
+         */
+        get: operations["getHardestQuestions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2401,6 +2530,35 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/questions/{questionUuid}/bookmark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * 문제 즐겨찾기 추가
+         * @description ## 인증(JWT): **필요** | 등급 제한 없음
+         *     - 이미 즐겨찾기면 그대로 성공 (같은 요청 반복 안전)
+         *     - 없거나 비활성 문제 > 404 QUESTION_NOT_FOUND
+         *     - 반환 QuestionBookmarkStatusResponse { questionUuid, isBookmarked=true }
+         */
+        put: operations["addBookmark"];
+        post?: never;
+        /**
+         * 문제 즐겨찾기 해제
+         * @description ## 인증(JWT): **필요** | 등급 제한 없음
+         *     - 즐겨찾기가 없어도 성공 (같은 요청 반복 안전)
+         *     - 반환 QuestionBookmarkStatusResponse { questionUuid, isBookmarked=false }
+         */
+        delete: operations["removeBookmark"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3445,6 +3603,42 @@ export interface components {
             messageType: "GENERAL" | "COUNTDOWN" | "URGENT" | "EXAM_DAY";
             nickname: string;
         };
+        HardestQuestionItem: {
+            /**
+             * Format: int32
+             * @description 첫 제출 회원 수
+             */
+            attemptCount: number;
+            /** Format: uuid */
+            questionUuid: string;
+            /**
+             * Format: int32
+             * @description 순위 (1부터)
+             */
+            rank: number;
+            stemPreview: string;
+            /** @enum {string} */
+            subject: "SUBJECT_ONE" | "SUBJECT_TWO";
+            topicName: string | null;
+            /**
+             * Format: double
+             * @description 첫 제출 오답률 (%, 소수 1자리)
+             */
+            wrongRatePercent: number;
+        };
+        HardestQuestionsResponse: {
+            /**
+             * Format: date-time
+             * @description 집계 기준 시각 (서버 KST)
+             */
+            aggregatedAt: string;
+            items: components["schemas"]["HardestQuestionItem"][];
+            /**
+             * Format: int32
+             * @description 목록에 넣는 최소 첫 제출 회원 수
+             */
+            minimumAttemptCount: number;
+        };
         HeatmapEntry: {
             /** Format: int32 */
             correctCount: number;
@@ -3860,6 +4054,32 @@ export interface components {
         PushTokenResponse: {
             isPushEnabled: boolean;
         };
+        QuestionBookmarkItem: {
+            /** Format: date-time */
+            bookmarkedAt: string;
+            /** Format: uuid */
+            questionUuid: string;
+            stemPreview: string;
+            /** @enum {string} */
+            subject: "SUBJECT_ONE" | "SUBJECT_TWO";
+            topicName: string | null;
+        };
+        QuestionBookmarkPracticeSetResponse: {
+            questionUuids: string[];
+        };
+        QuestionBookmarkStatusResponse: {
+            isBookmarked: boolean;
+            /** Format: uuid */
+            questionUuid: string;
+        };
+        QuestionBookmarksResponse: {
+            hasNext: boolean;
+            items: components["schemas"]["QuestionBookmarkItem"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int64 */
+            totalCount: number;
+        };
         QuestionDetail: {
             answerSql: string | null;
             /** @enum {string} */
@@ -3870,6 +4090,8 @@ export interface components {
             /** @enum {string|null} */
             executionMode: "EXECUTABLE" | "CONCEPT_ONLY" | null;
             hint: string | null;
+            /** @description 로그인 회원의 즐겨찾기 여부 (#1082) */
+            isBookmarked: boolean;
             /** @description 오늘의 세트 무료 체험 여부: 무료 회원이 이 문제에서 SQL 실행·AI 해설을 쓸 수 있으면 true (프로·결제 꺼짐은 false, #992) */
             isDailySetFreeTrial: boolean;
             /** @description 최신 출제 경향 반영 문제 여부 ('최신 경향' 배지, #523) */
@@ -4270,16 +4492,34 @@ export interface components {
             weekStartDate: string;
         };
         WrongQuestionItem: {
+            /** @description 정리됨: 그 문제 최신 제출이 정답 (#1081) */
+            isResolved: boolean;
             /** Format: date-time */
             lastWrongAt: string;
             /** Format: uuid */
             questionUuid: string;
             stemPreview: string;
+            /**
+             * @description 과목: 토픽 data_modeling 이면 SUBJECT_ONE, 그 외 SUBJECT_TWO (#1081)
+             * @enum {string}
+             */
+            subject: "SUBJECT_ONE" | "SUBJECT_TWO";
             topicName: string | null;
+            /**
+             * Format: int32
+             * @description 틀린 횟수 (#1081)
+             */
+            wrongCount: number;
+        };
+        WrongQuestionRetrySetResponse: {
+            questionUuids: string[];
         };
         WrongQuestionsResponse: {
             items: components["schemas"]["WrongQuestionItem"][];
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description 필터(과목·정리됨 포함 여부)를 적용한 전체 오답 문제 수 (size 제한 전)
+             */
             totalCount: number;
         };
         YearlyStatistic: {
@@ -4597,6 +4837,51 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["MemberPlanResponse"];
+                };
+            };
+        };
+    };
+    getBookmarks: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuestionBookmarksResponse"];
+                };
+            };
+        };
+    };
+    getPracticeSet: {
+        parameters: {
+            query?: {
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuestionBookmarkPracticeSetResponse"];
                 };
             };
         };
@@ -6127,6 +6412,9 @@ export interface operations {
     getWrongQuestions: {
         parameters: {
             query?: {
+                subject?: string;
+                sort?: string;
+                includeResolved?: boolean;
                 size?: number;
             };
             header?: never;
@@ -6142,6 +6430,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["WrongQuestionsResponse"];
+                };
+            };
+        };
+    };
+    getWrongQuestionRetrySet: {
+        parameters: {
+            query?: {
+                subject?: string;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["WrongQuestionRetrySetResponse"];
                 };
             };
         };
@@ -6169,6 +6480,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PageQuestionSummary"];
+                };
+            };
+        };
+    };
+    getHardestQuestions: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["HardestQuestionsResponse"];
                 };
             };
         };
@@ -6259,6 +6592,50 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["QuestionDetail"];
+                };
+            };
+        };
+    };
+    addBookmark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuestionBookmarkStatusResponse"];
+                };
+            };
+        };
+    };
+    removeBookmark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuestionBookmarkStatusResponse"];
                 };
             };
         };

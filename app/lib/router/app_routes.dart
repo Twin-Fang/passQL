@@ -98,6 +98,20 @@ abstract final class AppRoutes {
 
   static const String wrongNotes = '/settings/wrong-notes';
 
+  /// 오답 다시 풀기 풀이 (#1081). 오답 노트 상단 버튼에서 진입, subject 쿼리: 과목 서버 값(없으면 전체)
+  static const String wrongNoteRetrySet = '/settings/wrong-notes/retry';
+
+  /// 과목 필터 쿼리 키 (값은 서버 MockExamSubject 이름)
+  static const String subjectQuery = 'subject';
+
+  /// 오답 다시 풀기 진입: /settings/wrong-notes/retry(?subject=SUBJECT_ONE)
+  static String wrongNoteRetrySetOf(String? subjectQueryValue) => Uri(
+    path: wrongNoteRetrySet,
+    queryParameters: subjectQueryValue == null
+        ? null
+        : {subjectQuery: subjectQueryValue},
+  ).toString();
+
   /// 차단한 사용자 관리 (#525). 설정에서 진입
   static const String blockedMembers = '/settings/blocked-members';
 
@@ -109,6 +123,18 @@ abstract final class AppRoutes {
 
   /// 크레딧 내역: 날짜별 받은·쓴 크레딧 (#974). 프로필 오늘 크레딧 `내역`에서 진입
   static const String creditHistory = '/account/credit-history';
+
+  /// 오답률 TOP 30 목록 (#1080). 문제 탭 오답률 TOP 행에서 진입 (/questions/:questionUuid 와 겹치지 않게 별도 경로)
+  static const String hardestQuestions = '/hardest-questions';
+
+  /// 오답률 TOP 한 번에 풀기 풀이. 오답률 TOP 화면 버튼에서 진입
+  static const String hardestPractice = '/hardest-questions/practice';
+
+  /// 즐겨찾기 목록 (#1082). 프로필 즐겨찾기 행에서 진입
+  static const String bookmarks = '/bookmarks';
+
+  /// 즐겨찾기 풀기 풀이 (무작위 최대 10문제). 즐겨찾기 화면 버튼에서 진입
+  static const String bookmarkPractice = '/bookmarks/practice';
 
   /// 알림함 (알림·공지 탭). 홈 종 아이콘에서 진입
   static const String notificationInbox = '/notifications';

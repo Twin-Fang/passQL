@@ -40,7 +40,9 @@ mixin _$QuestionDetail {
       throw _privateConstructorUsedError; // 최신 출제 경향 반영 문제 ('최신 경향' 배지, 구버전 서버면 false, #523)
   bool get isLatestTrend =>
       throw _privateConstructorUsedError; // 오늘의 세트 무료 체험: 무료 회원도 이 문제에서 SQL 실행·AI 해설 사용 (구버전 서버면 false, #992)
-  bool get isDailySetFreeTrial => throw _privateConstructorUsedError;
+  bool get isDailySetFreeTrial =>
+      throw _privateConstructorUsedError; // 로그인 회원의 즐겨찾기 여부 (구버전 서버면 false, #1082)
+  bool get isBookmarked => throw _privateConstructorUsedError;
 
   /// Serializes this QuestionDetail to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -76,6 +78,7 @@ abstract class $QuestionDetailCopyWith<$Res> {
     List<ChoiceSetSummary> choiceSets,
     bool isLatestTrend,
     bool isDailySetFreeTrial,
+    bool isBookmarked,
   });
 }
 
@@ -110,6 +113,7 @@ class _$QuestionDetailCopyWithImpl<$Res, $Val extends QuestionDetail>
     Object? choiceSets = null,
     Object? isLatestTrend = null,
     Object? isDailySetFreeTrial = null,
+    Object? isBookmarked = null,
   }) {
     return _then(
       _value.copyWith(
@@ -177,6 +181,10 @@ class _$QuestionDetailCopyWithImpl<$Res, $Val extends QuestionDetail>
                 ? _value.isDailySetFreeTrial
                 : isDailySetFreeTrial // ignore: cast_nullable_to_non_nullable
                       as bool,
+            isBookmarked: null == isBookmarked
+                ? _value.isBookmarked
+                : isBookmarked // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -209,6 +217,7 @@ abstract class _$$QuestionDetailImplCopyWith<$Res>
     List<ChoiceSetSummary> choiceSets,
     bool isLatestTrend,
     bool isDailySetFreeTrial,
+    bool isBookmarked,
   });
 }
 
@@ -242,6 +251,7 @@ class __$$QuestionDetailImplCopyWithImpl<$Res>
     Object? choiceSets = null,
     Object? isLatestTrend = null,
     Object? isDailySetFreeTrial = null,
+    Object? isBookmarked = null,
   }) {
     return _then(
       _$QuestionDetailImpl(
@@ -309,6 +319,10 @@ class __$$QuestionDetailImplCopyWithImpl<$Res>
             ? _value.isDailySetFreeTrial
             : isDailySetFreeTrial // ignore: cast_nullable_to_non_nullable
                   as bool,
+        isBookmarked: null == isBookmarked
+            ? _value.isBookmarked
+            : isBookmarked // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -334,6 +348,7 @@ class _$QuestionDetailImpl implements _QuestionDetail {
     final List<ChoiceSetSummary> choiceSets = const [],
     this.isLatestTrend = false,
     this.isDailySetFreeTrial = false,
+    this.isBookmarked = false,
   }) : _schemaTables = schemaTables,
        _choiceSets = choiceSets;
 
@@ -392,10 +407,14 @@ class _$QuestionDetailImpl implements _QuestionDetail {
   @override
   @JsonKey()
   final bool isDailySetFreeTrial;
+  // 로그인 회원의 즐겨찾기 여부 (구버전 서버면 false, #1082)
+  @override
+  @JsonKey()
+  final bool isBookmarked;
 
   @override
   String toString() {
-    return 'QuestionDetail(questionUuid: $questionUuid, topicName: $topicName, subtopicName: $subtopicName, difficulty: $difficulty, executionMode: $executionMode, stem: $stem, schemaDisplay: $schemaDisplay, schemaDdl: $schemaDdl, schemaSampleData: $schemaSampleData, schemaIntent: $schemaIntent, schemaTables: $schemaTables, answerSql: $answerSql, hint: $hint, choiceSets: $choiceSets, isLatestTrend: $isLatestTrend, isDailySetFreeTrial: $isDailySetFreeTrial)';
+    return 'QuestionDetail(questionUuid: $questionUuid, topicName: $topicName, subtopicName: $subtopicName, difficulty: $difficulty, executionMode: $executionMode, stem: $stem, schemaDisplay: $schemaDisplay, schemaDdl: $schemaDdl, schemaSampleData: $schemaSampleData, schemaIntent: $schemaIntent, schemaTables: $schemaTables, answerSql: $answerSql, hint: $hint, choiceSets: $choiceSets, isLatestTrend: $isLatestTrend, isDailySetFreeTrial: $isDailySetFreeTrial, isBookmarked: $isBookmarked)';
   }
 
   @override
@@ -436,7 +455,9 @@ class _$QuestionDetailImpl implements _QuestionDetail {
             (identical(other.isLatestTrend, isLatestTrend) ||
                 other.isLatestTrend == isLatestTrend) &&
             (identical(other.isDailySetFreeTrial, isDailySetFreeTrial) ||
-                other.isDailySetFreeTrial == isDailySetFreeTrial));
+                other.isDailySetFreeTrial == isDailySetFreeTrial) &&
+            (identical(other.isBookmarked, isBookmarked) ||
+                other.isBookmarked == isBookmarked));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -459,6 +480,7 @@ class _$QuestionDetailImpl implements _QuestionDetail {
     const DeepCollectionEquality().hash(_choiceSets),
     isLatestTrend,
     isDailySetFreeTrial,
+    isBookmarked,
   );
 
   /// Create a copy of QuestionDetail
@@ -496,6 +518,7 @@ abstract class _QuestionDetail implements QuestionDetail {
     final List<ChoiceSetSummary> choiceSets,
     final bool isLatestTrend,
     final bool isDailySetFreeTrial,
+    final bool isBookmarked,
   }) = _$QuestionDetailImpl;
 
   factory _QuestionDetail.fromJson(Map<String, dynamic> json) =
@@ -532,7 +555,9 @@ abstract class _QuestionDetail implements QuestionDetail {
   @override
   bool get isLatestTrend; // 오늘의 세트 무료 체험: 무료 회원도 이 문제에서 SQL 실행·AI 해설 사용 (구버전 서버면 false, #992)
   @override
-  bool get isDailySetFreeTrial;
+  bool get isDailySetFreeTrial; // 로그인 회원의 즐겨찾기 여부 (구버전 서버면 false, #1082)
+  @override
+  bool get isBookmarked;
 
   /// Create a copy of QuestionDetail
   /// with the given fields replaced by the non-null parameter values.

@@ -35,9 +35,20 @@ abstract class ProgressApiClient {
     @Query('sessionUuid') String? sessionUuid,
   });
 
-  /// 최근 오답 노트. 같은 문제는 가장 최근 오답 시각 기준으로 한 번만 내려온다.
+  /// 오답 노트. 같은 문제는 한 번만, 기본은 정리 안 된 오답 최근 틀린 순 (#1081)
+  /// subject: SUBJECT_ONE | SUBJECT_TWO (없으면 전체), sort: RECENT | MOST_WRONG
   @GET('/progress/wrong-questions')
   Future<WrongQuestionsResponse> getWrongQuestions({
+    @Query('size') int? size,
+    @Query('subject') String? subject,
+    @Query('sort') String? sort,
+    @Query('includeResolved') bool? includeResolved,
+  });
+
+  /// 오답 다시 풀기 묶음: 정리 안 된 오답 많이 틀린 순 최대 10개 (#1081, 프로)
+  @GET('/progress/wrong-questions/retry-set')
+  Future<WrongQuestionRetrySetResponse> getWrongQuestionRetrySet({
+    @Query('subject') String? subject,
     @Query('size') int? size,
   });
 

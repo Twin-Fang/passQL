@@ -20,6 +20,7 @@ import '../../widgets/pro/pro_plan_chip_slot.dart';
 import '../../widgets/question/questions_tab_segmented_control.dart';
 import '../../widgets/question/topic_card.dart';
 import '../../widgets/mock_exam/mock_exam_entry_row.dart';
+import '../../widgets/question/hardest_questions_entry_row.dart';
 import '../../widgets/question/wrong_notes_shortcut_row.dart';
 import '../../../router/questions_tab_view.dart';
 
@@ -272,6 +273,8 @@ class _RandomPracticeSection extends ConsumerWidget {
             // 크레딧 0 부제·화살표 판정은 홈 행과 같음
             const RandomPracticeRow(),
             if (hasMockExamRow) const MockExamEntryRow(),
+            // 오답률 TOP 은 무료도 목록 공개 (#1080)
+            if (hasMockExamRow) const HardestQuestionsEntryRow(),
           ],
         ),
       ),
@@ -279,14 +282,18 @@ class _RandomPracticeSection extends ConsumerWidget {
   }
 }
 
-/// 세그먼트 아래 공통 영역: 모의고사 + 오답 노트 (보기와 상관없이 항상 보임, 보기 방식은 풀이 화면 칩·설정에서, #907)
+/// 세그먼트 아래 공통 영역: 모의고사 + 오답 노트 + 오답률 TOP (보기와 상관없이 항상 보임, 보기 방식은 풀이 화면 칩·설정에서, #907)
 class _CommonShortcutSection extends StatelessWidget {
   const _CommonShortcutSection();
 
   @override
   Widget build(BuildContext context) {
     return const PassqlGroupedSection(
-      children: [MockExamEntryRow(), WrongNotesShortcutRow()],
+      children: [
+        MockExamEntryRow(),
+        WrongNotesShortcutRow(),
+        HardestQuestionsEntryRow(),
+      ],
     );
   }
 }

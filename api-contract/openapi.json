@@ -2132,6 +2132,63 @@
         "required" : [ "message", "messageType", "nickname" ],
         "type" : "object"
       },
+      "HardestQuestionItem" : {
+        "properties" : {
+          "attemptCount" : {
+            "description" : "첫 제출 회원 수",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "questionUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "rank" : {
+            "description" : "순위 (1부터)",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "stemPreview" : {
+            "type" : "string"
+          },
+          "subject" : {
+            "enum" : [ "SUBJECT_ONE", "SUBJECT_TWO" ],
+            "type" : "string"
+          },
+          "topicName" : {
+            "type" : [ "string", "null" ]
+          },
+          "wrongRatePercent" : {
+            "description" : "첫 제출 오답률 (%, 소수 1자리)",
+            "format" : "double",
+            "type" : "number"
+          }
+        },
+        "required" : [ "attemptCount", "questionUuid", "rank", "stemPreview", "subject", "topicName", "wrongRatePercent" ],
+        "type" : "object"
+      },
+      "HardestQuestionsResponse" : {
+        "properties" : {
+          "aggregatedAt" : {
+            "description" : "집계 기준 시각 (서버 KST)",
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/HardestQuestionItem"
+            },
+            "type" : "array"
+          },
+          "minimumAttemptCount" : {
+            "description" : "목록에 넣는 최소 첫 제출 회원 수",
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "aggregatedAt", "items", "minimumAttemptCount" ],
+        "type" : "object"
+      },
       "HeatmapEntry" : {
         "properties" : {
           "correctCount" : {
@@ -3193,6 +3250,79 @@
         "required" : [ "isPushEnabled" ],
         "type" : "object"
       },
+      "QuestionBookmarkItem" : {
+        "properties" : {
+          "bookmarkedAt" : {
+            "format" : "date-time",
+            "type" : "string"
+          },
+          "questionUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "stemPreview" : {
+            "type" : "string"
+          },
+          "subject" : {
+            "enum" : [ "SUBJECT_ONE", "SUBJECT_TWO" ],
+            "type" : "string"
+          },
+          "topicName" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "bookmarkedAt", "questionUuid", "stemPreview", "subject", "topicName" ],
+        "type" : "object"
+      },
+      "QuestionBookmarkPracticeSetResponse" : {
+        "properties" : {
+          "questionUuids" : {
+            "items" : {
+              "format" : "uuid",
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "questionUuids" ],
+        "type" : "object"
+      },
+      "QuestionBookmarkStatusResponse" : {
+        "properties" : {
+          "isBookmarked" : {
+            "type" : "boolean"
+          },
+          "questionUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        },
+        "required" : [ "isBookmarked", "questionUuid" ],
+        "type" : "object"
+      },
+      "QuestionBookmarksResponse" : {
+        "properties" : {
+          "hasNext" : {
+            "type" : "boolean"
+          },
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/QuestionBookmarkItem"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "totalCount" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "hasNext", "items", "page", "totalCount" ],
+        "type" : "object"
+      },
       "QuestionDetail" : {
         "properties" : {
           "answerSql" : {
@@ -3218,6 +3348,10 @@
           },
           "hint" : {
             "type" : [ "string", "null" ]
+          },
+          "isBookmarked" : {
+            "description" : "로그인 회원의 즐겨찾기 여부 (#1082)",
+            "type" : "boolean"
           },
           "isDailySetFreeTrial" : {
             "description" : "오늘의 세트 무료 체험 여부: 무료 회원이 이 문제에서 SQL 실행·AI 해설을 쓸 수 있으면 true (프로·결제 꺼짐은 false, #992)",
@@ -3260,7 +3394,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "answerSql", "choiceSetPolicy", "choiceSets", "difficulty", "executionMode", "hint", "isDailySetFreeTrial", "isLatestTrend", "questionUuid", "schemaDdl", "schemaDisplay", "schemaIntent", "schemaSampleData", "schemaTables", "stem", "subtopicName", "topicName" ],
+        "required" : [ "answerSql", "choiceSetPolicy", "choiceSets", "difficulty", "executionMode", "hint", "isBookmarked", "isDailySetFreeTrial", "isLatestTrend", "questionUuid", "schemaDdl", "schemaDisplay", "schemaIntent", "schemaSampleData", "schemaTables", "stem", "subtopicName", "topicName" ],
         "type" : "object"
       },
       "QuestionMark" : {
@@ -4259,6 +4393,10 @@
       },
       "WrongQuestionItem" : {
         "properties" : {
+          "isResolved" : {
+            "description" : "정리됨: 그 문제 최신 제출이 정답 (#1081)",
+            "type" : "boolean"
+          },
           "lastWrongAt" : {
             "format" : "date-time",
             "type" : "string"
@@ -4270,11 +4408,34 @@
           "stemPreview" : {
             "type" : "string"
           },
+          "subject" : {
+            "description" : "과목: 토픽 data_modeling 이면 SUBJECT_ONE, 그 외 SUBJECT_TWO (#1081)",
+            "enum" : [ "SUBJECT_ONE", "SUBJECT_TWO" ],
+            "type" : "string"
+          },
           "topicName" : {
             "type" : [ "string", "null" ]
+          },
+          "wrongCount" : {
+            "description" : "틀린 횟수 (#1081)",
+            "format" : "int32",
+            "type" : "integer"
           }
         },
-        "required" : [ "lastWrongAt", "questionUuid", "stemPreview", "topicName" ],
+        "required" : [ "isResolved", "lastWrongAt", "questionUuid", "stemPreview", "subject", "topicName", "wrongCount" ],
+        "type" : "object"
+      },
+      "WrongQuestionRetrySetResponse" : {
+        "properties" : {
+          "questionUuids" : {
+            "items" : {
+              "format" : "uuid",
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "questionUuids" ],
         "type" : "object"
       },
       "WrongQuestionsResponse" : {
@@ -4286,6 +4447,7 @@
             "type" : "array"
           },
           "totalCount" : {
+            "description" : "필터(과목·정리됨 포함 여부)를 적용한 전체 오답 문제 수 (size 제한 전)",
             "format" : "int64",
             "type" : "integer"
           }
@@ -4692,6 +4854,75 @@
         },
         "summary" : "Play 이용권 구매 확인",
         "tags" : [ "Billing" ]
+      }
+    },
+    "/api/bookmarks" : {
+      "get" : {
+        "description" : "## 인증(JWT): **필요** | 등급 제한 없음\n## 요청 파라미터\n- page (기본 0), size (기본 20, 1~50 보정)\n## 반환값 (QuestionBookmarksResponse)\n- items[]: questionUuid, stemPreview(50자), topicName, subject(SUBJECT_ONE | SUBJECT_TWO), bookmarkedAt\n- totalCount, page, hasNext\n- 활성 문제만, 최근 추가 순\n",
+        "operationId" : "getBookmarks",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 20,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QuestionBookmarksResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "즐겨찾기 목록",
+        "tags" : [ "Bookmark" ]
+      }
+    },
+    "/api/bookmarks/practice-set" : {
+      "get" : {
+        "description" : "## 인증(JWT): **필요** | 등급 제한 없음 (풀이는 문제 상세의 기존 크레딧 규칙)\n- size (기본 10, 1~10 보정)\n- 반환 QuestionBookmarkPracticeSetResponse { questionUuids }: 활성 즐겨찾기 문제 무작위, 없으면 빈 목록\n",
+        "operationId" : "getPracticeSet",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 10,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QuestionBookmarkPracticeSetResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "즐겨찾기 풀기 묶음",
+        "tags" : [ "Bookmark" ]
       }
     },
     "/api/community/feed" : {
@@ -6626,8 +6857,31 @@
     },
     "/api/progress/wrong-questions" : {
       "get" : {
+        "description" : "## 인증(JWT): **필요**\n\n## 등급\n- 프로 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED)\n\n## 요청 파라미터\n- subject (optional): SUBJECT_ONE 1과목(토픽 data_modeling) | SUBJECT_TWO 2과목(그 외), 없으면 전체\n- sort (optional): RECENT 최근 틀린 순(기본) | MOST_WRONG 많이 틀린 순\n- includeResolved (기본 false): true 면 정리된 문제(그 문제 최신 제출이 정답)도 포함\n- size (기본 20, 1~100 보정)\n- 없는 subject·sort 값 > 400 INVALID_INPUT_VALUE\n\n## 반환값 (WrongQuestionsResponse)\n- items[]: questionUuid, stemPreview(50자), topicName, lastWrongAt, wrongCount(틀린 횟수), isResolved, subject\n- totalCount: 필터 적용 전체 수 (size 제한 전)\n- 활성 문제만\n",
         "operationId" : "getWrongQuestions",
         "parameters" : [ {
+          "in" : "query",
+          "name" : "subject",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "sort",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "includeResolved",
+          "required" : false,
+          "schema" : {
+            "default" : false,
+            "type" : "boolean"
+          }
+        }, {
           "in" : "query",
           "name" : "size",
           "required" : false,
@@ -6649,6 +6903,44 @@
             "description" : "OK"
           }
         },
+        "summary" : "오답 노트 조회",
+        "tags" : [ "Progress" ]
+      }
+    },
+    "/api/progress/wrong-questions/retry-set" : {
+      "get" : {
+        "description" : "## 인증(JWT): **필요**\n\n## 등급\n- 프로 전용 (오답 노트와 같은 기능 단위)\n\n## 요청 파라미터\n- subject (optional): SUBJECT_ONE | SUBJECT_TWO, 없으면 전체\n- size (기본 10, 1~10 보정)\n\n## 반환값 (WrongQuestionRetrySetResponse)\n- questionUuids: 정리 안 된 활성 오답 문제, 많이 틀린 순(같으면 최근 틀린 순). 없으면 빈 목록\n",
+        "operationId" : "getWrongQuestionRetrySet",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "subject",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 10,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WrongQuestionRetrySetResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "오답 다시 풀기 묶음",
         "tags" : [ "Progress" ]
       }
     },
@@ -6713,6 +7005,36 @@
           }
         },
         "summary" : "문제 목록 조회",
+        "tags" : [ "Question" ]
+      }
+    },
+    "/api/questions/hardest" : {
+      "get" : {
+        "description" : "## 인증(JWT): **필요** | 등급 제한 없음 (풀이는 문제 상세 열기의 크레딧 규칙)\n\n## 집계\n- 활성 문제별 회원 첫 제출만 셈 (테스트 계정 제외)\n- 오답률 = 첫 제출 오답 회원 수 / 첫 제출 회원 수, 첫 제출 회원 20명 미만 문제 제외\n- 오답률 내림차순 (같으면 첫 제출 회원 많은 순), 서버 메모리 1시간 보관 (기동 후 첫 요청에서 계산)\n\n## 요청 파라미터\n- limit (기본 30, 1~30 보정)\n\n## 반환값 (HardestQuestionsResponse)\n- items[]: rank, questionUuid, stemPreview(50자), topicName, subject(SUBJECT_ONE | SUBJECT_TWO), wrongRatePercent(소수 1자리), attemptCount\n- aggregatedAt: 집계 기준 시각, minimumAttemptCount: 20\n",
+        "operationId" : "getHardestQuestions",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "default" : 30,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/HardestQuestionsResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "오답률 TOP",
         "tags" : [ "Question" ]
       }
     },
@@ -6835,6 +7157,62 @@
         },
         "summary" : "문제 상세 조회",
         "tags" : [ "Question" ]
+      }
+    },
+    "/api/questions/{questionUuid}/bookmark" : {
+      "delete" : {
+        "description" : "## 인증(JWT): **필요** | 등급 제한 없음\n- 즐겨찾기가 없어도 성공 (같은 요청 반복 안전)\n- 반환 QuestionBookmarkStatusResponse { questionUuid, isBookmarked=false }\n",
+        "operationId" : "removeBookmark",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "questionUuid",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QuestionBookmarkStatusResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "문제 즐겨찾기 해제",
+        "tags" : [ "Bookmark" ]
+      },
+      "put" : {
+        "description" : "## 인증(JWT): **필요** | 등급 제한 없음\n- 이미 즐겨찾기면 그대로 성공 (같은 요청 반복 안전)\n- 없거나 비활성 문제 > 404 QUESTION_NOT_FOUND\n- 반환 QuestionBookmarkStatusResponse { questionUuid, isBookmarked=true }\n",
+        "operationId" : "addBookmark",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "questionUuid",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QuestionBookmarkStatusResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "문제 즐겨찾기 추가",
+        "tags" : [ "Bookmark" ]
       }
     },
     "/api/questions/{questionUuid}/execute" : {
@@ -7072,6 +7450,9 @@
   }, {
     "description" : "내 차단 목록 / 차단 해제",
     "name" : "MemberBlock"
+  }, {
+    "description" : "문제 즐겨찾기",
+    "name" : "Bookmark"
   }, {
     "description" : "홈 화면",
     "name" : "Home"

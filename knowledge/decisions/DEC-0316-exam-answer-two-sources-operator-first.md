@@ -4,9 +4,9 @@ id: DEC-0316
 created: 2026-11-14
 reviewed: null
 topics: [practice, admin]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0320
 related: ["[[ISS-0520-sqld-round-answer-key-omr-grading]]", "[[DEC-0264-mock-exam-fixed-rounds-server-judged]]", "[[DEC-0301-mock-exam-ranking-first-attempt-top-percent]]", "[[DEC-0315-exam-answer-page-concept-line-no-original]]"]
 ---
 

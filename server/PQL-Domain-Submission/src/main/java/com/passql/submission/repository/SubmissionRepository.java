@@ -375,30 +375,41 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     );
 
     /**
-     * 마이페이지 오답 노트용 — 최근 틀린 문제 목록 (문제 제목 미리보기 + 토픽명 포함).
+     * 오답 노트 원재료 (#1081): 회원이 한 번이라도 틀린 활성 문제별 틀린 횟수·마지막 오답 시각·최신 제출 정답 여부.
+     * 최신 제출 = 제출 시각 내림차순 1위 (같은 시각은 submission_uuid 내림차순, 정답률 쿼리와 같은 기준).
      *
-     * 동일 문제를 여러 번 틀렸어도 1건만 반환 (GROUP BY question_uuid).
-     * 최신 오답 시각 기준 정렬.
-     *
-     * Object[] = { String questionUuid, String stem, String topicName, LocalDateTime lastWrongAt }
+     * Object[] = { String questionUuid, String stem, String topicName, String topicCode,
+     *              Number wrongCount, Timestamp lastWrongAt, Boolean isLatestSubmissionCorrect }
      */
-    @Query(value =
-        "SELECT CAST(s.question_uuid AS varchar), " +
-        "       q.stem, " +
-        "       t.display_name, " +
-        "       MAX(s.submitted_at) AS last_wrong_at " +
-        "FROM submission s " +
-        "JOIN question q ON q.question_uuid = s.question_uuid " +
-        "JOIN topic t ON t.topic_uuid = q.topic_uuid " +
-        "WHERE s.member_uuid = CAST(:memberUuid AS uuid) " +
-        "  AND s.is_correct = false " +
-        "  AND q.is_active = true " +
-        "GROUP BY s.question_uuid, q.stem, t.display_name " +
-        "ORDER BY last_wrong_at DESC " +
-        "LIMIT :limit",
-        nativeQuery = true)
-    List<Object[]> findWrongQuestionsWithMeta(
-        @Param("memberUuid") String memberUuid,
-        @Param("limit") int limit
-    );
+    @Query(value = """
+        WITH member_submission AS (
+            SELECT s.question_uuid,
+                   s.is_correct,
+                   s.submitted_at,
+                   ROW_NUMBER() OVER (PARTITION BY s.question_uuid ORDER BY s.submitted_at DESC, s.submission_uuid DESC) AS recency_rank
+            FROM submission s
+            WHERE s.member_uuid = CAST(:memberUuid AS uuid)
+        ),
+        wrong_summary AS (
+            SELECT question_uuid,
+                   SUM(CASE WHEN is_correct = false THEN 1 ELSE 0 END) AS wrong_count,
+                   MAX(CASE WHEN is_correct = false THEN submitted_at END) AS last_wrong_at,
+                   BOOL_OR(recency_rank = 1 AND is_correct = true) AS is_latest_correct
+            FROM member_submission
+            GROUP BY question_uuid
+        )
+        SELECT CAST(w.question_uuid AS varchar),
+               q.stem,
+               t.display_name,
+               t.code,
+               w.wrong_count,
+               w.last_wrong_at,
+               w.is_latest_correct
+        FROM wrong_summary w
+        JOIN question q ON q.question_uuid = w.question_uuid
+        LEFT JOIN topic t ON t.topic_uuid = q.topic_uuid
+        WHERE w.wrong_count > 0
+          AND q.is_active = true
+        """, nativeQuery = true)
+    List<Object[]> findWrongQuestionHistories(@Param("memberUuid") String memberUuid);
 }
