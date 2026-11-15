@@ -2,7 +2,7 @@
 type: cluster
 topic: progress-stats
 created: 2026-10-29
-members: 47
+members: 50
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 통계·합격 준비도·학습 현황·순위
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 12개, 열린 이슈 1개. 영역별 정답률은 레이더 그래프 위, 목록 아래(토글 없음)이고 학습 패턴(최근 4주 학습, 공부하는 시간)은 무료, 정답률 상세(난이도별, 오답 정리)는 프로, 판정은 서버 계산기: [[DEC-0274-stats-radar-above-list-study-pattern-free]] (#909, DEC-0206 대체, main 머지, 배포 전). 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 과목별 예상 점수·과락 판정 — [[DEC-0260-exam-forecast-score-thresholds]] (#862, 릴리스 #888). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-13) 모의고사 결과 순위(상위 N%)는 [[DEC-0301-mock-exam-ranking-first-attempt-top-percent]].
+(2026-11-07, 자동 생성) 활성 결정 12개, 열린 이슈 1개. 영역별 정답률은 레이더 그래프 위, 목록 아래(토글 없음)이고 학습 패턴(최근 4주 학습, 공부하는 시간)은 무료, 정답률 상세(난이도별, 오답 정리)는 프로, 판정은 서버 계산기: [[DEC-0274-stats-radar-above-list-study-pattern-free]] (#909, DEC-0206 대체, main 머지, 배포 전). 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 과목별 예상 점수·과락 판정 — [[DEC-0260-exam-forecast-score-thresholds]] (#862, 릴리스 #888). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-13) 모의고사 결과 순위(상위 N%)는 [[DEC-0301-mock-exam-ranking-first-attempt-top-percent]]. (2026-11-16) SQLD 시험 소개·연도별 응시자·합격률 통계는 서버 JSON 단일 원본 공개 API — [[DEC-0318-exam-guide-single-source-public-api]], 회차별 합격률은 확인된 전언만 비공식 표시 — [[DEC-0319-round-pass-rate-unofficial-only]] (#1077, 서버·소개 사이트 배포, 앱 대기).
 
 ## 활성 결정
 - [[DEC-0301-mock-exam-ranking-first-attempt-top-percent]] — 모의고사 결과에 같은 회차 "상위 N%" 한 줄, 회원별 첫 응시 기준·응시자 10명 미만 숨김·무료 공개 (#1041)
@@ -29,6 +29,8 @@ related: []
 - [[DEC-0259-ai-analysis-server-decides-llm-explains]] — 통계 AI 분석: 서버가 판정·우선순위·문구, LLM 은 토픽별 헷갈리는 개념 한 문장 (#861)
 - [[DEC-0260-exam-forecast-score-thresholds]] — 과목별 예상 점수는 서버 계산(1과목 data_modeling×10, 2과목 8토픽 평균×40, ×2점), 과목 40% 미만 과락·70점 합격권·54~68 합격선 근처 (#862)
 - [[DEC-0274-stats-radar-above-list-study-pattern-free]]: 영역별 정답률은 레이더 그래프 위, 목록 아래(토글 없음), 학습 패턴 무료, 정답률 상세(난이도, 오답 정리) 프로 (#909, DEC-0206 대체)
+- [[DEC-0318-exam-guide-single-source-public-api]]: SQLD 시험 소개·역대 통계는 서버 JSON 단일 원본 + 공개 API(GET /api/meta/exam-guide/sqld)를 앱·소개 사이트가 함께 읽음
+- [[DEC-0319-round-pass-rate-unofficial-only]]: 합격률은 연도별 공식 값만 수치로, 회차별은 확인된 전언(61회 약 26%)만 비공식 배지로
 
 ## 대체된 결정 (역사)
 - [[DEC-0033-readiness-replaces-progress-rate]] → DEC-0078
@@ -67,3 +69,4 @@ related: []
 - [[ISS-0365-profile-bar-shows-total-questions]] (resolved, GitHub #609) — 내 프로필 카테고리별 막대가 푼 문제가 아닌 전체 문제 수를 보여줌
 - [[ISS-0393-active-user-count-analysis]] (resolved, GitHub #645) — 실사용자 수 확인 (관리자 화면·서버 로그) — 분석
 - [[ISS-0428-app-profile-tab-redesign]] (resolved, GitHub #749) — 앱 내 프로필 탭 UI/UX 개편 (정보 위계 재구성, passQL PASS 탑승권)
+- [[ISS-0521-sqld-exam-guide-and-yearly-stats]] (open, #1077·#1076): SQLD 알아보기(시험 소개, 연도별 응시자·합격률) — 서버 API·소개 사이트 sqld/stats/ 운영 반영, 앱 화면은 브랜치 대기(앱 출시 때 병합)
