@@ -381,7 +381,7 @@ SQLD_EXAM_FAQS = [  # (키, 질문, 답) — 키로 페이지마다 골라 씀
     ("score_preview", "사전점수 공개는 무엇인가요?",
      "합격자 발표 전에 내 점수를 먼저 확인할 수 있는 기간입니다. 최종 합격 여부는 합격자 발표일에 확정됩니다."),
     ("pass_rate", "합격률은 어느 정도인가요?",
-     "합격률은 회차마다 달라 이 사이트에서는 숫자를 싣지 않습니다. 공식 통계는 데이터자격검정 사이트에서 확인할 수 있습니다."),
+     "연도별 공식 합격률은 2019~2024년 48~59%였고 2025년은 41.68%였어요. 회차별 합격률은 공식 발표가 없어요. 연도별 응시자와 합격률은 역대 합격률 페이지에서 그래프로 볼 수 있어요."),
     ("validity", "SQLD 자격에 유효기간이 있나요?",
      "유효기간과 갱신 여부는 시행 기관 정책에 따르므로 데이터자격검정 사이트의 공식 안내로 확인하세요."),
     ("sqlp", "SQLD와 SQLP는 무엇이 다른가요?",
@@ -426,6 +426,13 @@ GUIDE_PAGES = {
         "title": "SQLD 합격 기준·과락 — 60점 합격, 과목별 과락 점수 | passQL",
         "description": "SQLD는 90분 50문항, 문항당 2점으로 60점 이상이면 합격이에요. 1과목 8점, 2과목 32점 미만은 과락. 점수 계산 예시와 응시료(50,000원), 응시 자격까지 정리했어요.",
         "summary": "60점 합격, 과락 8점 · 32점, 응시료",
+    },
+    # 역대 응시자·합격률 통계 (#1077): 값은 빌드 때 운영 API(앱 SQLD 알아보기와 같은 원본)에서 읽음
+    "sqld/stats/": {
+        "menu_name": "역대 합격률", "parent": "sqld/", "priority": "0.8", "icon": "groups",
+        "title": "SQLD 합격률 — 연도별 응시자·합격자 통계 2011~2025 | passQL",
+        "description": "SQLD 연도별 접수자, 응시자, 합격자, 합격률을 그래프와 표로 정리했어요. 2025년 응시자 62,664명에 합격률 41.68%. 최근 회차 체감 난이도와 SQLP 합격률 비교까지 공식 출처와 함께 보세요.",
+        "summary": "연도별 응시자·합격률 그래프와 표",
     },
     "sqld/study/": {
         "menu_name": "공부 방법", "parent": "sqld/", "priority": "0.8", "icon": "route",
@@ -473,7 +480,7 @@ GUIDE_PAGES = {
     },
 }
 # 상단 보조 메뉴 순서 (첫 화면 포함 모든 페이지). 진행 중 가채점 회차는 build_site 가 맨 앞에 끼움 (#1075)
-GUIDE_MENU_PATHS = ["sqld/answers/", "sqld/schedule/", "sqld/subjects/", "sqld/pass/", "sqld/trend/", "sqld/study/", "sqld/faq/", "sqlp/"]
+GUIDE_MENU_PATHS = ["sqld/answers/", "sqld/schedule/", "sqld/subjects/", "sqld/pass/", "sqld/stats/", "sqld/trend/", "sqld/study/", "sqld/faq/", "sqlp/"]
 # 상단 메뉴 강조 경로 (시험 당일~합격자 발표 진행 중 가채점 회차, build_site 가 채움)
 NAV_LIVE_PATHS = set()
 

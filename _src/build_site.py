@@ -22,6 +22,7 @@ from site_answer_key_pages import (  # noqa: E402
     render_answer_round_page,
 )
 from site_exam_pages import render_faq_page, render_pass_page, render_study_page, render_subjects_page  # noqa: E402
+from site_exam_stats import render_stats_page  # noqa: E402
 from site_guides import render_sqld_page, render_sqlp_page  # noqa: E402
 from site_head import render_footer, render_head, render_nav  # noqa: E402
 from site_home import render_home_page  # noqa: E402
@@ -48,6 +49,7 @@ GUIDE_PAGE_RENDERERS = {
     "sqld/schedule/": render_schedule_page,
     "sqld/subjects/": render_subjects_page,
     "sqld/pass/": render_pass_page,
+    "sqld/stats/": render_stats_page,
     "sqld/study/": render_study_page,
     "sqld/faq/": render_faq_page,
     "sqlp/": render_sqlp_page,

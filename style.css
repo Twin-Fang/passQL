@@ -659,3 +659,17 @@ main > section:not(.section):not(.final-cta):not(.section-tight):not(.callout-se
   .js .reveal { opacity: 1; transform: none; transition: none; }
   .btn, .faq-chevron { transition: none; }
 }
+
+/* SQLD 역대 통계 (#1077): 응시자 막대 + 합격률 선 그래프, 비공식 배지, 출처 목록 */
+.stats-chart { margin: 0 0 24px; padding: 20px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card); }
+.stats-chart svg { display: block; width: 100%; height: auto; }
+.stats-legend { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; color: var(--muted); font-size: 14px; }
+.stats-key { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+.stats-key.is-bar { background: var(--accent); }
+.stats-key.is-line { height: 3px; margin-left: 12px; background: var(--fire); }
+.stats-bar { fill: var(--accent); opacity: 0.35; transition: opacity 0.2s ease; }
+.stats-bar.is-latest, .stats-bar:hover { opacity: 1; }
+.stats-line { fill: none; stroke: var(--fire); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.stats-year { fill: var(--muted); font-size: 12px; text-anchor: middle; }
+.stats-unofficial { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--bg-soft); color: var(--muted); font-size: 12px; font-weight: 600; }
+.stats-sources { margin: 0; padding-left: 20px; color: var(--muted); font-size: 14px; line-height: 1.8; }
