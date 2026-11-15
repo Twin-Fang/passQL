@@ -1,5 +1,5 @@
 {
- "basis": "passQL 운영 가답안 초안 (응시 후기 종합, 2026-11-14 22:30)",
+ "basis": "passQL 운영 가답안 초안 (응시 후기 종합, 2026-11-16 00:25)",
  "items": [
   {
    "questionNo": 1,
@@ -24,10 +24,9 @@
     "모델링 단계"
    ],
    "topicCode": "data_modeling",
-   "answer": null,
+   "answer": 1,
    "answerStatus": "DISPUTED",
    "alternativeAnswers": [
-    1,
     4
    ],
    "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
@@ -111,20 +110,6 @@
   {
    "questionNo": 8,
    "subjectNo": 1,
-   "conceptTitle": "부분 함수 종속 제거 = 제2정규형",
-   "conceptTags": [
-    "정규화",
-    "제2정규형"
-   ],
-   "topicCode": "data_modeling",
-   "answer": 2,
-   "answerStatus": "LEADING",
-   "alternativeAnswers": [],
-   "note": null
-  },
-  {
-   "questionNo": 9,
-   "subjectNo": 1,
    "conceptTitle": "식별/비식별 관계 설명 중 틀린 것",
    "conceptTags": [
     "식별 관계",
@@ -136,6 +121,20 @@
    "alternativeAnswers": [
     2
    ],
+   "note": null
+  },
+  {
+   "questionNo": 9,
+   "subjectNo": 1,
+   "conceptTitle": "부분 함수 종속 제거 = 제2정규형",
+   "conceptTags": [
+    "정규화",
+    "제2정규형"
+   ],
+   "topicCode": "data_modeling",
+   "answer": 2,
+   "answerStatus": "LEADING",
+   "alternativeAnswers": [],
    "note": null
   },
   {
@@ -558,11 +557,11 @@
    ],
    "topicCode": "sql_ddl_dml_tcl",
    "answer": 3,
-   "answerStatus": "DISPUTED",
+   "answerStatus": "LEADING",
    "alternativeAnswers": [
     4
    ],
-   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
+   "note": null
   },
   {
    "questionNo": 39,
@@ -573,9 +572,11 @@
     "서브쿼리"
    ],
    "topicCode": "sql_ddl_dml_tcl",
-   "answer": 1,
+   "answer": 3,
    "answerStatus": "DISPUTED",
-   "alternativeAnswers": [],
+   "alternativeAnswers": [
+    1
+   ],
    "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
   },
   {
@@ -644,10 +645,12 @@
     "날짜 ROUND"
    ],
    "topicCode": "sql_function",
-   "answer": 4,
-   "answerStatus": "LEADING",
-   "alternativeAnswers": [],
-   "note": null
+   "answer": 3,
+   "answerStatus": "DISPUTED",
+   "alternativeAnswers": [
+    4
+   ],
+   "note": "응시자 기억이 갈리는 문항이에요. 점수 범위로 계산하고, 공식 정답 발표 때 확정돼요."
   },
   {
    "questionNo": 45,
@@ -658,10 +661,9 @@
     "CONNECT BY 조건"
    ],
    "topicCode": "sql_hierarchy_pivot",
-   "answer": null,
+   "answer": 2,
    "answerStatus": "DISPUTED",
    "alternativeAnswers": [
-    2,
     3,
     4
    ],
