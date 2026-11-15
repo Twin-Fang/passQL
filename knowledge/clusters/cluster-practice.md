@@ -86,7 +86,7 @@ related: []
 - [[DOC-0003-practice-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — 풀이 구현 지도: 열기·SSE 선택지·실행·제출 채점, 하루 한도 판정(열기·제출 공통), 보너스·크레딧 내역, 오늘의 세트
 
 ## 관련 이슈
-- [[ISS-0520-sqld-round-answer-key-omr-grading]] (open, #1075): SQLD 회차별 가답안·OMR 가채점, 소개 사이트 sqld/63/ 배포, 서버·앱 PR #1089 배포 보류(앱 심사 동반), 서버 배포 직후 63회 운영 가답안 입력 필요
+- [[ISS-0520-sqld-round-answer-key-omr-grading]] (resolved, #1075): SQLD 회차별 가답안·OMR 가채점, 2026-11-15 릴리스 PR #1094 로 서버·앱 배포, 63회 운영 가답안 50문항 입력(우세 34, 갈림 15, 미복원 1), 사이트 제출·채점·CORS 실측 정상. 완료 리포트 [[ISS-0520-sqld-round-answer-key-omr-grading-report]]
 - [[ISS-0511-qa-1112-ui-polish-eight]] (resolved, #1041, PR #1042): 11/12 QA UI 개선 8건 — 환영 시트·알림 안내·모의고사 순위·크레딧 아이콘·PK FK·난이도 별·카운트업·과락 칸
 - [[ISS-0510-daily-set-retry-wrong-and-qa-fixes]] (resolved, #1035, PR #1040): 오늘의 세트 다시 풀기가 첫 오답만 열림 > 오답 N문제 차례로 풀기, 코드 줄바꿈 들여쓰기·일정 버튼·모의고사 목록 재조회
 - [[ISS-0501-lock-screen-question-android]] (resolved, #990): 잠금화면 위 SQLD 문제 1개(Android), 서버 출제 API·운영 설정 3개

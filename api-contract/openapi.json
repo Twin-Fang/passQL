@@ -525,6 +525,23 @@
         "required" : [ "companyName", "contactEmail", "mailOrderSalesNumber", "registrationNumber", "representativeName" ],
         "type" : "object"
       },
+      "CertificationComparison" : {
+        "properties" : {
+          "certificationName" : {
+            "type" : "string"
+          },
+          "passRatePercent" : {
+            "format" : "double",
+            "type" : "number"
+          },
+          "year" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "certificationName", "passRatePercent", "year" ],
+        "type" : "object"
+      },
       "ChoiceAnalysis" : {
         "properties" : {
           "choiceKey" : {
@@ -2062,6 +2079,18 @@
         "required" : [ "itemCharacterCounts", "kind" ],
         "type" : "object"
       },
+      "Faq" : {
+        "properties" : {
+          "answer" : {
+            "type" : "string"
+          },
+          "question" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "answer", "question" ],
+        "type" : "object"
+      },
       "FeedbackSubmitRequest" : {
         "properties" : {
           "content" : {
@@ -2200,6 +2229,32 @@
           }
         },
         "required" : [ "answeredCount", "attemptUuid", "remainingSeconds", "roundNumber", "roundUuid", "title" ],
+        "type" : "object"
+      },
+      "Insights" : {
+        "properties" : {
+          "examineeGrowthMultiple" : {
+            "format" : "double",
+            "type" : "number"
+          },
+          "growthBaseYear" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "latestYear" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "passRateChangePoints" : {
+            "format" : "double",
+            "type" : "number"
+          },
+          "previousYear" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "examineeGrowthMultiple", "growthBaseYear", "latestYear", "passRateChangePoints", "previousYear" ],
         "type" : "object"
       },
       "KeyConcept" : {
@@ -3493,6 +3548,31 @@
         "required" : [ "reported" ],
         "type" : "object"
       },
+      "RoundNote" : {
+        "properties" : {
+          "difficultyNote" : {
+            "type" : "string"
+          },
+          "examDate" : {
+            "type" : "string"
+          },
+          "isOfficial" : {
+            "description" : "공식 수치 여부 (false: 수험생 전언·후기)",
+            "type" : "boolean"
+          },
+          "passRatePercent" : {
+            "description" : "알려진 합격률 (없으면 null)",
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "round" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "difficultyNote", "examDate", "isOfficial", "passRatePercent", "round" ],
+        "type" : "object"
+      },
       "RoundSummary" : {
         "properties" : {
           "bestAttemptFailReason" : {
@@ -3659,6 +3739,107 @@
         },
         "type" : "object"
       },
+      "Source" : {
+        "properties" : {
+          "checkedDate" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "url" : {
+            "type" : [ "string", "null" ]
+          }
+        },
+        "required" : [ "checkedDate", "name", "url" ],
+        "type" : "object"
+      },
+      "SqldExamGuideResponse" : {
+        "properties" : {
+          "certificationNumber" : {
+            "type" : "string"
+          },
+          "comparisons" : {
+            "items" : {
+              "$ref" : "#/components/schemas/CertificationComparison"
+            },
+            "type" : "array"
+          },
+          "examDurationMinutes" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "examFeeWon" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "failingSubjectPercent" : {
+            "description" : "과목별 과락 기준 (배점 대비 %, 미만이면 과락)",
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "faqs" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Faq"
+            },
+            "type" : "array"
+          },
+          "insights" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/Insights"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "oneLineDefinition" : {
+            "type" : "string"
+          },
+          "organizerName" : {
+            "type" : "string"
+          },
+          "passingTotalScore" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "recommendedFor" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "roundNotes" : {
+            "description" : "회차 메모 (체감 난이도, 비공식 합격률)",
+            "items" : {
+              "$ref" : "#/components/schemas/RoundNote"
+            },
+            "type" : "array"
+          },
+          "sources" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Source"
+            },
+            "type" : "array"
+          },
+          "subjects" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Subject"
+            },
+            "type" : "array"
+          },
+          "validityDescription" : {
+            "type" : "string"
+          },
+          "yearlyStatistics" : {
+            "description" : "연도별 공식 통계 (연도 오름차순)",
+            "items" : {
+              "$ref" : "#/components/schemas/YearlyStatistic"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "certificationNumber", "comparisons", "examDurationMinutes", "examFeeWon", "failingSubjectPercent", "faqs", "insights", "oneLineDefinition", "organizerName", "passingTotalScore", "recommendedFor", "roundNotes", "sources", "subjects", "validityDescription", "yearlyStatistics" ],
+        "type" : "object"
+      },
       "SqldExamScheduleOverviewResponse" : {
         "properties" : {
           "lastCollectedAt" : {
@@ -3766,6 +3947,23 @@
           }
         },
         "required" : [ "accuracyChangePoints", "busiestHour", "busiestWeekdayIndex", "dailyRecords", "dailyWindowDays", "hourAttemptCounts", "longestStreakDays", "minimumPatternAttemptCount", "patternAttemptCount", "patternWindowDays", "recentAttemptCount", "recentCorrectCount", "recentStudyDayCount", "totalStudyDayCount", "weekdayAttemptCounts" ],
+        "type" : "object"
+      },
+      "Subject" : {
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "points" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "questionCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "name", "points", "questionCount" ],
         "type" : "object"
       },
       "SubjectResult" : {
@@ -4093,6 +4291,32 @@
           }
         },
         "required" : [ "items", "totalCount" ],
+        "type" : "object"
+      },
+      "YearlyStatistic" : {
+        "properties" : {
+          "applicantCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "examineeCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "passRatePercent" : {
+            "format" : "double",
+            "type" : "number"
+          },
+          "passerCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "year" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        },
+        "required" : [ "applicantCount", "examineeCount", "passRatePercent", "passerCount", "year" ],
         "type" : "object"
       }
     }
@@ -5878,6 +6102,26 @@
           }
         },
         "summary" : "스토어 다운로드 링크 조회",
+        "tags" : [ "Meta" ]
+      }
+    },
+    "/api/meta/exam-guide/sqld" : {
+      "get" : {
+        "description" : "## 인증(JWT): **불필요**\n앱 'SQLD 알아보기' 화면과 소개 사이트 통계 페이지 빌드가 같은 응답을 읽는다.\n\n## 요청 파라미터\n- 없음\n\n## 반환값 (SqldExamGuideResponse)\n- 시험 소개: oneLineDefinition, organizerName, certificationNumber, recommendedFor, subjects(name·questionCount·points),\n  examDurationMinutes, passingTotalScore, failingSubjectPercent(과목 배점 대비 %, 미만 과락), examFeeWon, validityDescription, faqs\n- yearlyStatistics: 연도별 공식 통계 (연도 오름차순, 접수자·응시자·취득자·합격률)\n- roundNotes: 회차 메모 (체감 난이도, 알려진 합격률). isOfficial=false 면 수험생 전언·후기\n- comparisons: 다른 자격 합격률 비교 (SQLP)\n- insights: 최신 연도, 비교 연도(previousYear, 바로 앞 통계 연도), 7년 전 대비 응시자 배수, 비교 연도 대비 합격률 증감(%p). 연도 2건 미만이면 null\n- sources: 출처 이름·주소(없으면 null)·확인일\n",
+        "operationId" : "getSqldExamGuide",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SqldExamGuideResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "SQLD 알아보기 조회",
         "tags" : [ "Meta" ]
       }
     },
