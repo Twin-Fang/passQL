@@ -9,11 +9,12 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/mock_exam_countdown.dart';
 import '../../providers/mock_exam_providers.dart';
+import '../../widgets/mock_exam/expected_pass_line.dart';
 import '../../widgets/mock_exam/mock_exam_round_row.dart';
 import '../../widgets/mock_exam/mock_exam_rule_rows.dart';
 import '../../widgets/mock_exam/mock_exam_trend_section.dart';
 
-/// 모의고사 회차 목록 (#866): 시험 형식 > 풀이 중 이어 풀기 > 회차(최고 점수·체험·잠금) > 점수 추이
+/// 모의고사 회차 목록 (#866): 예상 합격률 한 줄 > 시험 형식 > 풀이 중 이어 풀기 > 회차(최고 점수·체험·잠금) > 점수 추이
 /// 시작 가능 여부·막힌 이유는 서버 판정 그대로
 /// 들어올 때마다 서버 최신 기록으로 다시 받음 (홈·문제 탭이 목록을 붙잡고 있어 앱 밖 응시가 남지 않게, #1035)
 class MockExamRoundListPage extends ConsumerStatefulWidget {
@@ -60,6 +61,8 @@ class _MockExamRoundListPageState extends ConsumerState<MockExamRoundListPage> {
               key: const ValueKey('data'),
               padding: _listPadding,
               children: [
+                // 예상 합격률 한 줄 (#1086)
+                const ExpectedPassLine(),
                 if (roundList.inProgressAttempt
                     case final inProgressAttempt?) ...[
                   _InProgressCard(inProgressAttempt: inProgressAttempt),

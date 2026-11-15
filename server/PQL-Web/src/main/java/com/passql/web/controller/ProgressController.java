@@ -7,12 +7,14 @@ import com.passql.application.service.AiCommentService;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.submission.dto.AccuracyDetailResponse;
+import com.passql.submission.dto.ExpectedPassResponse;
 import com.passql.submission.dto.HeatmapResponse;
 import com.passql.submission.dto.ProgressResponse;
 import com.passql.submission.dto.StudyPatternResponse;
 import com.passql.submission.dto.TopicAnalysisResponse;
 import com.passql.submission.dto.WrongQuestionRetrySetResponse;
 import com.passql.submission.dto.WrongQuestionsResponse;
+import com.passql.submission.service.ExpectedPassService;
 import com.passql.submission.service.ProgressService;
 import com.passql.submission.service.StudyStatsService;
 import com.passql.submission.service.TopicAnalysisService;
@@ -35,6 +37,7 @@ public class ProgressController implements ProgressControllerDocs {
     private final AiCommentService aiCommentService;
     private final StudyStatsService studyStatsService;
     private final WrongNoteService wrongNoteService;
+    private final ExpectedPassService expectedPassService;
 
     @GetMapping
     public ResponseEntity<ProgressResponse> getProgress(
@@ -109,5 +112,13 @@ public class ProgressController implements ProgressControllerDocs {
         @AuthMember LoginMember loginMember
     ) {
         return ResponseEntity.ok(studyStatsService.getAccuracyDetail(loginMember.memberUuid()));
+    }
+
+    // 모의고사 무료 체험 1회도 반영되게 무료 공개 (#1086)
+    @GetMapping("/expected-pass")
+    public ResponseEntity<ExpectedPassResponse> getExpectedPass(
+        @AuthMember LoginMember loginMember
+    ) {
+        return ResponseEntity.ok(expectedPassService.getExpectedPass(loginMember.memberUuid()));
     }
 }

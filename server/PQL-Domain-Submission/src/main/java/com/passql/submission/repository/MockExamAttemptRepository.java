@@ -31,6 +31,10 @@ public interface MockExamAttemptRepository extends JpaRepository<MockExamAttempt
 
     List<MockExamAttempt> findByMemberUuidAndStatusOrderBySubmittedAtAsc(UUID memberUuid, MockExamAttemptStatus status);
 
+    /** 최근 응시 (제출 최신 순, 개수는 pageable, #1086 예상 합격률) */
+    List<MockExamAttempt> findByMemberUuidAndStatusOrderBySubmittedAtDesc(UUID memberUuid, MockExamAttemptStatus status,
+                                                                         Pageable pageable);
+
     /** 무료 체험 소진 판정: 응시 기록이 하나라도 있는지 (회차·제출 여부 무관) */
     boolean existsByMemberUuid(UUID memberUuid);
 

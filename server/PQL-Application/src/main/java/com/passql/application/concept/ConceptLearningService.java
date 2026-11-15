@@ -17,7 +17,6 @@ import com.passql.application.concept.dto.ConceptTopicSummary;
 import com.passql.application.entitlement.FeatureAccessPolicy;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
-import com.passql.meta.constant.ConceptPublishStatus;
 import com.passql.meta.constant.ConceptReadingDepth;
 import com.passql.meta.constant.ConceptStudyMode;
 import com.passql.meta.entity.ConceptCheckChoice;
@@ -31,7 +30,6 @@ import com.passql.meta.repository.ConceptCheckQuestionRepository;
 import com.passql.meta.repository.ConceptDocRepository;
 import com.passql.meta.repository.ConceptTagRepository;
 import com.passql.meta.repository.MemberConceptProgressRepository;
-import com.passql.meta.repository.TopicRepository;
 import com.passql.meta.service.concept.ConceptDetailSectionParser;
 import com.passql.question.entity.QuestionConceptTag;
 import com.passql.question.repository.QuestionConceptTagRepository;
@@ -45,7 +43,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -65,8 +62,8 @@ public class ConceptLearningService {
     private static final TypeReference<LinkedHashMap<String, String>> ANSWERED_KEYS_TYPE = new TypeReference<>() {
     };
 
-    private final TopicRepository topicRepository;
     private final ConceptTagRepository conceptTagRepository;
+    private final ConceptCatalogLoader catalogLoader;
     private final ConceptDocRepository conceptDocRepository;
     private final ConceptCheckQuestionRepository checkQuestionRepository;
     private final ConceptCheckChoiceRepository checkChoiceRepository;
@@ -84,7 +81,7 @@ public class ConceptLearningService {
             return new ConceptTopicListResponse(false, freeTopicCount, List.of());
         }
 
-        ConceptCatalog catalog = loadCatalog(memberUuid);
+        ConceptCatalog catalog = catalogLoader.load(memberUuid);
         Map<UUID, Integer> questionCountByConcept = countCheckQuestions(catalog.visibleConceptUuids());
         Map<UUID, MemberConceptProgress> progressByConcept = loadProgress(memberUuid, catalog.visibleConceptUuids());
 
@@ -109,7 +106,7 @@ public class ConceptLearningService {
     /** 단원의 개념 목록 (잠긴 단원도 제목·진행은 보여 줌) */
     public ConceptListResponse getConcepts(UUID memberUuid, UUID topicUuid) {
         requireAvailable(memberUuid);
-        ConceptCatalog catalog = loadCatalog(memberUuid);
+        ConceptCatalog catalog = catalogLoader.load(memberUuid);
         int orderIndex = catalog.orderIndexOf(topicUuid);
         if (orderIndex < 0) {
             throw new CustomException(ErrorCode.TOPIC_NOT_FOUND);
@@ -298,7 +295,7 @@ public class ConceptLearningService {
     /** 개념 접근: 이용 가능 > 존재·노출(초안은 미리보기 회원만, 아니면 404) > 단원 잠금(403) */
     AccessibleConcept requireAccessibleConcept(UUID memberUuid, UUID conceptUuid) {
         requireAvailable(memberUuid);
-        ConceptCatalog catalog = loadCatalog(memberUuid);
+        ConceptCatalog catalog = catalogLoader.load(memberUuid);
         ConceptTag concept = conceptTagRepository.findById(conceptUuid)
             .filter(found -> catalog.isVisible(found.getConceptTagUuid()))
             .orElseThrow(() -> new CustomException(ErrorCode.CONCEPT_NOT_FOUND));
@@ -319,19 +316,6 @@ public class ConceptLearningService {
     }
 
     // ===== 조회 묶음 =====
-
-    /** 활성 단원(정렬) + 회원에게 보이는 개념 (초안은 미리보기 회원만) */
-    private ConceptCatalog loadCatalog(UUID memberUuid) {
-        List<Topic> topics = topicRepository.findByIsActiveTrueOrderBySortOrderAsc();
-        List<UUID> topicUuids = topics.stream().map(Topic::getTopicUuid).toList();
-        boolean canSeeDrafts = availabilityPolicy.canSeeDrafts(memberUuid);
-        List<ConceptTag> visibleConcepts = topicUuids.isEmpty()
-            ? List.of()
-            : conceptTagRepository.findByTopicUuidInAndIsActiveTrueOrderBySortOrderAsc(topicUuids).stream()
-                .filter(concept -> canSeeDrafts || concept.getPublishStatus() == ConceptPublishStatus.PUBLISHED)
-                .toList();
-        return new ConceptCatalog(topics, visibleConcepts);
-    }
 
     private Map<UUID, Integer> countCheckQuestions(Collection<UUID> conceptUuids) {
         if (conceptUuids.isEmpty()) {
@@ -372,32 +356,5 @@ public class ConceptLearningService {
 
     /** 접근 확인을 통과한 개념과 같은 단원 개념들 (노출 대상, 정렬) */
     record AccessibleConcept(ConceptTag concept, List<ConceptTag> siblings) {
-    }
-
-    /** 활성 단원 순서 + 노출 개념 묶음 */
-    private record ConceptCatalog(List<Topic> topics, List<ConceptTag> visibleConcepts) {
-
-        List<ConceptTag> conceptsOf(UUID topicUuid) {
-            return visibleConcepts.stream()
-                .filter(concept -> Objects.equals(concept.getTopicUuid(), topicUuid))
-                .toList();
-        }
-
-        List<UUID> visibleConceptUuids() {
-            return visibleConcepts.stream().map(ConceptTag::getConceptTagUuid).toList();
-        }
-
-        boolean isVisible(UUID conceptUuid) {
-            return visibleConcepts.stream().anyMatch(concept -> concept.getConceptTagUuid().equals(conceptUuid));
-        }
-
-        int orderIndexOf(UUID topicUuid) {
-            for (int index = 0; index < topics.size(); index++) {
-                if (topics.get(index).getTopicUuid().equals(topicUuid)) {
-                    return index;
-                }
-            }
-            return -1;
-        }
     }
 }

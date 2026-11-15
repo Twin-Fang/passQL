@@ -13,6 +13,7 @@ import '../../providers/stats_providers.dart';
 import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/profile/profile_bookmarks_section.dart';
+import '../../widgets/profile/profile_expected_pass_section.dart';
 import '../../widgets/profile/profile_pro_analysis_locked_section.dart';
 import '../../widgets/profile/difficulty_accuracy_section.dart';
 import '../../widgets/profile/profile_mock_exam_trend_section.dart';
@@ -26,7 +27,7 @@ import '../../widgets/stats/ai_analysis_card.dart';
 import '../../widgets/stats/ai_analysis_card_skeleton.dart';
 
 /// 내 프로필 탭 (#749, #909): 홈과 같은 구간 + 띠 구조.
-/// 내 상태(이름 줄·정답률·탑승권) > AI 분석 > 영역별 정답률 > 최근 4주 학습 > 공부하는 시간
+/// 내 상태(이름 줄·정답률·탑승권) > 예상 합격률 > AI 분석 > 영역별 정답률 > 최근 4주 학습 > 공부하는 시간
 /// > 난이도별 정답률 > 오답 정리 > 모의고사 점수 추이 > 광고. 홈에 있는 준비도·히트맵·바로가기는 두지 않는다.
 /// 로딩: 구간 모양 스켈레톤 / 에러: 재시도 / 성공: 구간 순차 등장, pull-to-refresh 지원.
 class ProfilePage extends ConsumerWidget {
@@ -67,6 +68,7 @@ class ProfilePage extends ConsumerWidget {
             // 화면에 보이는 데이터 전부 (진행·토픽·학습 패턴·정답률 상세, AI 코멘트, 등급, 시험 일정, 빈 상태 세트, 모의고사 추이)
             ref.invalidate(statsDataProvider);
             ref.invalidate(mockExamHistoryProvider);
+            ref.invalidate(expectedPassProvider);
             ref.invalidate(statsAiCommentProvider);
             ref.invalidate(examScheduleProvider);
             ref.invalidate(profileDailySetProvider);
@@ -91,7 +93,7 @@ class ProfilePage extends ConsumerWidget {
   }
 }
 
-/// 구간 목록: 내 상태 > AI 분석 > 영역별 정답률 > 학습 기록 > 공부 시간 > 정답률 상세(프로) > 모의고사 > 광고, 하나씩 등장.
+/// 구간 목록: 내 상태 > 예상 합격률 > AI 분석 > 영역별 정답률 > 학습 기록 > 공부 시간 > 정답률 상세(프로) > 모의고사 > 광고, 하나씩 등장.
 /// 구간 사이는 회색 띠. 푼 문제가 0개면 내 상태만 (볼 기록이 없음), 응답이 없는 구간은 자리째 뺌
 class _StatsContent extends StatelessWidget {
   final StatsData data;
@@ -109,6 +111,8 @@ class _StatsContent extends StatelessWidget {
         accuracyDetail?.difficultyStats.isNotEmpty ?? false;
     final sections = <Widget>[
       ProfileStatusSection(progress: progress),
+      // 예상 합격률 (무료 포함 전원, 스스로 앞 띠, #1086)
+      const ProfileExpectedPassSection(),
       // 크레딧·이용권 구간 (스스로 앞 띠, 결제 꺼짐이면 없음)
       const ProfilePlanSection(),
       // 광고 1칸: 이용권 구간 바로 아래 (뜬 때만 앞 띠 + 구간, 맨 아래에 두면 거의 안 보임, #971)
