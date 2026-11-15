@@ -35,20 +35,25 @@ class _ConceptSheetBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Wrap(
-            spacing: PassqlSpacing.xs,
-            alignment: WrapAlignment.center,
-            children: [
-              PassqlBadge(
-                text: myAnswer == 0 ? '내 답 모름' : '내 답 $myAnswer번',
-                kind: PassqlBadgeKind.important,
-              ),
-              if (item.answer != null)
-                PassqlBadge(
-                  text: '가답안 ${item.answer}번',
-                  kind: PassqlBadgeKind.success,
+          // 내 답(오답 빨강) | 가답안
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: myAnswer == 0 ? '내 답 모름' : '내 답 $myAnswer번',
+                  style: PassqlTypography.subheadlineSemibold.copyWith(
+                    color: colors.wrongText,
+                  ),
                 ),
-            ],
+                if (item.answer != null)
+                  TextSpan(
+                    text: ' | 가답안 ${item.answer}번',
+                    style: PassqlTypography.subheadline.copyWith(
+                      color: colors.secondaryLabel,
+                    ),
+                  ),
+              ],
+            ),
           ),
           const SizedBox(height: PassqlSpacing.lg),
           Text(
@@ -65,14 +70,12 @@ class _ConceptSheetBody extends StatelessWidget {
             style: PassqlTypography.headline.copyWith(color: colors.label),
           ),
           if (item.conceptTags.isNotEmpty) ...[
-            const SizedBox(height: PassqlSpacing.xs),
-            Wrap(
-              spacing: PassqlSpacing.xxs,
-              runSpacing: PassqlSpacing.xxs,
-              children: [
-                for (final tag in item.conceptTags)
-                  PassqlBadge(text: tag, kind: PassqlBadgeKind.neutral),
-              ],
+            const SizedBox(height: PassqlSpacing.xxs),
+            Text(
+              item.conceptTags.join(', '),
+              style: PassqlTypography.footnote.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
           ],
           if (note != null && note.trim().isNotEmpty) ...[
@@ -89,7 +92,7 @@ class _ConceptSheetBody extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: PassqlSpacing.lg),
+          const SizedBox(height: PassqlSpacing.sm),
           ExamAnswerConceptLinks(topicCode: item.topicCode, isInSheet: true),
         ],
       ),
