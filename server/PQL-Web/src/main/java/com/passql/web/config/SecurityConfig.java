@@ -39,8 +39,8 @@ public class SecurityConfig {
     private final AppOperationService appOperationService;
     private final ObjectMapper objectMapper;
 
-    // 허용 Origin — 운영 웹·Vercel 미리보기·로컬 개발만. 모바일 앱은 Origin을 보내지 않아 무관 (#394)
-    @Value("${cors.allowed-origin-patterns:https://passql.vercel.app,https://passql-*.vercel.app,http://localhost:*,http://127.0.0.1:*}")
+    // 허용 Origin — 운영 웹·Vercel 미리보기·소개 사이트(#1075 가답안)·로컬 개발만. 모바일 앱은 Origin을 보내지 않아 무관 (#394)
+    @Value("${cors.allowed-origin-patterns:https://passql.vercel.app,https://passql-*.vercel.app,https://passql.suhsaechan.kr,https://www.passql.suhsaechan.kr,http://localhost:*,http://127.0.0.1:*}")
     private List<String> allowedOriginPatterns;
 
     @Bean
@@ -59,6 +59,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/meta/**").permitAll()
+                // 회차별 가답안·OMR 가채점 (비로그인 공개, IP 요청 제한, #1075)
+                .requestMatchers(HttpMethod.GET, "/api/exam-answers/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/exam-answers/*/*/sheets").permitAll()
                 // App Store 서버 알림 (Apple 호출, JWT 대신 알림 JWS 서명으로 검증, #578)
                 .requestMatchers(HttpMethod.POST, ExternalCallbackPaths.APP_STORE_NOTIFICATIONS).permitAll()
                 // AdMob 보상형 광고 서버 검증 콜백 (Google 호출, JWT 대신 쿼리 ECDSA 서명으로 검증, #860)

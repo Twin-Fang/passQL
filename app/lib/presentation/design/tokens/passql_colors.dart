@@ -19,6 +19,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     required this.wrongRowHighlight,
     required this.warning,
     required this.warningText,
+    required this.info,
+    required this.infoText,
     required this.memorize,
     required this.memorizeText,
     required this.memorizeHighlight,
@@ -61,6 +63,10 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
 
   /// 주황 글자 (배지·별점). warning 은 채움·점·큰 아이콘용
   final Color warningText;
+
+  /// 정보 파랑 (가답안 '우세' 상태, #1075). 글자는 infoText (흰 바탕 4.5 이상)
+  final Color info;
+  final Color infoText;
 
   /// 꼭 외울 것 (#876): 노랑 채움·막대·큰 아이콘. 글자는 memorizeText
   final Color memorize;
@@ -126,6 +132,9 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     warning: Color(0xFFFF9500),
     // 주황 그대로는 흰 바탕 2.2 > 갈색 계열로 어둡게
     warningText: Color(0xFF9A4500),
+    info: Color(0xFF007AFF),
+    // Apple 파랑 그대로는 흰 바탕 4.0 > 한 단계 어둡게
+    infoText: Color(0xFF0062CC),
     // 노랑 그대로는 흰 바탕 글자 대비 1.5 > 글자는 어두운 황토색
     memorize: Color(0xFFFFCC00),
     memorizeText: Color(0xFF7A5C00),
@@ -168,6 +177,9 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     wrongRowHighlight: Color(0x4DFF453A),
     warning: Color(0xFFFF9F0A),
     warningText: Color(0xFFFF9F0A),
+    info: Color(0xFF0A84FF),
+    // card(1C1C1E) 위 4.5 이상이 되게 밝은 파랑
+    infoText: Color(0xFF409CFF),
     memorize: Color(0xFFFFD60A),
     memorizeText: Color(0xFFFFD60A),
     // 다크 형광펜: 흰 글자가 읽히게 어두운 황토
@@ -209,6 +221,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
         wrongRowHighlight: wrongRowHighlight,
         warning: warning,
         warningText: warningText,
+        info: info,
+        infoText: infoText,
         memorize: memorize,
         memorizeText: memorizeText,
         memorizeHighlight: memorizeHighlight,
@@ -251,6 +265,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
       wrongRowHighlight: lerpColor(wrongRowHighlight, other.wrongRowHighlight),
       warning: lerpColor(warning, other.warning),
       warningText: lerpColor(warningText, other.warningText),
+      info: lerpColor(info, other.info),
+      infoText: lerpColor(infoText, other.infoText),
       memorize: lerpColor(memorize, other.memorize),
       memorizeText: lerpColor(memorizeText, other.memorizeText),
       memorizeHighlight: lerpColor(memorizeHighlight, other.memorizeHighlight),

@@ -16,6 +16,7 @@ import 'auth_api.dart';
 import 'billing_api.dart';
 import 'feedback_api.dart';
 import 'daily_set_api.dart';
+import 'exam_answer_api.dart';
 import 'exam_schedule_api.dart';
 import 'concept_api.dart';
 import 'exam_trend_api.dart';
@@ -137,6 +138,10 @@ final dailySetApiProvider = Provider<DailySetApiClient>(
 
 final examScheduleApiProvider = Provider<ExamScheduleApiClient>(
   (ref) => ExamScheduleApiClient(ref.watch(dioProvider)),
+);
+
+final examAnswerApiProvider = Provider<ExamAnswerApiClient>(
+  (ref) => ExamAnswerApiClient(ref.watch(dioProvider)),
 );
 
 final pushTokenApiProvider = Provider<PushTokenApiClient>(
