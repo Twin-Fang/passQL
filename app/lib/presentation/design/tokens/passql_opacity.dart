@@ -13,7 +13,4 @@ abstract final class PassqlOpacity {
 
   // 통계 차트에서 선택 안 된 막대 (#1077, 선택 막대는 accent 100%)
   static const double chartBarResting = 0.35;
-
-  // 가채점 점수 막대 위 갈림 문항 범위 띠 (#1075)
-  static const double examAnswerScoreRange = 0.3;
 }

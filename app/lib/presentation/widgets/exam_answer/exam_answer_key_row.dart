@@ -6,7 +6,7 @@ import '../../design/design.dart';
 import 'exam_answer_concept_links.dart';
 import 'exam_answer_status_styles.dart';
 
-/// 가답안 행 1개: 번호 > 정답 > 상태 > 합의율 막대 > 내 답 정오, 누르면 보기별 득표·메모·개념 펼침
+/// 가답안 행 1개: 번호 > 개념 한 줄·상태(의미색 글자)·합의율·내 답 > 정답 > 펼침 화살표, 누르면 보기별 득표·메모·태그·학습 링크
 class ExamAnswerKeyRow extends StatelessWidget {
   const ExamAnswerKeyRow({
     super.key,
@@ -29,12 +29,14 @@ class ExamAnswerKeyRow extends StatelessWidget {
     final status = item.answerStatus;
     final agreementPercent = (item.agreementRate.clamp(0, 1) * 100).round();
     final answerText = _answerTextOf(item);
+    final conceptTitle = item.conceptTitle?.trim() ?? '';
+    final myAnswerPart = _myAnswerPartOf(colors);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PassqlSemanticButton(
           label:
-              '${item.questionNo}번 가답안 $answerText, ${status.label}, 합의율 $agreementPercent%',
+              '${item.questionNo}번 가답안 $answerText, ${status.label}, 합의율 $agreementPercent%${myAnswerPart == null ? '' : ', ${myAnswerPart.text}'}',
           isSelected: isExpanded,
           onTap: onToggle,
           child: PassqlPressable(
@@ -57,48 +59,59 @@ class ExamAnswerKeyRow extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // 정답 숫자 (상태 의미색)
-                  SizedBox(
-                    width: PassqlSize.examAnswerOmrBubble,
-                    child: Text(
-                      answerText,
-                      style: PassqlTypography.title3.copyWith(
-                        fontFeatures: PassqlTypography.tabular,
-                        color: status.textColorOf(colors),
-                      ),
+                  // 개념 한 줄 > 상태(의미색 글자) | 합의율 | 내 답
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (conceptTitle.isNotEmpty)
+                          Text(
+                            conceptTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: PassqlTypography.subheadline.copyWith(
+                              color: colors.label,
+                            ),
+                          ),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: status.label,
+                                style: PassqlTypography.footnoteSemibold
+                                    .copyWith(
+                                      color: status.textColorOf(colors),
+                                    ),
+                              ),
+                              if (item.voteCount > 0)
+                                TextSpan(text: ' | 합의 $agreementPercent%'),
+                              if (myAnswerPart != null) ...[
+                                const TextSpan(text: ' | '),
+                                TextSpan(
+                                  text: myAnswerPart.text,
+                                  style: TextStyle(color: myAnswerPart.color),
+                                ),
+                              ],
+                            ],
+                          ),
+                          style: PassqlTypography.footnote.copyWith(
+                            fontFeatures: PassqlTypography.tabular,
+                            color: colors.secondaryLabel,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  PassqlBadge(
-                    text: status.label,
-                    kind: status.badgeKind,
-                    icon: status.badgeIcon,
-                  ),
-                  const Spacer(),
-                  // 합의율 막대 + %
-                  SizedBox(
-                    width: PassqlSize.examAnswerAgreementBarWidth,
-                    child: PassqlProgressBar(
-                      value: item.agreementRate,
-                      fillColor: status.fillColorOf(colors),
+                  const SizedBox(width: PassqlSpacing.sm),
+                  // 정답 숫자
+                  Text(
+                    answerText,
+                    style: PassqlTypography.title3.copyWith(
+                      fontFeatures: PassqlTypography.tabular,
+                      color: colors.label,
                     ),
                   ),
-                  const SizedBox(width: PassqlSpacing.xs),
-                  SizedBox(
-                    width: PassqlSize.examAnswerOmrBubble,
-                    child: Text(
-                      item.voteCount == 0 ? '-' : '$agreementPercent%',
-                      textAlign: TextAlign.end,
-                      style: PassqlTypography.footnote.copyWith(
-                        fontFeatures: PassqlTypography.tabular,
-                        color: colors.secondaryLabel,
-                      ),
-                    ),
-                  ),
-                  if (myAnswer != null) ...[
-                    const SizedBox(width: PassqlSpacing.xs),
-                    _MyAnswerMark(item: item, myAnswer: myAnswer!),
-                  ],
-                  const SizedBox(width: PassqlSpacing.xxs),
+                  const SizedBox(width: PassqlSpacing.sm),
                   AnimatedRotation(
                     turns: isExpanded ? _expandedChevronTurns : 0,
                     duration: PassqlMotion.durationOf(
@@ -129,6 +142,22 @@ class ExamAnswerKeyRow extends StatelessWidget {
     );
   }
 
+  /// 내 답 글자: 틀림 `내 답 N번`(오답색), 모름·갈림·미확정은 회색. 맞음·채점 전은 null
+  ({String text, Color color})? _myAnswerPartOf(PassqlColors colors) {
+    final answer = myAnswer;
+    if (answer == null) return null;
+    if (answer == ExamGradingRule.unknownAnswer) {
+      return (text: '내 답 모름', color: colors.secondaryLabel);
+    }
+    if (!item.answerStatus.isSettled) {
+      return (text: '내 답 $answer번', color: colors.secondaryLabel);
+    }
+    // 맞힌 행은 표시 없음 (틀린 행만 눈에 띄게)
+    return item.acceptedAnswers.contains(answer)
+        ? null
+        : (text: '내 답 $answer번', color: colors.wrongText);
+  }
+
   // 펼침 화살표 회전 (반 바퀴)
   static const double _expandedChevronTurns = 0.5;
 
@@ -141,37 +170,7 @@ class ExamAnswerKeyRow extends StatelessWidget {
   }
 }
 
-/// 내 답 정오: 맞음 초록 체크, 틀림 빨강 엑스, 갈림·미확정은 내 답 숫자만
-class _MyAnswerMark extends StatelessWidget {
-  const _MyAnswerMark({required this.item, required this.myAnswer});
-
-  final ExamAnswerItemResponse item;
-  final int myAnswer;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    final isAnswered = myAnswer != ExamGradingRule.unknownAnswer;
-    final isMatched = isAnswered && item.acceptedAnswers.contains(myAnswer);
-    if (isAnswered && !item.answerStatus.isSettled) {
-      return Text(
-        '$myAnswer',
-        style: PassqlTypography.footnoteSemibold.copyWith(
-          color: colors.secondaryLabel,
-        ),
-      );
-    }
-    return Icon(
-      isMatched
-          ? CupertinoIcons.checkmark_circle_fill
-          : CupertinoIcons.xmark_circle_fill,
-      size: PassqlIconSize.md,
-      color: isMatched ? colors.correct : colors.wrong,
-    );
-  }
-}
-
-/// 펼친 내용: 보기별 득표 4줄 > 메모 > 출제 개념·태그 > 개념 학습·문제 풀기
+/// 펼친 내용: 보기별 득표 4줄 > 메모 > 태그 > 개념 학습·문제 풀기 링크
 class _ExpandedDetail extends StatelessWidget {
   const _ExpandedDetail({required this.item});
 
@@ -185,7 +184,6 @@ class _ExpandedDetail extends StatelessWidget {
       for (var choice = 1; choice <= ExamGradingRule.choiceCount; choice++)
         item.votesOf(choice),
     ].fold<int>(0, (sum, count) => sum + count);
-    final conceptTitle = item.conceptTitle;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         PassqlSpacing.md + PassqlSize.examAnswerNumberColumn,
@@ -224,24 +222,13 @@ class _ExpandedDetail extends StatelessWidget {
               ),
             ),
           ],
-          if (conceptTitle != null && conceptTitle.isNotEmpty) ...[
+          if (item.conceptTags.isNotEmpty) ...[
             const SizedBox(height: PassqlSpacing.sm),
             Text(
-              conceptTitle,
-              style: PassqlTypography.subheadlineSemibold.copyWith(
-                color: colors.label,
+              item.conceptTags.join(', '),
+              style: PassqlTypography.footnote.copyWith(
+                color: colors.secondaryLabel,
               ),
-            ),
-          ],
-          if (item.conceptTags.isNotEmpty) ...[
-            const SizedBox(height: PassqlSpacing.xxs),
-            Wrap(
-              spacing: PassqlSpacing.xxs,
-              runSpacing: PassqlSpacing.xxs,
-              children: [
-                for (final tag in item.conceptTags)
-                  PassqlBadge(text: tag, kind: PassqlBadgeKind.neutral),
-              ],
             ),
           ],
           const SizedBox(height: PassqlSpacing.sm),

@@ -31,6 +31,8 @@ public record MockExamResultResponse(
     int questionCount,
     boolean isPassed,
     MockExamFailReason failReason,
+    @Schema(description = "합격선 여유 문장 (예: 합격선까지 3문제 더 맞히면 돼요 / 합격선보다 2문제 여유가 있어요, #1111)")
+    String passMarginText,
     @Schema(nullable = true, description = "같은 회차 응시자 중 내 위치 (응시자 10명 미만이면 null)") MockExamRanking ranking,
     List<SubjectResult> subjects,
     List<TopicResult> topics,
@@ -42,7 +44,9 @@ public record MockExamResultResponse(
 ) {
 
     public record SubjectResult(MockExamSubject subject, String name, int correctCount, int questionCount,
-                                int score, int maxScore, int failBelowScore, boolean isFailed) {
+                                int score, int maxScore, int failBelowScore, boolean isFailed,
+                                @Schema(description = "과락 여유 (예: 과락까지 여유 2문제 / 과락을 넘으려면 1문제 더, #1111)")
+                                String failMarginText) {
     }
 
     public record TopicResult(UUID topicUuid, String topicName, MockExamSubject subject, int correctCount, int questionCount) {
@@ -74,13 +78,13 @@ public record MockExamResultResponse(
         mergedLockedSections.addAll(addedLockedSections);
         return new MockExamResultResponse(attemptUuid, roundUuid, roundNumber, title, submitReason, startedAt,
             submittedAt, elapsedSeconds, totalScore, maxScore, passScore, correctCount, questionCount, isPassed,
-            failReason, ranking, List.of(), List.of(), questionMarks, List.of(), null, mergedLockedSections);
+            failReason, passMarginText, ranking, List.of(), List.of(), questionMarks, List.of(), null, mergedLockedSections);
     }
 
     /** 다음에 할 일 붙이기 */
     public MockExamResultResponse withNextStep(MockExamNextStep plannedNextStep) {
         return new MockExamResultResponse(attemptUuid, roundUuid, roundNumber, title, submitReason, startedAt,
             submittedAt, elapsedSeconds, totalScore, maxScore, passScore, correctCount, questionCount, isPassed,
-            failReason, ranking, subjects, topics, questionMarks, reviews, plannedNextStep, lockedSections);
+            failReason, passMarginText, ranking, subjects, topics, questionMarks, reviews, plannedNextStep, lockedSections);
     }
 }

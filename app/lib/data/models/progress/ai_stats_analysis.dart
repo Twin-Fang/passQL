@@ -45,7 +45,7 @@ enum AiForecastVerdict {
   unknown,
 }
 
-/// 통계 AI 구조화 분석 (#861, #862): 한 줄 진단 > 예상 점수 > 약한 토픽 최대 2 > 반복 오답 > 추세·강점 > 다음 목표 > 바로 풀기 최대 2
+/// 통계 AI 구조화 분석 (#861, #862): 한 줄 진단 > 예상 점수 > 점수 올리기 좋은 영역 최대 3(#1111) > 약한 토픽 최대 2 > 반복 오답 > 추세·강점 > 다음 목표 > 바로 풀기 최대 2
 /// 데이터 부족이면 readiness 만 (약한 토픽 없음)
 @freezed
 class AiStatsAnalysis with _$AiStatsAnalysis {
@@ -65,6 +65,8 @@ class AiStatsAnalysis with _$AiStatsAnalysis {
     AiAnalysisReadiness? readiness,
     // 모두 안정권일 때 다음 목표 한 줄
     String? nextGoal,
+    // 점수 올리기 좋은 영역 최대 3개, 기대 상승 점수 큰 순 (#1111)
+    @Default([]) List<AiScoreGainTopic> scoreGainTopics,
   }) = _AiStatsAnalysis;
 
   factory AiStatsAnalysis.fromJson(Map<String, dynamic> json) =>
@@ -93,6 +95,26 @@ class AiAnalysisFinding with _$AiAnalysisFinding {
 
   factory AiAnalysisFinding.fromJson(Map<String, dynamic> json) =>
       _$AiAnalysisFindingFromJson(json);
+}
+
+/// 점수 올리기 좋은 영역 1건 (#1111): 시험 출제 문항 수 × (안정권 정답률 − 내 정답률) × 2점
+@freezed
+class AiScoreGainTopic with _$AiScoreGainTopic {
+  const factory AiScoreGainTopic({
+    @Default('') String topicUuid,
+    // 서버가 줄인 표시 이름
+    @Default('') String topicName,
+    @Default(0) int correctRatePercent,
+    // 목표 정답률 (안정권 시작)
+    @Default(0) int targetCorrectRatePercent,
+    // 시험 50문항 중 이 영역 문항 수
+    @Default(0) int examQuestionCount,
+    // 기대 상승 점수 (소수 첫째 자리)
+    @Default(0) double expectedGainScore,
+  }) = _AiScoreGainTopic;
+
+  factory AiScoreGainTopic.fromJson(Map<String, dynamic> json) =>
+      _$AiScoreGainTopicFromJson(json);
 }
 
 /// 가장 잘하는 토픽 1건

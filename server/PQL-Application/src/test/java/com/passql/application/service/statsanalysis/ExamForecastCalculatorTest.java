@@ -29,7 +29,7 @@ class ExamForecastCalculatorTest {
         assertThat(forecast.summary()).isEqualTo("1과목 예상 6/10 · 2과목 예상 26/40");
         assertThat(forecast.expectedScore()).isEqualTo(64);
         assertThat(forecast.verdict()).isEqualTo(AiForecastVerdict.BORDERLINE);
-        assertThat(forecast.detail()).isEqualTo("합격선보다 2문제 여유가 있어요");
+        assertThat(forecast.detail()).isEqualTo("1과목 과락까지 여유 2문제, 합격선보다 2문제 여유");
     }
 
     @Test
@@ -39,7 +39,7 @@ class ExamForecastCalculatorTest {
         assertThat(forecast.expectedScore()).isEqualTo(78);
         assertThat(forecast.verdict()).isEqualTo(AiForecastVerdict.SUBJECT_FAIL_RISK);
         assertThat(forecast.isSubjectOneFailRisk()).isTrue();
-        assertThat(forecast.detail()).isEqualTo("1과목 과락 위험, 10문제 중 4문제 이상 맞혀야 해요");
+        assertThat(forecast.detail()).isEqualTo("1과목 과락을 넘으려면 1문제 더 맞혀야 해요");
     }
 
     @Test
@@ -47,7 +47,7 @@ class ExamForecastCalculatorTest {
         assertThat(ExamForecastCalculator.toVerdict(70, false)).isEqualTo(AiForecastVerdict.PASS_LIKELY);
         assertThat(ExamForecastCalculator.toVerdict(54, false)).isEqualTo(AiForecastVerdict.BORDERLINE);
         assertThat(ExamForecastCalculator.toVerdict(52, false)).isEqualTo(AiForecastVerdict.BELOW_PASS);
-        assertThat(ExamForecastCalculator.toForecast(5, 22).detail()).isEqualTo("합격선까지 3문제 더 맞히면 돼요");
+        assertThat(ExamForecastCalculator.toForecast(5, 22).detail()).isEqualTo("1과목 과락까지 여유 1문제, 합격선까지 3문제 더");
     }
 
     @Test

@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * 통계 AI 분석 서버 판정 (#861, #862): 데이터 부족(5문제 이상 토픽 없음) > 토픽 판정 > 집중 토픽 2개 > 예상 점수 > 강점·반복 오답 > 요약·추세 > 다음 할 일
+ * 통계 AI 분석 서버 판정 (#861, #862): 데이터 부족(5문제 이상 토픽 없음) > 토픽 판정 > 집중 토픽 2개 > 예상 점수 > 점수 올리기 좋은 영역(#1111) > 강점·반복 오답 > 요약·추세 > 다음 할 일
  * 순수 규칙 (DB·LLM 없음). LLM 은 집중 토픽별 한 문장만 따로 붙임
  */
 public final class AiAnalysisPlanner {
@@ -68,7 +68,8 @@ public final class AiAnalysisPlanner {
                 ExamForecastCalculator.toMissingDataHint(topicStats),
                 AiAnalysisNextStepPlanner.toRepeatedWrong(input.repeatedWrongStat()),
                 null,
-                focusTopics.isEmpty() ? AiAnalysisNextStepPlanner.toNextGoal(untouchedTopic) : null
+                focusTopics.isEmpty() ? AiAnalysisNextStepPlanner.toNextGoal(untouchedTopic) : null,
+                ScoreGainTopicCalculator.selectTopTopics(topicStats)
         );
         return new StatsAnalysisPlan(analysis, focusTopics);
     }
@@ -79,7 +80,7 @@ public final class AiAnalysisPlanner {
         String headlineBody = input.totalSolvedCount() == 0 ? HEADLINE_NO_HISTORY : HEADLINE_NOT_ENOUGH_DATA;
         return new AiStatsAnalysis(examPrefix + headlineBody, List.of(), toTrendText(input.twoWeekCounts()), null,
                 AiAnalysisNextStepPlanner.buildReadinessActions(readinessTopic), PERIOD_LABEL, null, null, null,
-                AiAnalysisNextStepPlanner.toReadiness(readinessTopic), null);
+                AiAnalysisNextStepPlanner.toReadiness(readinessTopic), null, List.of());
     }
 
     /** 5문제 이상 푼 토픽이 하나라도 있는지 (없으면 데이터 부족) */

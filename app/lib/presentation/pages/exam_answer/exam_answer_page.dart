@@ -117,6 +117,19 @@ class _ExamAnswerPageState extends ConsumerState<ExamAnswerPage> {
                         myAnswers: sheetState.gradedSheet?.answers,
                       ),
               ),
+              // 면책 전문 (두 탭 공통, 목록 아래 각주)
+              const SizedBox(height: PassqlSpacing.xl),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: PassqlSpacing.md,
+                ),
+                child: Text(
+                  ExamAnswerRoundSummary.disclaimer,
+                  style: PassqlTypography.footnote.copyWith(
+                    color: context.passqlColors.secondaryLabel,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

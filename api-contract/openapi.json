@@ -227,6 +227,35 @@
         "required" : [ "promptVersion", "text" ],
         "type" : "object"
       },
+      "AiScoreGainTopic" : {
+        "properties" : {
+          "correctRatePercent" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "examQuestionCount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "expectedGainScore" : {
+            "format" : "double",
+            "type" : "number"
+          },
+          "targetCorrectRatePercent" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "topicName" : {
+            "type" : "string"
+          },
+          "topicUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        },
+        "required" : [ "correctRatePercent", "examQuestionCount", "expectedGainScore", "targetCorrectRatePercent", "topicName", "topicUuid" ],
+        "type" : "object"
+      },
       "AiStatsAnalysis" : {
         "properties" : {
           "actions" : {
@@ -274,6 +303,12 @@
               "type" : "null"
             } ]
           },
+          "scoreGainTopics" : {
+            "items" : {
+              "$ref" : "#/components/schemas/AiScoreGainTopic"
+            },
+            "type" : "array"
+          },
           "strength" : {
             "oneOf" : [ {
               "$ref" : "#/components/schemas/AiAnalysisStrength"
@@ -285,7 +320,7 @@
             "type" : [ "string", "null" ]
           }
         },
-        "required" : [ "actions", "findings", "forecast", "forecastHint", "headline", "nextGoal", "periodLabel", "readiness", "repeatedWrong", "strength", "trend" ],
+        "required" : [ "actions", "findings", "forecast", "forecastHint", "headline", "nextGoal", "periodLabel", "readiness", "repeatedWrong", "scoreGainTopics", "strength", "trend" ],
         "type" : "object"
       },
       "AnswerEntry" : {
@@ -2818,6 +2853,10 @@
               "type" : "null"
             } ]
           },
+          "passMarginText" : {
+            "description" : "합격선 여유 문장 (예: 합격선까지 3문제 더 맞히면 돼요 / 합격선보다 2문제 여유가 있어요, #1111)",
+            "type" : "string"
+          },
           "passScore" : {
             "format" : "int32",
             "type" : "integer"
@@ -2885,7 +2924,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "attemptUuid", "correctCount", "elapsedSeconds", "failReason", "isPassed", "lockedSections", "maxScore", "nextStep", "passScore", "questionCount", "questionMarks", "ranking", "reviews", "roundNumber", "roundUuid", "startedAt", "subjects", "submitReason", "submittedAt", "title", "topics", "totalScore" ],
+        "required" : [ "attemptUuid", "correctCount", "elapsedSeconds", "failReason", "isPassed", "lockedSections", "maxScore", "nextStep", "passMarginText", "passScore", "questionCount", "questionMarks", "ranking", "reviews", "roundNumber", "roundUuid", "startedAt", "subjects", "submitReason", "submittedAt", "title", "topics", "totalScore" ],
         "type" : "object"
       },
       "MockExamRoundListResponse" : {
@@ -4302,6 +4341,10 @@
             "format" : "int32",
             "type" : "integer"
           },
+          "failMarginText" : {
+            "description" : "과락 여유 (예: 과락까지 여유 2문제 / 과락을 넘으려면 1문제 더, #1111)",
+            "type" : "string"
+          },
           "isFailed" : {
             "type" : "boolean"
           },
@@ -4325,7 +4368,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "correctCount", "failBelowScore", "isFailed", "maxScore", "name", "questionCount", "score", "subject" ],
+        "required" : [ "correctCount", "failBelowScore", "failMarginText", "isFailed", "maxScore", "name", "questionCount", "score", "subject" ],
         "type" : "object"
       },
       "SubjectRule" : {
