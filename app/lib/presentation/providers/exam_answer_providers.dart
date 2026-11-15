@@ -23,8 +23,11 @@ final examAnswerRoundProvider = FutureProvider.autoDispose
           .fetchRound(roundKey.certType, roundKey.roundNumber),
     );
 
-/// 홈 진입 카드 회차: 올해 SQLD 일정 중 시행일이 지난 가장 최근 회차 > 가답안 상태가 수집 중·공식 반영이면 노출
-/// 일정·회차 조회 실패나 가답안 없음(404)은 카드 숨김
+// 홈 가답안 카드 노출 기간: 시험일부터 7일 (소개 사이트 강조 기간과 같음)
+const examAnswerHomeVisibleDuration = Duration(days: 7);
+
+/// 홈 진입 카드 회차: 올해 SQLD 일정 중 시행일이 지난 가장 최근 회차 > 시험일 + 7일 안 > 가답안 상태가 수집 중·공식 반영이면 노출
+/// 일정·회차 조회 실패나 가답안 없음(404)은 카드 숨김. 7일 뒤는 지난 회차라 홈에서 내림 (소개 사이트 강조 기간과 같음, #1077)
 final examAnswerHomeEntryProvider =
     FutureProvider.autoDispose<ExamAnswerRoundResponse?>((ref) async {
       if (ref.watch(currentMemberUuidProvider) == null) return null;
@@ -45,6 +48,11 @@ final examAnswerHomeEntryProvider =
             ..sort((first, second) => first.round.compareTo(second.round));
       if (heldSchedules.isEmpty) return null;
       final latestSchedule = heldSchedules.last;
+      final examDate = DateTime.tryParse(latestSchedule.examDate);
+      if (examDate == null ||
+          today.isAfter(examDate.add(examAnswerHomeVisibleDuration))) {
+        return null;
+      }
       final roundResponse = await safeCall(
         ref
             .read(examAnswerRepositoryProvider)

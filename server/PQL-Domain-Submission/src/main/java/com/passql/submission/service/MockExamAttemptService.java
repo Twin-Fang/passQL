@@ -79,8 +79,10 @@ public class MockExamAttemptService {
             throw new CustomException(ErrorCode.MOCK_EXAM_ROUND_NOT_FOUND);
         }
         MockExamAttempt inProgressAttempt = findInProgressAttempt(memberUuid);
+        MockExamFreeRounds freeRounds = findFreeRounds();
         MockExamStartBlockReason blockReason = MockExamAccessRule.findStartBlockReason(isPro,
-            isFreeTrialRound(roundUuid), attemptRepository.existsByMemberUuid(memberUuid), roundUuid,
+            freeRounds.isFreeTrialRound(roundUuid), freeRounds.isFreePastExamRound(roundUuid),
+            attemptRepository.existsMockRoundAttemptByMemberUuid(memberUuid), roundUuid,
             inProgressAttempt != null ? inProgressAttempt.getMockExamRoundUuid() : null);
         if (blockReason != null) {
             log.info("[mock exam] start rejected : member={}, round={}, reason={}", memberUuid, roundUuid, blockReason);
@@ -218,11 +220,9 @@ public class MockExamAttemptService {
         return finalizedCount;
     }
 
-    /** 무료 체험 회차: 공개 회차 중 번호가 가장 작은 회차 */
-    public boolean isFreeTrialRound(UUID roundUuid) {
-        return roundRepository.findFirstByStatusOrderByRoundNumberAsc(MockExamRoundStatus.PUBLISHED)
-            .map(freeTrialRound -> freeTrialRound.getMockExamRoundUuid().equals(roundUuid))
-            .orElse(false);
+    /** 무료 회차 2개 (공개 회차 기준): 무료 체험 회차, 무료 기출 회차 */
+    private MockExamFreeRounds findFreeRounds() {
+        return MockExamFreeRounds.from(roundRepository.findByStatusOrderByRoundNumberAsc(MockExamRoundStatus.PUBLISHED));
     }
 
     /** 풀이 중 응시 (없으면 null) */

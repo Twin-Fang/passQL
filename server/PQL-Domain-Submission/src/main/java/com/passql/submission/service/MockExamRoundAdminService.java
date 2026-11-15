@@ -200,7 +200,8 @@ public class MockExamRoundAdminService {
         // 공개 회차만 지금 기준 공개 검사 (세트 신고·문제 비활성 감지)
         int publishCheckErrorCount = round.getStatus() == MockExamRoundStatus.PUBLISHED
             ? publishChecker.check(paperLoader.load(round)).errors().size() : 0;
-        return new AdminMockExamRoundRow(roundUuid, round.getRoundNumber(), round.getTitle(), round.getStatus(),
+        return new AdminMockExamRoundRow(roundUuid, round.getRoundNumber(), round.getTitle(), round.getRoundType(),
+            round.getStatus(),
             roundItemRepository.countByMockExamRoundUuid(roundUuid), attemptRepository.countByMockExamRoundUuid(roundUuid),
             submittedAttempts.size(), averageScore, passRatePercent, round.getPublishedAt(), publishCheckErrorCount);
     }

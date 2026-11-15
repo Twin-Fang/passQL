@@ -56,7 +56,8 @@
                 : '<span class="text-base-content/40 text-xs">-</span>';
             return '<tr class="cursor-pointer hover:bg-base-200" data-href="' + escapeHtml(mockExam.toRoundDetailPath(round.roundUuid)) + '">'
                 + '<td class="font-bold">' + formatNumber(round.roundNumber) + '</td>'
-                + '<td>' + escapeHtml(round.title) + '</td>'
+                + '<td>' + escapeHtml(round.title)
+                + (round.roundType === 'PAST_EXAM' ? ' <span class="badge badge-info badge-sm">기출</span>' : '') + '</td>'
                 + '<td>' + mockExam.toRoundStatusBadge(round.status) + '</td>'
                 + '<td class="text-right">' + formatNumber(round.itemCount) + '</td>'
                 + '<td class="text-right">' + formatNumber(round.attemptCount) + ' / ' + formatNumber(round.submittedCount) + '</td>'
@@ -67,10 +68,12 @@
         }).join('');
     }
 
-    /** 회차 번호 기본값 = 가장 큰 번호 + 1 (입력이 비어 있을 때만) */
+    /** 회차 번호 기본값 = 모의고사 회차 중 가장 큰 번호 + 1 (입력이 비어 있을 때만, 기출 회차 번호는 따로, #1079) */
     function fillDefaultRoundNumber(rounds) {
         if (composeRoundNumberInput.value) return;
-        const maximumRoundNumber = rounds.reduce((maximum, round) => Math.max(maximum, round.roundNumber), 0);
+        const maximumRoundNumber = rounds
+            .filter(round => round.roundType !== 'PAST_EXAM')
+            .reduce((maximum, round) => Math.max(maximum, round.roundNumber), 0);
         composeRoundNumberInput.value = String(maximumRoundNumber + 1);
         if (!isTitleEditedByAdmin) composeTitleInput.value = toDefaultTitle(maximumRoundNumber + 1);
     }

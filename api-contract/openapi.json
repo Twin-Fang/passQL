@@ -2888,6 +2888,11 @@
             "format" : "int32",
             "type" : "integer"
           },
+          "roundType" : {
+            "description" : "회차 종류 (MOCK 모의고사, PAST_EXAM 기출 복원, #1079)",
+            "enum" : [ "MOCK", "PAST_EXAM" ],
+            "type" : "string"
+          },
           "roundUuid" : {
             "format" : "uuid",
             "type" : "string"
@@ -2924,7 +2929,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "attemptUuid", "correctCount", "elapsedSeconds", "failReason", "isPassed", "lockedSections", "maxScore", "nextStep", "passMarginText", "passScore", "questionCount", "questionMarks", "ranking", "reviews", "roundNumber", "roundUuid", "startedAt", "subjects", "submitReason", "submittedAt", "title", "topics", "totalScore" ],
+        "required" : [ "attemptUuid", "correctCount", "elapsedSeconds", "failReason", "isPassed", "lockedSections", "maxScore", "nextStep", "passMarginText", "passScore", "questionCount", "questionMarks", "ranking", "reviews", "roundNumber", "roundType", "roundUuid", "startedAt", "subjects", "submitReason", "submittedAt", "title", "topics", "totalScore" ],
         "type" : "object"
       },
       "MockExamRoundListResponse" : {
@@ -3956,8 +3961,22 @@
           "canStart" : {
             "type" : "boolean"
           },
+          "examDate" : {
+            "description" : "실제 시험일 (PAST_EXAM 만)",
+            "format" : "date",
+            "type" : [ "string", "null" ]
+          },
+          "examRoundNumber" : {
+            "description" : "실제 시험 회차 번호 (PAST_EXAM 만, 예 62)",
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "isFreePastExamRound" : {
+            "description" : "무료 기출 회차 (가장 최근 기출 회차, 무료 회원도 체험 횟수와 별개로 응시)",
+            "type" : "boolean"
+          },
           "isFreeTrialRound" : {
-            "description" : "무료 체험 회차 (공개 회차 중 번호가 가장 작은 회차)",
+            "description" : "무료 체험 회차 (모의고사 회차 중 번호가 가장 작은 회차)",
             "type" : "boolean"
           },
           "lastAttempt" : {
@@ -3970,6 +3989,11 @@
           "roundNumber" : {
             "format" : "int32",
             "type" : "integer"
+          },
+          "roundType" : {
+            "description" : "회차 종류 (MOCK 모의고사, PAST_EXAM 기출 복원, #1079)",
+            "enum" : [ "MOCK", "PAST_EXAM" ],
+            "type" : "string"
           },
           "roundUuid" : {
             "format" : "uuid",
@@ -3987,7 +4011,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "bestAttemptFailReason", "bestAttemptIsPassed", "bestScore", "canStart", "isFreeTrialRound", "lastAttempt", "roundNumber", "roundUuid", "startBlockReason", "submittedAttemptCount", "title" ],
+        "required" : [ "bestAttemptFailReason", "bestAttemptIsPassed", "bestScore", "canStart", "examDate", "examRoundNumber", "isFreePastExamRound", "isFreeTrialRound", "lastAttempt", "roundNumber", "roundType", "roundUuid", "startBlockReason", "submittedAttemptCount", "title" ],
         "type" : "object"
       },
       "SheetQuestion" : {

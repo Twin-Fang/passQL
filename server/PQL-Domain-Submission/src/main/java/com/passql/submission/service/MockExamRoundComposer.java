@@ -8,6 +8,7 @@ import com.passql.question.entity.Question;
 import com.passql.question.entity.QuestionChoiceSet;
 import com.passql.question.repository.QuestionRepository;
 import com.passql.submission.constant.MockExamRoundStatus;
+import com.passql.submission.constant.MockExamRoundType;
 import com.passql.submission.constant.MockExamSubject;
 import com.passql.submission.dto.mockexam.AdminMockExamComposeRequest;
 import com.passql.submission.dto.mockexam.AdminMockExamComposeResult;
@@ -97,7 +98,7 @@ public class MockExamRoundComposer {
         return new AdminMockExamComposeResult(round.getMockExamRoundUuid(), items.size(), warnings);
     }
 
-    /** 후보 묶음: 활성 토픽 + 출제 가능 세트가 있는 활성 문제 + 최근 3개 회차(공개·보관) 사용 문제 */
+    /** 후보 묶음: 활성 토픽 + 출제 가능 세트가 있는 활성 문제 + 최근 모의고사 3개 회차(공개·보관) 사용 문제 */
     public MockExamCandidatePool loadCandidatePool() {
         List<Topic> topics = topicRepository.findByIsActiveTrueOrderBySortOrderAsc();
         Map<UUID, QuestionChoiceSet> preferredSetByQuestion = eligibleSetFinder.findPreferredSetByQuestion();
@@ -105,7 +106,8 @@ public class MockExamRoundComposer {
             .filter(question -> Boolean.TRUE.equals(question.getIsActive()))
             .collect(Collectors.toMap(Question::getQuestionUuid, Function.identity()));
         List<UUID> recentRoundUuids = roundRepository
-            .findTop3ByStatusInOrderByRoundNumberDesc(List.of(MockExamRoundStatus.PUBLISHED, MockExamRoundStatus.ARCHIVED))
+            .findTop3ByRoundTypeAndStatusInOrderByRoundNumberDesc(MockExamRoundType.MOCK,
+                List.of(MockExamRoundStatus.PUBLISHED, MockExamRoundStatus.ARCHIVED))
             .stream().map(MockExamRound::getMockExamRoundUuid).toList();
         Set<UUID> recentlyUsedQuestionUuids = roundItemRepository.findByMockExamRoundUuidIn(recentRoundUuids).stream()
             .map(MockExamRoundItem::getQuestionUuid)
@@ -175,7 +177,7 @@ public class MockExamRoundComposer {
         if (request.title() == null || request.title().isBlank() || request.title().trim().length() > TITLE_MAX_LENGTH) {
             throw new CustomException(ErrorCode.INVALID_INPUT_VALUE, "제목은 1~100자여야 합니다.");
         }
-        if (roundRepository.existsByRoundNumber(request.roundNumber())) {
+        if (roundRepository.existsByRoundTypeAndRoundNumber(MockExamRoundType.MOCK, request.roundNumber())) {
             throw new CustomException(ErrorCode.MOCK_EXAM_ROUND_NUMBER_DUPLICATED);
         }
     }

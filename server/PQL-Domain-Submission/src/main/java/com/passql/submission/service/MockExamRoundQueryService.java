@@ -2,6 +2,7 @@ package com.passql.submission.service;
 
 import com.passql.submission.constant.MockExamAttemptStatus;
 import com.passql.submission.constant.MockExamRoundStatus;
+import com.passql.submission.constant.MockExamRoundType;
 import com.passql.submission.dto.mockexam.MockExamHistoryResponse;
 import com.passql.submission.dto.mockexam.MockExamRoundListResponse;
 import com.passql.submission.dto.mockexam.MockExamRuleResponse;
@@ -47,12 +48,14 @@ public class MockExamRoundQueryService {
             .collect(Collectors.toMap(MockExamRound::getMockExamRoundUuid, Function.identity()));
         MockExamAttempt inProgressAttempt = memberAttempts.stream().filter(MockExamAttempt::isInProgress)
             .reduce((first, second) -> second).orElse(null);
-        UUID freeTrialRoundUuid = publishedRounds.isEmpty() ? null : publishedRounds.get(0).getMockExamRoundUuid();
-        boolean hasAnyAttempt = !memberAttempts.isEmpty();
+        MockExamFreeRounds freeRounds = MockExamFreeRounds.from(publishedRounds);
+        // 체험 소진 판정은 모의고사 회차 응시만 (기출 회차 응시 제외, #1079)
+        boolean hasAnyMockRoundAttempt = memberAttempts.stream()
+            .map(attempt -> roundByUuid.get(attempt.getMockExamRoundUuid()))
+            .anyMatch(round -> round != null && round.getRoundType() == MockExamRoundType.MOCK);
 
         List<MockExamRoundListResponse.RoundSummary> roundSummaries = publishedRounds.stream()
-            .map(round -> toRoundSummary(round, memberAttempts, isPro, round.getMockExamRoundUuid().equals(freeTrialRoundUuid),
-                hasAnyAttempt, inProgressAttempt))
+            .map(round -> toRoundSummary(round, memberAttempts, isPro, freeRounds, hasAnyMockRoundAttempt, inProgressAttempt))
             .toList();
         return new MockExamRoundListResponse(MockExamRuleResponse.fromRule(),
             toInProgressAttempt(inProgressAttempt, roundByUuid), roundSummaries);
@@ -80,9 +83,12 @@ public class MockExamRoundQueryService {
     }
 
     private MockExamRoundListResponse.RoundSummary toRoundSummary(MockExamRound round, List<MockExamAttempt> memberAttempts,
-                                                                  boolean isPro, boolean isFreeTrialRound,
-                                                                  boolean hasAnyAttempt, MockExamAttempt inProgressAttempt) {
+                                                                  boolean isPro, MockExamFreeRounds freeRounds,
+                                                                  boolean hasAnyMockRoundAttempt,
+                                                                  MockExamAttempt inProgressAttempt) {
         UUID roundUuid = round.getMockExamRoundUuid();
+        boolean isFreeTrialRound = freeRounds.isFreeTrialRound(roundUuid);
+        boolean isFreePastExamRound = freeRounds.isFreePastExamRound(roundUuid);
         List<MockExamAttempt> roundAttempts = memberAttempts.stream()
             .filter(attempt -> attempt.getMockExamRoundUuid().equals(roundUuid))
             .toList();
@@ -92,10 +98,11 @@ public class MockExamRoundQueryService {
         MockExamAttempt bestAttempt = findBestAttempt(submittedAttempts);
         MockExamAttempt lastAttempt = roundAttempts.isEmpty() ? null : roundAttempts.get(roundAttempts.size() - 1);
 
-        var startBlockReason = MockExamAccessRule.findStartBlockReason(isPro, isFreeTrialRound, hasAnyAttempt, roundUuid,
-            inProgressAttempt != null ? inProgressAttempt.getMockExamRoundUuid() : null);
+        var startBlockReason = MockExamAccessRule.findStartBlockReason(isPro, isFreeTrialRound, isFreePastExamRound,
+            hasAnyMockRoundAttempt, roundUuid, inProgressAttempt != null ? inProgressAttempt.getMockExamRoundUuid() : null);
         return new MockExamRoundListResponse.RoundSummary(roundUuid, round.getRoundNumber(), round.getTitle(),
-            isFreeTrialRound, startBlockReason == null, startBlockReason, submittedAttempts.size(),
+            round.getRoundType(), round.getExamRoundNumberOrNull(), round.getExamDate(),
+            isFreeTrialRound, isFreePastExamRound, startBlockReason == null, startBlockReason, submittedAttempts.size(),
             bestAttempt == null ? null : bestAttempt.getTotalScore(),
             bestAttempt == null ? null : bestAttempt.getIsPassed(),
             bestAttempt == null ? null : bestAttempt.getFailReason(),

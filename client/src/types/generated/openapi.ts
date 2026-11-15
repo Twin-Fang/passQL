@@ -4034,6 +4034,11 @@ export interface components {
             reviews: components["schemas"]["QuestionReview"][];
             /** Format: int32 */
             roundNumber: number;
+            /**
+             * @description 회차 종류 (MOCK 모의고사, PAST_EXAM 기출 복원, #1079)
+             * @enum {string}
+             */
+            roundType: "MOCK" | "PAST_EXAM";
             /** Format: uuid */
             roundUuid: string;
             /** Format: date-time */
@@ -4462,11 +4467,28 @@ export interface components {
             /** Format: int32 */
             bestScore: number | null;
             canStart: boolean;
-            /** @description 무료 체험 회차 (공개 회차 중 번호가 가장 작은 회차) */
+            /**
+             * Format: date
+             * @description 실제 시험일 (PAST_EXAM 만)
+             */
+            examDate: string | null;
+            /**
+             * Format: int32
+             * @description 실제 시험 회차 번호 (PAST_EXAM 만, 예 62)
+             */
+            examRoundNumber: number | null;
+            /** @description 무료 기출 회차 (가장 최근 기출 회차, 무료 회원도 체험 횟수와 별개로 응시) */
+            isFreePastExamRound: boolean;
+            /** @description 무료 체험 회차 (모의고사 회차 중 번호가 가장 작은 회차) */
             isFreeTrialRound: boolean;
             lastAttempt: components["schemas"]["LastAttempt"] | null;
             /** Format: int32 */
             roundNumber: number;
+            /**
+             * @description 회차 종류 (MOCK 모의고사, PAST_EXAM 기출 복원, #1079)
+             * @enum {string}
+             */
+            roundType: "MOCK" | "PAST_EXAM";
             /** Format: uuid */
             roundUuid: string;
             /** @enum {string|null} */

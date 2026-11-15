@@ -26,7 +26,10 @@ mixin _$MockExamResultResponse {
   String get attemptUuid => throw _privateConstructorUsedError;
   String get roundUuid => throw _privateConstructorUsedError;
   int get roundNumber => throw _privateConstructorUsedError;
-  String get title => throw _privateConstructorUsedError;
+  String get title =>
+      throw _privateConstructorUsedError; // 회차 종류 (기출 복원이면 결과 아래 안내, #1079)
+  @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+  MockExamRoundType get roundType => throw _privateConstructorUsedError;
   @JsonKey(unknownEnumValue: MockExamSubmitReason.unknown)
   MockExamSubmitReason get submitReason => throw _privateConstructorUsedError;
   String get startedAt => throw _privateConstructorUsedError;
@@ -75,6 +78,8 @@ abstract class $MockExamResultResponseCopyWith<$Res> {
     String roundUuid,
     int roundNumber,
     String title,
+    @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+    MockExamRoundType roundType,
     @JsonKey(unknownEnumValue: MockExamSubmitReason.unknown)
     MockExamSubmitReason submitReason,
     String startedAt,
@@ -124,6 +129,7 @@ class _$MockExamResultResponseCopyWithImpl<
     Object? roundUuid = null,
     Object? roundNumber = null,
     Object? title = null,
+    Object? roundType = null,
     Object? submitReason = null,
     Object? startedAt = null,
     Object? submittedAt = null,
@@ -162,6 +168,10 @@ class _$MockExamResultResponseCopyWithImpl<
                 ? _value.title
                 : title // ignore: cast_nullable_to_non_nullable
                       as String,
+            roundType: null == roundType
+                ? _value.roundType
+                : roundType // ignore: cast_nullable_to_non_nullable
+                      as MockExamRoundType,
             submitReason: null == submitReason
                 ? _value.submitReason
                 : submitReason // ignore: cast_nullable_to_non_nullable
@@ -286,6 +296,8 @@ abstract class _$$MockExamResultResponseImplCopyWith<$Res>
     String roundUuid,
     int roundNumber,
     String title,
+    @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+    MockExamRoundType roundType,
     @JsonKey(unknownEnumValue: MockExamSubmitReason.unknown)
     MockExamSubmitReason submitReason,
     String startedAt,
@@ -334,6 +346,7 @@ class __$$MockExamResultResponseImplCopyWithImpl<$Res>
     Object? roundUuid = null,
     Object? roundNumber = null,
     Object? title = null,
+    Object? roundType = null,
     Object? submitReason = null,
     Object? startedAt = null,
     Object? submittedAt = null,
@@ -372,6 +385,10 @@ class __$$MockExamResultResponseImplCopyWithImpl<$Res>
             ? _value.title
             : title // ignore: cast_nullable_to_non_nullable
                   as String,
+        roundType: null == roundType
+            ? _value.roundType
+            : roundType // ignore: cast_nullable_to_non_nullable
+                  as MockExamRoundType,
         submitReason: null == submitReason
             ? _value.submitReason
             : submitReason // ignore: cast_nullable_to_non_nullable
@@ -461,6 +478,8 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
     required this.roundUuid,
     required this.roundNumber,
     required this.title,
+    @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+    this.roundType = MockExamRoundType.mock,
     @JsonKey(unknownEnumValue: MockExamSubmitReason.unknown)
     required this.submitReason,
     required this.startedAt,
@@ -499,6 +518,10 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
   final int roundNumber;
   @override
   final String title;
+  // 회차 종류 (기출 복원이면 결과 아래 안내, #1079)
+  @override
+  @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+  final MockExamRoundType roundType;
   @override
   @JsonKey(unknownEnumValue: MockExamSubmitReason.unknown)
   final MockExamSubmitReason submitReason;
@@ -579,7 +602,7 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
 
   @override
   String toString() {
-    return 'MockExamResultResponse(attemptUuid: $attemptUuid, roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, submitReason: $submitReason, startedAt: $startedAt, submittedAt: $submittedAt, elapsedSeconds: $elapsedSeconds, totalScore: $totalScore, maxScore: $maxScore, passScore: $passScore, correctCount: $correctCount, questionCount: $questionCount, isPassed: $isPassed, failReason: $failReason, passMarginText: $passMarginText, ranking: $ranking, subjects: $subjects, topics: $topics, questionMarks: $questionMarks, reviews: $reviews, nextStep: $nextStep, lockedSections: $lockedSections)';
+    return 'MockExamResultResponse(attemptUuid: $attemptUuid, roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, roundType: $roundType, submitReason: $submitReason, startedAt: $startedAt, submittedAt: $submittedAt, elapsedSeconds: $elapsedSeconds, totalScore: $totalScore, maxScore: $maxScore, passScore: $passScore, correctCount: $correctCount, questionCount: $questionCount, isPassed: $isPassed, failReason: $failReason, passMarginText: $passMarginText, ranking: $ranking, subjects: $subjects, topics: $topics, questionMarks: $questionMarks, reviews: $reviews, nextStep: $nextStep, lockedSections: $lockedSections)';
   }
 
   @override
@@ -594,6 +617,8 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
             (identical(other.roundNumber, roundNumber) ||
                 other.roundNumber == roundNumber) &&
             (identical(other.title, title) || other.title == title) &&
+            (identical(other.roundType, roundType) ||
+                other.roundType == roundType) &&
             (identical(other.submitReason, submitReason) ||
                 other.submitReason == submitReason) &&
             (identical(other.startedAt, startedAt) ||
@@ -642,6 +667,7 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
     roundUuid,
     roundNumber,
     title,
+    roundType,
     submitReason,
     startedAt,
     submittedAt,
@@ -687,6 +713,8 @@ abstract class _MockExamResultResponse implements MockExamResultResponse {
     required final String roundUuid,
     required final int roundNumber,
     required final String title,
+    @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+    final MockExamRoundType roundType,
     @JsonKey(unknownEnumValue: MockExamSubmitReason.unknown)
     required final MockExamSubmitReason submitReason,
     required final String startedAt,
@@ -720,7 +748,10 @@ abstract class _MockExamResultResponse implements MockExamResultResponse {
   @override
   int get roundNumber;
   @override
-  String get title;
+  String get title; // 회차 종류 (기출 복원이면 결과 아래 안내, #1079)
+  @override
+  @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+  MockExamRoundType get roundType;
   @override
   @JsonKey(unknownEnumValue: MockExamSubmitReason.unknown)
   MockExamSubmitReason get submitReason;

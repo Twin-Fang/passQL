@@ -1116,8 +1116,15 @@ MockExamRoundSummary _$MockExamRoundSummaryFromJson(Map<String, dynamic> json) {
 mixin _$MockExamRoundSummary {
   String get roundUuid => throw _privateConstructorUsedError;
   int get roundNumber => throw _privateConstructorUsedError;
-  String get title => throw _privateConstructorUsedError;
-  bool get isFreeTrialRound => throw _privateConstructorUsedError;
+  String get title =>
+      throw _privateConstructorUsedError; // 회차 종류·실제 시험 회차·시험일 (기출 복원만, #1079)
+  @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+  MockExamRoundType get roundType => throw _privateConstructorUsedError;
+  int? get examRoundNumber => throw _privateConstructorUsedError;
+  String? get examDate => throw _privateConstructorUsedError;
+  bool get isFreeTrialRound =>
+      throw _privateConstructorUsedError; // 무료 기출 회차 (가장 최근 기출, 체험 횟수와 별개, #1079)
+  bool get isFreePastExamRound => throw _privateConstructorUsedError;
   bool get canStart => throw _privateConstructorUsedError;
   @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
   MockExamStartBlockReason? get startBlockReason =>
@@ -1153,7 +1160,12 @@ abstract class $MockExamRoundSummaryCopyWith<$Res> {
     String roundUuid,
     int roundNumber,
     String title,
+    @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+    MockExamRoundType roundType,
+    int? examRoundNumber,
+    String? examDate,
     bool isFreeTrialRound,
+    bool isFreePastExamRound,
     bool canStart,
     @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
     MockExamStartBlockReason? startBlockReason,
@@ -1189,7 +1201,11 @@ class _$MockExamRoundSummaryCopyWithImpl<
     Object? roundUuid = null,
     Object? roundNumber = null,
     Object? title = null,
+    Object? roundType = null,
+    Object? examRoundNumber = freezed,
+    Object? examDate = freezed,
     Object? isFreeTrialRound = null,
+    Object? isFreePastExamRound = null,
     Object? canStart = null,
     Object? startBlockReason = freezed,
     Object? submittedAttemptCount = null,
@@ -1212,9 +1228,25 @@ class _$MockExamRoundSummaryCopyWithImpl<
                 ? _value.title
                 : title // ignore: cast_nullable_to_non_nullable
                       as String,
+            roundType: null == roundType
+                ? _value.roundType
+                : roundType // ignore: cast_nullable_to_non_nullable
+                      as MockExamRoundType,
+            examRoundNumber: freezed == examRoundNumber
+                ? _value.examRoundNumber
+                : examRoundNumber // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            examDate: freezed == examDate
+                ? _value.examDate
+                : examDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
             isFreeTrialRound: null == isFreeTrialRound
                 ? _value.isFreeTrialRound
                 : isFreeTrialRound // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isFreePastExamRound: null == isFreePastExamRound
+                ? _value.isFreePastExamRound
+                : isFreePastExamRound // ignore: cast_nullable_to_non_nullable
                       as bool,
             canStart: null == canStart
                 ? _value.canStart
@@ -1277,7 +1309,12 @@ abstract class _$$MockExamRoundSummaryImplCopyWith<$Res>
     String roundUuid,
     int roundNumber,
     String title,
+    @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+    MockExamRoundType roundType,
+    int? examRoundNumber,
+    String? examDate,
     bool isFreeTrialRound,
+    bool isFreePastExamRound,
     bool canStart,
     @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
     MockExamStartBlockReason? startBlockReason,
@@ -1310,7 +1347,11 @@ class __$$MockExamRoundSummaryImplCopyWithImpl<$Res>
     Object? roundUuid = null,
     Object? roundNumber = null,
     Object? title = null,
+    Object? roundType = null,
+    Object? examRoundNumber = freezed,
+    Object? examDate = freezed,
     Object? isFreeTrialRound = null,
+    Object? isFreePastExamRound = null,
     Object? canStart = null,
     Object? startBlockReason = freezed,
     Object? submittedAttemptCount = null,
@@ -1333,9 +1374,25 @@ class __$$MockExamRoundSummaryImplCopyWithImpl<$Res>
             ? _value.title
             : title // ignore: cast_nullable_to_non_nullable
                   as String,
+        roundType: null == roundType
+            ? _value.roundType
+            : roundType // ignore: cast_nullable_to_non_nullable
+                  as MockExamRoundType,
+        examRoundNumber: freezed == examRoundNumber
+            ? _value.examRoundNumber
+            : examRoundNumber // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        examDate: freezed == examDate
+            ? _value.examDate
+            : examDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
         isFreeTrialRound: null == isFreeTrialRound
             ? _value.isFreeTrialRound
             : isFreeTrialRound // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isFreePastExamRound: null == isFreePastExamRound
+            ? _value.isFreePastExamRound
+            : isFreePastExamRound // ignore: cast_nullable_to_non_nullable
                   as bool,
         canStart: null == canStart
             ? _value.canStart
@@ -1377,7 +1434,12 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
     required this.roundUuid,
     required this.roundNumber,
     required this.title,
+    @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+    this.roundType = MockExamRoundType.mock,
+    this.examRoundNumber,
+    this.examDate,
     required this.isFreeTrialRound,
+    this.isFreePastExamRound = false,
     required this.canStart,
     @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
     this.startBlockReason,
@@ -1398,8 +1460,20 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
   final int roundNumber;
   @override
   final String title;
+  // 회차 종류·실제 시험 회차·시험일 (기출 복원만, #1079)
+  @override
+  @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+  final MockExamRoundType roundType;
+  @override
+  final int? examRoundNumber;
+  @override
+  final String? examDate;
   @override
   final bool isFreeTrialRound;
+  // 무료 기출 회차 (가장 최근 기출, 체험 횟수와 별개, #1079)
+  @override
+  @JsonKey()
+  final bool isFreePastExamRound;
   @override
   final bool canStart;
   @override
@@ -1421,7 +1495,7 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
 
   @override
   String toString() {
-    return 'MockExamRoundSummary(roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, isFreeTrialRound: $isFreeTrialRound, canStart: $canStart, startBlockReason: $startBlockReason, submittedAttemptCount: $submittedAttemptCount, bestScore: $bestScore, bestAttemptIsPassed: $bestAttemptIsPassed, bestAttemptFailReason: $bestAttemptFailReason, lastAttempt: $lastAttempt)';
+    return 'MockExamRoundSummary(roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, roundType: $roundType, examRoundNumber: $examRoundNumber, examDate: $examDate, isFreeTrialRound: $isFreeTrialRound, isFreePastExamRound: $isFreePastExamRound, canStart: $canStart, startBlockReason: $startBlockReason, submittedAttemptCount: $submittedAttemptCount, bestScore: $bestScore, bestAttemptIsPassed: $bestAttemptIsPassed, bestAttemptFailReason: $bestAttemptFailReason, lastAttempt: $lastAttempt)';
   }
 
   @override
@@ -1434,8 +1508,16 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
             (identical(other.roundNumber, roundNumber) ||
                 other.roundNumber == roundNumber) &&
             (identical(other.title, title) || other.title == title) &&
+            (identical(other.roundType, roundType) ||
+                other.roundType == roundType) &&
+            (identical(other.examRoundNumber, examRoundNumber) ||
+                other.examRoundNumber == examRoundNumber) &&
+            (identical(other.examDate, examDate) ||
+                other.examDate == examDate) &&
             (identical(other.isFreeTrialRound, isFreeTrialRound) ||
                 other.isFreeTrialRound == isFreeTrialRound) &&
+            (identical(other.isFreePastExamRound, isFreePastExamRound) ||
+                other.isFreePastExamRound == isFreePastExamRound) &&
             (identical(other.canStart, canStart) ||
                 other.canStart == canStart) &&
             (identical(other.startBlockReason, startBlockReason) ||
@@ -1459,7 +1541,11 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
     roundUuid,
     roundNumber,
     title,
+    roundType,
+    examRoundNumber,
+    examDate,
     isFreeTrialRound,
+    isFreePastExamRound,
     canStart,
     startBlockReason,
     submittedAttemptCount,
@@ -1492,7 +1578,12 @@ abstract class _MockExamRoundSummary implements MockExamRoundSummary {
     required final String roundUuid,
     required final int roundNumber,
     required final String title,
+    @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+    final MockExamRoundType roundType,
+    final int? examRoundNumber,
+    final String? examDate,
     required final bool isFreeTrialRound,
+    final bool isFreePastExamRound,
     required final bool canStart,
     @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
     final MockExamStartBlockReason? startBlockReason,
@@ -1512,9 +1603,18 @@ abstract class _MockExamRoundSummary implements MockExamRoundSummary {
   @override
   int get roundNumber;
   @override
-  String get title;
+  String get title; // 회차 종류·실제 시험 회차·시험일 (기출 복원만, #1079)
   @override
-  bool get isFreeTrialRound;
+  @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
+  MockExamRoundType get roundType;
+  @override
+  int? get examRoundNumber;
+  @override
+  String? get examDate;
+  @override
+  bool get isFreeTrialRound; // 무료 기출 회차 (가장 최근 기출, 체험 횟수와 별개, #1079)
+  @override
+  bool get isFreePastExamRound;
   @override
   bool get canStart;
   @override

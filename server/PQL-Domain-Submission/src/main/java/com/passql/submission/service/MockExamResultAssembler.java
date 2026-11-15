@@ -49,6 +49,7 @@ public final class MockExamResultAssembler {
             paper.round().getMockExamRoundUuid(),
             paper.round().getRoundNumber(),
             paper.round().getTitle(),
+            paper.round().getRoundType(),
             attempt.getSubmitReason(),
             attempt.getStartedAt(),
             attempt.getSubmittedAt(),

@@ -1,6 +1,7 @@
 package com.passql.submission.dto.mockexam;
 
 import com.passql.submission.constant.MockExamRoundStatus;
+import com.passql.submission.constant.MockExamRoundType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -12,6 +13,7 @@ public record AdminMockExamRoundRow(
     UUID roundUuid,
     int roundNumber,
     String title,
+    MockExamRoundType roundType,
     MockExamRoundStatus status,
     long itemCount,
     long attemptCount,
