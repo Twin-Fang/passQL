@@ -2,7 +2,7 @@
 type: cluster
 topic: admin
 created: 2026-10-29
-members: 111
+members: 114
 status: active
 related: []
 ---
@@ -16,6 +16,8 @@ related: []
 (2026-11-12) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 프롬프트 키는 `PromptKey` 원본에서 목록을 만들고 수정 때 키를 바꿀 수 없다 — [[DEC-0265-prompt-key-enum-single-source]]. 모의고사 회차는 `/admin/mock-exams` 에서 자동 구성·검수·공개한다 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]]. 문제 등록 선택지 정책 목록(`CURATED_ONLY`·`RESULT_MATCH` 포함)과 설정 카테고리는 단일 원본에서 읽는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 관리자 `/admin/question-format`에서 문항 형식 위반을 사유별로 보고 자동 정리를 미리보기한 뒤 선택 적용한다: [[ISS-0474-question-format-rule-forbidden-punctuation]] (#905, 운영 배포). 지문 표 자동 정리 적용은 #903 앱 보급과 최소 버전 상향 뒤: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림). 관리자 전역 검색은 UUID·회원 번호(PQL-)·`@` 이메일·닉네임을 검색어 모양으로 가른다 — [[DEC-0281-admin-search-at-sign-routes-email]]. (2026-11-12) 시험 일정은 공식 페이지 자동 수집으로 바뀌었고 관리자 시험 일정 화면에 수집 상태·지금 수집·실패 경고가 있다 — [[DEC-0293-exam-schedule-rule-based-auto-sync]](DEC-0108 대체). `/admin/subscriptions`는 결제 관리 탭 5개(실수령액·결제 목록·환불 점검·알림 기록·요약) — [[ISS-0509-admin-billing-payout-app-store-refund-check]], 실수령액 가정은 [[DEC-0296-payout-estimate-krw-vat-fee-settings]]. (2026-11-12) 최소·권장 버전과 결제 켜기 준비(스위치, 미리보기 회원, 점검표)는 `/admin/app-operation` 한 곳에서 바꾸고, 일반 설정 표에서 그 키는 읽기 전용이다 — [[DEC-0308-admin-app-operation-single-entry]].
 
 ## 활성 결정
+- [[DEC-0324-question-internal-tag-namespace-format]] — 문제 내부 관리 태그는 별도 테이블 소문자 `네임스페이스:값`(source·round·trend·batch·concept + 자유 태그), 규칙은 `QuestionInternalTagRule` 한 곳 (#1117)
+- [[DEC-0325-import-without-internal-tags-keeps-existing]] — 가져오기에 `internalTags` 칸이 없으면 갱신 시 기존 태그 유지, `[]`일 때만 전부 제거 (#1117)
 - [[DEC-0320-exam-answer-disputed-shows-operator-candidate]] — 가답안 표시는 운영 가답안(갈림 후보 답 포함) 우선·없으면 득표 1위, 확정 채점은 LEADING·CONFIRMED·OFFICIAL 만(갈림은 점수 범위), 출처 2개·60초 캐시·10명 미만 상위 % 숨김 유지 (#1101, DEC-0316 대체)
 - [[DEC-0293-exam-schedule-rule-based-auto-sync]] — SQLD 시험 일정은 공식 페이지를 규칙 기반으로 매일 자동 수집, 해석 이상이면 덮어쓰지 않음, 수동 입력은 대체 (#991, DEC-0108 대체)
 - [[DEC-0296-payout-estimate-krw-vat-fee-settings]] — 관리자 실수령액은 원화 부가세 10% 포함 가정·스토어 수수료 15%를 뺀 추정치, 요율은 설정값 (#1032)
@@ -49,6 +51,7 @@ related: []
 - [[DEC-0081-admin-session-chain-yml-account]] → DEC-0130
 
 ## 관련 이슈
+- [[ISS-0526-question-internal-tags]] (resolved, #1117): 문제 내부 관리 태그, PR #1120, 릴리스 #1121 서버만 배포, 운영 213건 백필. 완료 리포트 [[ISS-0526-question-internal-tags-report]]
 - [[ISS-0520-sqld-round-answer-key-omr-grading]] (resolved, #1075): SQLD 회차별 가답안·OMR 가채점, 2026-11-15 릴리스 PR #1094 로 서버·앱 배포, 63회 운영 가답안 50문항 입력(우세 34, 갈림 15, 미복원 1), 사이트 제출·채점·CORS 실측 정상. 완료 리포트 [[ISS-0520-sqld-round-answer-key-omr-grading-report]]
 - [[ISS-0513-admin-app-operation-settings]] (resolved, GitHub #961, PR #969): 최소 버전 입구가 둘, 결제 켜기 전 점검표 없음, 비밀 설정 미설정 문구 오해
 - [[ISS-0506-sqld-exam-schedule-auto-sync]] (resolved, #991, PR #1025): SQLD 시험 일정 자동 수집, 앱 시험 일정 화면, 접수·발표 자동 알림 5종(운영 켬)
