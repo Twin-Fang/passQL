@@ -6,18 +6,22 @@ import '../../design/design.dart';
 import 'exam_answer_score_bar.dart';
 import 'exam_answer_status_styles.dart';
 
-/// 가채점 결과: 판정 > 총점(차오름) > 갈림 범위·상위 % > 과목 막대 2개 + 총점 막대(과락선·합격선)
+/// 가채점 결과: 판정 한 줄(의미색 글자) > 총점(차오름) > 목록 묶음(과목 점수 2행, 점수 범위, 상위 %) + 기준 각주
 class ExamAnswerScoreResult extends StatelessWidget {
   const ExamAnswerScoreResult({
     super.key,
     required this.report,
     required this.gradingRule,
+    required this.unsettledQuestionCount,
   });
 
   final ExamAnswerScoreReport report;
 
   /// 만점·합격선·과목 과락선 (회차 채점 규칙)
   final ExamGradingRule gradingRule;
+
+  /// 갈림·미확정 문항 수 (가답안 상태 기준, 점수 범위 행 설명)
+  final int unsettledQuestionCount;
 
   @override
   Widget build(BuildContext context) {
@@ -28,101 +32,71 @@ class ExamAnswerScoreResult extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 판정 + 총점
+        // 판정 + 총점 (장식 아이콘 없이 글자만)
         Semantics(
           container: true,
           label: '${passStatus.label}, ${report.totalScore}점',
           excludeSemantics: true,
-          child: Column(
-            children: [
-              PassqlPopIn(
-                child: Icon(
-                  passStatus.icon,
-                  size: PassqlIconSize.resultMarkLarge,
-                  color: passStatus.fillColorOf(colors),
-                ),
-              ),
-              const SizedBox(height: PassqlSpacing.xs),
-              Text(
-                passStatus.label,
-                textAlign: TextAlign.center,
-                style: PassqlTypography.title3.copyWith(
-                  color: passStatus.textColorOf(colors),
-                ),
-              ),
-              const SizedBox(height: PassqlSpacing.xxs),
-              PassqlCountUp(
-                value: report.totalScore,
-                builder: (context, displayedScore) => Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '$displayedScore',
-                        style: PassqlTypography.scoreNumber.copyWith(
-                          color: colors.label,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' / ${gradingRule.maxScore}점',
-                        style: PassqlTypography.headline.copyWith(
-                          color: colors.secondaryLabel,
-                        ),
-                      ),
-                    ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: PassqlSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  passStatus.label,
+                  style: PassqlTypography.headline.copyWith(
+                    color: passStatus.textColorOf(colors),
                   ),
                 ),
-              ),
-            ],
+                PassqlCountUp(
+                  value: report.totalScore,
+                  builder: (context, displayedScore) => Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '$displayedScore',
+                          style: PassqlTypography.scoreNumber.copyWith(
+                            fontFeatures: PassqlTypography.tabular,
+                            color: colors.label,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' / ${gradingRule.maxScore}점',
+                          style: PassqlTypography.headline.copyWith(
+                            color: colors.secondaryLabel,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: PassqlSpacing.sm),
-        // 범위·상위 %·오프라인 안내
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: PassqlSpacing.xs,
-          runSpacing: PassqlSpacing.xxs,
+        const SizedBox(height: PassqlSpacing.lg),
+        PassqlGroupedSection(
+          footer: _footerOf(report, gradingRule),
           children: [
+            for (final subjectRule in gradingRule.subjects)
+              _SubjectScoreRow(
+                subjectRule: subjectRule,
+                score: _scoreOf(subjectRule.subjectNo),
+              ),
             if (report.hasUnsettledQuestion)
-              PassqlBadge(
-                text: '갈림 문항에 따라 ${range.min}~${range.max}점',
-                kind: PassqlBadgeKind.warning,
-                icon: CupertinoIcons.arrow_left_right,
+              PassqlListRow(
+                title: '점수 범위',
+                subtitle: unsettledQuestionCount > 0
+                    ? '갈림, 미확정 $unsettledQuestionCount문항이 정해지면 바뀌어요'
+                    : null,
+                trailing: Text('${range.min}~${range.max}점'),
               ),
             if (percentile != null)
-              PassqlBadge(
-                text: '참여자 중 상위 $percentile%',
-                kind: PassqlBadgeKind.topic,
-                icon: CupertinoIcons.chart_bar_fill,
-              ),
-            if (report.isLocalEstimate)
-              const PassqlBadge(
-                text: '오프라인 계산 (상위 % 없음)',
-                kind: PassqlBadgeKind.neutral,
-                icon: CupertinoIcons.wifi_slash,
+              PassqlListRow(
+                title: '참여자 중 순위',
+                trailing: Text('상위 $percentile%'),
               ),
           ],
-        ),
-        const SizedBox(height: PassqlSpacing.xl),
-        // 과목 막대 (과락선)
-        for (final subjectRule in gradingRule.subjects) ...[
-          ExamAnswerScoreBar(
-            label: '${subjectRule.subjectNo}과목 ${subjectRule.name}',
-            score: _scoreOf(subjectRule.subjectNo),
-            maxScore: subjectRule.maxScore,
-            cutScore: subjectRule.failBelowScore,
-            cutLabel: '과락 ${subjectRule.failBelowScore}점',
-          ),
-          const SizedBox(height: PassqlSpacing.md),
-        ],
-        // 총점 막대 (합격선 + 갈림 범위)
-        ExamAnswerScoreBar(
-          label: '총점',
-          score: report.totalScore,
-          maxScore: gradingRule.maxScore,
-          cutScore: gradingRule.passScore,
-          cutLabel: '합격 ${gradingRule.passScore}점',
-          rangeMinScore: range.min,
-          rangeMaxScore: range.max,
         ),
       ],
     );
@@ -133,5 +107,84 @@ class ExamAnswerScoreResult extends StatelessWidget {
       if (subject.subjectNo == subjectNo) return subject.score;
     }
     return 0;
+  }
+
+  /// 묶음 각주: 과목별 과락 기준 + 합격 기준 (+ 오프라인 계산이면 상위 % 없음)
+  static String _footerOf(
+    ExamAnswerScoreReport report,
+    ExamGradingRule gradingRule,
+  ) {
+    final cutText = gradingRule.subjects
+        .map((subject) => '${subject.subjectNo}과목 ${subject.failBelowScore}점')
+        .join(', ');
+    final offlineText = report.isLocalEstimate
+        ? ' 서버에 닿지 못해 기기에서 계산했어요. 상위 %는 없어요.'
+        : '';
+    return '$cutText 미만이면 과락, 총점 ${gradingRule.passScore}점 이상이면 합격이에요.$offlineText';
+  }
+}
+
+/// 과목 점수 행: 이름 > 점수(과락이면 빨강) > 얇은 막대(과락 눈금)
+class _SubjectScoreRow extends StatelessWidget {
+  const _SubjectScoreRow({required this.subjectRule, required this.score});
+
+  final ExamSubjectRule subjectRule;
+  final int score;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.passqlColors;
+    final isBelowCut = score < subjectRule.failBelowScore;
+    final title = '${subjectRule.subjectNo}과목 ${subjectRule.name}';
+    return Semantics(
+      container: true,
+      label:
+          '$title $score점, 만점 ${subjectRule.maxScore}점, 과락 기준 ${subjectRule.failBelowScore}점${isBelowCut ? ', 과락' : ''}',
+      excludeSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: PassqlSpacing.md,
+          vertical: PassqlSpacing.sm,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: PassqlTypography.body.copyWith(color: colors.label),
+                  ),
+                ),
+                const SizedBox(width: PassqlSpacing.xs),
+                Text(
+                  '$score',
+                  style: PassqlTypography.headline.copyWith(
+                    fontFeatures: PassqlTypography.tabular,
+                    color: isBelowCut ? colors.wrongText : colors.label,
+                  ),
+                ),
+                Text(
+                  ' / ${subjectRule.maxScore}',
+                  style: PassqlTypography.body.copyWith(
+                    fontFeatures: PassqlTypography.tabular,
+                    color: colors.secondaryLabel,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: PassqlSpacing.xs),
+            ExamAnswerScoreBar(
+              score: score,
+              maxScore: subjectRule.maxScore,
+              cutScore: subjectRule.failBelowScore,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

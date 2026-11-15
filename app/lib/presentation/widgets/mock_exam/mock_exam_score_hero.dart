@@ -94,8 +94,12 @@ class MockExamScoreHero extends StatelessWidget {
       ? ''
       : '. 이 회차 응시자 ${ranking.takerCount}명 중 ${ranking.rankPosition}위, 상위 ${ranking.topPercent}%';
 
-  /// 이유 한 줄: 과락(과목명 있으면 함께) > 합격선까지 남은 점수 > 합격
+  /// 이유 한 줄: 과락(과목명 있으면 함께) > 서버 합격선 여유 문장(#1111) > (옛 서버) 합격선까지 남은 점수·합격
   static String _reasonOf(MockExamResultResponse examResult) {
+    if (examResult.failReason != MockExamFailReason.subjectFail &&
+        examResult.passMarginText.isNotEmpty) {
+      return examResult.passMarginText;
+    }
     switch (examResult.failReason) {
       case MockExamFailReason.subjectFail:
         final failedNames = examResult.subjects

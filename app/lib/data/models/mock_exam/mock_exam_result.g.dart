@@ -32,6 +32,7 @@ _$MockExamResultResponseImpl _$$MockExamResultResponseImplFromJson(
     json['failReason'],
     unknownValue: MockExamFailReason.unknown,
   ),
+  passMarginText: json['passMarginText'] as String? ?? '',
   ranking: json['ranking'] == null
       ? null
       : MockExamRanking.fromJson(json['ranking'] as Map<String, dynamic>),
@@ -87,6 +88,7 @@ Map<String, dynamic> _$$MockExamResultResponseImplToJson(
   'questionCount': instance.questionCount,
   'isPassed': instance.isPassed,
   'failReason': _$MockExamFailReasonEnumMap[instance.failReason]!,
+  'passMarginText': instance.passMarginText,
   'ranking': instance.ranking,
   'subjects': instance.subjects,
   'topics': instance.topics,
@@ -140,6 +142,7 @@ _$MockExamSubjectResultImpl _$$MockExamSubjectResultImplFromJson(
   maxScore: (json['maxScore'] as num).toInt(),
   failBelowScore: (json['failBelowScore'] as num).toInt(),
   isFailed: json['isFailed'] as bool,
+  failMarginText: json['failMarginText'] as String? ?? '',
 );
 
 Map<String, dynamic> _$$MockExamSubjectResultImplToJson(
@@ -153,6 +156,7 @@ Map<String, dynamic> _$$MockExamSubjectResultImplToJson(
   'maxScore': instance.maxScore,
   'failBelowScore': instance.failBelowScore,
   'isFailed': instance.isFailed,
+  'failMarginText': instance.failMarginText,
 };
 
 const _$MockExamSubjectEnumMap = {

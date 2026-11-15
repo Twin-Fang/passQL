@@ -32,6 +32,8 @@ class MockExamResultResponse with _$MockExamResultResponse {
     required bool isPassed,
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     required MockExamFailReason failReason,
+    // 합격선 여유 문장 (서버 SqldScoreMargin, 옛 서버면 빈 값, #1111)
+    @Default('') String passMarginText,
     // 같은 회차 응시자 중 내 위치 (응시자 10명 미만이면 null, #1041)
     MockExamRanking? ranking,
     @Default([]) List<MockExamSubjectResult> subjects,
@@ -75,6 +77,8 @@ class MockExamSubjectResult with _$MockExamSubjectResult {
     required int maxScore,
     required int failBelowScore,
     required bool isFailed,
+    // 과락 여유 (예: 과락까지 여유 2문제, 옛 서버면 빈 값, #1111)
+    @Default('') String failMarginText,
   }) = _MockExamSubjectResult;
 
   factory MockExamSubjectResult.fromJson(Map<String, dynamic> json) =>

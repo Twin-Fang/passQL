@@ -2,16 +2,14 @@ import 'package:flutter/cupertino.dart';
 
 import '../../../core/exam_answer/exam_answer_grader.dart';
 import '../../../core/exam_answer/exam_grading_rule.dart';
-import '../../../data/models/exam_answer/exam_answer_enums.dart';
 import '../../../data/models/exam_answer/exam_answer_round_response.dart';
 import '../../design/design.dart';
 import 'exam_answer_key_row.dart';
-import 'exam_answer_status_styles.dart';
 
 /// 가답안 표 보기 2개: 전체, 갈림·미확정만
 enum _KeyFilter { all, unsettled }
 
-/// 가답안 탭: 보기 고르기(전체·갈림) > 상태 색 범례 > 과목별 문항 표
+/// 가답안 탭: 보기 고르기(전체, 갈림) > 과목별 문항 목록 (상태는 행 안 의미색 글자)
 class ExamAnswerKeyTab extends StatefulWidget {
   const ExamAnswerKeyTab({
     super.key,
@@ -36,14 +34,6 @@ class _ExamAnswerKeyTabState extends State<ExamAnswerKeyTab> {
   _KeyFilter _filter = _KeyFilter.all;
   final Set<int> _expandedQuestionNos = {};
 
-  // 범례 순서 (공식·확정은 같은 초록이라 하나로)
-  static const List<ExamAnswerItemStatus> _legendStatuses = [
-    ExamAnswerItemStatus.confirmed,
-    ExamAnswerItemStatus.leading,
-    ExamAnswerItemStatus.disputed,
-    ExamAnswerItemStatus.undecided,
-  ];
-
   void _toggle(int questionNo) => setState(() {
     if (!_expandedQuestionNos.remove(questionNo)) {
       _expandedQuestionNos.add(questionNo);
@@ -52,7 +42,6 @@ class _ExamAnswerKeyTabState extends State<ExamAnswerKeyTab> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
     final unsettledCount = widget.items
         .where((item) => !item.answerStatus.isSettled)
         .length;
@@ -73,34 +62,6 @@ class _ExamAnswerKeyTabState extends State<ExamAnswerKeyTab> {
           ],
           selectedValue: _filter,
           onSelected: (filter) => setState(() => _filter = filter),
-        ),
-        const SizedBox(height: PassqlSpacing.sm),
-        // 상태 색 범례
-        Wrap(
-          spacing: PassqlSpacing.md,
-          runSpacing: PassqlSpacing.xxs,
-          children: [
-            for (final status in _legendStatuses)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    CupertinoIcons.circle_fill,
-                    size: PassqlIconSize.xxs,
-                    color: status.fillColorOf(colors),
-                  ),
-                  const SizedBox(width: PassqlSpacing.xxs),
-                  Text(
-                    status == ExamAnswerItemStatus.confirmed
-                        ? '공식, 확정'
-                        : status.label,
-                    style: PassqlTypography.caption.copyWith(
-                      color: colors.secondaryLabel,
-                    ),
-                  ),
-                ],
-              ),
-          ],
         ),
         const SizedBox(height: PassqlSpacing.md),
         if (visibleItems.isEmpty)

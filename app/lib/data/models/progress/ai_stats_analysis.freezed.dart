@@ -35,7 +35,10 @@ mixin _$AiStatsAnalysis {
   AiRepeatedWrong? get repeatedWrong => throw _privateConstructorUsedError;
   AiAnalysisReadiness? get readiness =>
       throw _privateConstructorUsedError; // 모두 안정권일 때 다음 목표 한 줄
-  String? get nextGoal => throw _privateConstructorUsedError;
+  String? get nextGoal =>
+      throw _privateConstructorUsedError; // 점수 올리기 좋은 영역 최대 3개, 기대 상승 점수 큰 순 (#1111)
+  List<AiScoreGainTopic> get scoreGainTopics =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this AiStatsAnalysis to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -66,6 +69,7 @@ abstract class $AiStatsAnalysisCopyWith<$Res> {
     AiRepeatedWrong? repeatedWrong,
     AiAnalysisReadiness? readiness,
     String? nextGoal,
+    List<AiScoreGainTopic> scoreGainTopics,
   });
 
   $AiAnalysisStrengthCopyWith<$Res>? get strength;
@@ -100,6 +104,7 @@ class _$AiStatsAnalysisCopyWithImpl<$Res, $Val extends AiStatsAnalysis>
     Object? repeatedWrong = freezed,
     Object? readiness = freezed,
     Object? nextGoal = freezed,
+    Object? scoreGainTopics = null,
   }) {
     return _then(
       _value.copyWith(
@@ -147,6 +152,10 @@ class _$AiStatsAnalysisCopyWithImpl<$Res, $Val extends AiStatsAnalysis>
                 ? _value.nextGoal
                 : nextGoal // ignore: cast_nullable_to_non_nullable
                       as String?,
+            scoreGainTopics: null == scoreGainTopics
+                ? _value.scoreGainTopics
+                : scoreGainTopics // ignore: cast_nullable_to_non_nullable
+                      as List<AiScoreGainTopic>,
           )
           as $Val,
     );
@@ -230,6 +239,7 @@ abstract class _$$AiStatsAnalysisImplCopyWith<$Res>
     AiRepeatedWrong? repeatedWrong,
     AiAnalysisReadiness? readiness,
     String? nextGoal,
+    List<AiScoreGainTopic> scoreGainTopics,
   });
 
   @override
@@ -267,6 +277,7 @@ class __$$AiStatsAnalysisImplCopyWithImpl<$Res>
     Object? repeatedWrong = freezed,
     Object? readiness = freezed,
     Object? nextGoal = freezed,
+    Object? scoreGainTopics = null,
   }) {
     return _then(
       _$AiStatsAnalysisImpl(
@@ -314,6 +325,10 @@ class __$$AiStatsAnalysisImplCopyWithImpl<$Res>
             ? _value.nextGoal
             : nextGoal // ignore: cast_nullable_to_non_nullable
                   as String?,
+        scoreGainTopics: null == scoreGainTopics
+            ? _value._scoreGainTopics
+            : scoreGainTopics // ignore: cast_nullable_to_non_nullable
+                  as List<AiScoreGainTopic>,
       ),
     );
   }
@@ -334,8 +349,10 @@ class _$AiStatsAnalysisImpl implements _AiStatsAnalysis {
     this.repeatedWrong,
     this.readiness,
     this.nextGoal,
+    final List<AiScoreGainTopic> scoreGainTopics = const [],
   }) : _findings = findings,
-       _actions = actions;
+       _actions = actions,
+       _scoreGainTopics = scoreGainTopics;
 
   factory _$AiStatsAnalysisImpl.fromJson(Map<String, dynamic> json) =>
       _$$AiStatsAnalysisImplFromJson(json);
@@ -382,10 +399,20 @@ class _$AiStatsAnalysisImpl implements _AiStatsAnalysis {
   // 모두 안정권일 때 다음 목표 한 줄
   @override
   final String? nextGoal;
+  // 점수 올리기 좋은 영역 최대 3개, 기대 상승 점수 큰 순 (#1111)
+  final List<AiScoreGainTopic> _scoreGainTopics;
+  // 점수 올리기 좋은 영역 최대 3개, 기대 상승 점수 큰 순 (#1111)
+  @override
+  @JsonKey()
+  List<AiScoreGainTopic> get scoreGainTopics {
+    if (_scoreGainTopics is EqualUnmodifiableListView) return _scoreGainTopics;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_scoreGainTopics);
+  }
 
   @override
   String toString() {
-    return 'AiStatsAnalysis(headline: $headline, findings: $findings, trend: $trend, strength: $strength, actions: $actions, periodLabel: $periodLabel, forecast: $forecast, forecastHint: $forecastHint, repeatedWrong: $repeatedWrong, readiness: $readiness, nextGoal: $nextGoal)';
+    return 'AiStatsAnalysis(headline: $headline, findings: $findings, trend: $trend, strength: $strength, actions: $actions, periodLabel: $periodLabel, forecast: $forecast, forecastHint: $forecastHint, repeatedWrong: $repeatedWrong, readiness: $readiness, nextGoal: $nextGoal, scoreGainTopics: $scoreGainTopics)';
   }
 
   @override
@@ -411,7 +438,11 @@ class _$AiStatsAnalysisImpl implements _AiStatsAnalysis {
             (identical(other.readiness, readiness) ||
                 other.readiness == readiness) &&
             (identical(other.nextGoal, nextGoal) ||
-                other.nextGoal == nextGoal));
+                other.nextGoal == nextGoal) &&
+            const DeepCollectionEquality().equals(
+              other._scoreGainTopics,
+              _scoreGainTopics,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -429,6 +460,7 @@ class _$AiStatsAnalysisImpl implements _AiStatsAnalysis {
     repeatedWrong,
     readiness,
     nextGoal,
+    const DeepCollectionEquality().hash(_scoreGainTopics),
   );
 
   /// Create a copy of AiStatsAnalysis
@@ -461,6 +493,7 @@ abstract class _AiStatsAnalysis implements AiStatsAnalysis {
     final AiRepeatedWrong? repeatedWrong,
     final AiAnalysisReadiness? readiness,
     final String? nextGoal,
+    final List<AiScoreGainTopic> scoreGainTopics,
   }) = _$AiStatsAnalysisImpl;
 
   factory _AiStatsAnalysis.fromJson(Map<String, dynamic> json) =
@@ -487,7 +520,9 @@ abstract class _AiStatsAnalysis implements AiStatsAnalysis {
   @override
   AiAnalysisReadiness? get readiness; // 모두 안정권일 때 다음 목표 한 줄
   @override
-  String? get nextGoal;
+  String? get nextGoal; // 점수 올리기 좋은 영역 최대 3개, 기대 상승 점수 큰 순 (#1111)
+  @override
+  List<AiScoreGainTopic> get scoreGainTopics;
 
   /// Create a copy of AiStatsAnalysis
   /// with the given fields replaced by the non-null parameter values.
@@ -832,6 +867,302 @@ abstract class _AiAnalysisFinding implements AiAnalysisFinding {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$AiAnalysisFindingImplCopyWith<_$AiAnalysisFindingImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+AiScoreGainTopic _$AiScoreGainTopicFromJson(Map<String, dynamic> json) {
+  return _AiScoreGainTopic.fromJson(json);
+}
+
+/// @nodoc
+mixin _$AiScoreGainTopic {
+  String get topicUuid => throw _privateConstructorUsedError; // 서버가 줄인 표시 이름
+  String get topicName => throw _privateConstructorUsedError;
+  int get correctRatePercent =>
+      throw _privateConstructorUsedError; // 목표 정답률 (안정권 시작)
+  int get targetCorrectRatePercent =>
+      throw _privateConstructorUsedError; // 시험 50문항 중 이 영역 문항 수
+  int get examQuestionCount =>
+      throw _privateConstructorUsedError; // 기대 상승 점수 (소수 첫째 자리)
+  double get expectedGainScore => throw _privateConstructorUsedError;
+
+  /// Serializes this AiScoreGainTopic to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of AiScoreGainTopic
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $AiScoreGainTopicCopyWith<AiScoreGainTopic> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $AiScoreGainTopicCopyWith<$Res> {
+  factory $AiScoreGainTopicCopyWith(
+    AiScoreGainTopic value,
+    $Res Function(AiScoreGainTopic) then,
+  ) = _$AiScoreGainTopicCopyWithImpl<$Res, AiScoreGainTopic>;
+  @useResult
+  $Res call({
+    String topicUuid,
+    String topicName,
+    int correctRatePercent,
+    int targetCorrectRatePercent,
+    int examQuestionCount,
+    double expectedGainScore,
+  });
+}
+
+/// @nodoc
+class _$AiScoreGainTopicCopyWithImpl<$Res, $Val extends AiScoreGainTopic>
+    implements $AiScoreGainTopicCopyWith<$Res> {
+  _$AiScoreGainTopicCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of AiScoreGainTopic
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? topicUuid = null,
+    Object? topicName = null,
+    Object? correctRatePercent = null,
+    Object? targetCorrectRatePercent = null,
+    Object? examQuestionCount = null,
+    Object? expectedGainScore = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            topicUuid: null == topicUuid
+                ? _value.topicUuid
+                : topicUuid // ignore: cast_nullable_to_non_nullable
+                      as String,
+            topicName: null == topicName
+                ? _value.topicName
+                : topicName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            correctRatePercent: null == correctRatePercent
+                ? _value.correctRatePercent
+                : correctRatePercent // ignore: cast_nullable_to_non_nullable
+                      as int,
+            targetCorrectRatePercent: null == targetCorrectRatePercent
+                ? _value.targetCorrectRatePercent
+                : targetCorrectRatePercent // ignore: cast_nullable_to_non_nullable
+                      as int,
+            examQuestionCount: null == examQuestionCount
+                ? _value.examQuestionCount
+                : examQuestionCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            expectedGainScore: null == expectedGainScore
+                ? _value.expectedGainScore
+                : expectedGainScore // ignore: cast_nullable_to_non_nullable
+                      as double,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$AiScoreGainTopicImplCopyWith<$Res>
+    implements $AiScoreGainTopicCopyWith<$Res> {
+  factory _$$AiScoreGainTopicImplCopyWith(
+    _$AiScoreGainTopicImpl value,
+    $Res Function(_$AiScoreGainTopicImpl) then,
+  ) = __$$AiScoreGainTopicImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String topicUuid,
+    String topicName,
+    int correctRatePercent,
+    int targetCorrectRatePercent,
+    int examQuestionCount,
+    double expectedGainScore,
+  });
+}
+
+/// @nodoc
+class __$$AiScoreGainTopicImplCopyWithImpl<$Res>
+    extends _$AiScoreGainTopicCopyWithImpl<$Res, _$AiScoreGainTopicImpl>
+    implements _$$AiScoreGainTopicImplCopyWith<$Res> {
+  __$$AiScoreGainTopicImplCopyWithImpl(
+    _$AiScoreGainTopicImpl _value,
+    $Res Function(_$AiScoreGainTopicImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of AiScoreGainTopic
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? topicUuid = null,
+    Object? topicName = null,
+    Object? correctRatePercent = null,
+    Object? targetCorrectRatePercent = null,
+    Object? examQuestionCount = null,
+    Object? expectedGainScore = null,
+  }) {
+    return _then(
+      _$AiScoreGainTopicImpl(
+        topicUuid: null == topicUuid
+            ? _value.topicUuid
+            : topicUuid // ignore: cast_nullable_to_non_nullable
+                  as String,
+        topicName: null == topicName
+            ? _value.topicName
+            : topicName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        correctRatePercent: null == correctRatePercent
+            ? _value.correctRatePercent
+            : correctRatePercent // ignore: cast_nullable_to_non_nullable
+                  as int,
+        targetCorrectRatePercent: null == targetCorrectRatePercent
+            ? _value.targetCorrectRatePercent
+            : targetCorrectRatePercent // ignore: cast_nullable_to_non_nullable
+                  as int,
+        examQuestionCount: null == examQuestionCount
+            ? _value.examQuestionCount
+            : examQuestionCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        expectedGainScore: null == expectedGainScore
+            ? _value.expectedGainScore
+            : expectedGainScore // ignore: cast_nullable_to_non_nullable
+                  as double,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$AiScoreGainTopicImpl implements _AiScoreGainTopic {
+  const _$AiScoreGainTopicImpl({
+    this.topicUuid = '',
+    this.topicName = '',
+    this.correctRatePercent = 0,
+    this.targetCorrectRatePercent = 0,
+    this.examQuestionCount = 0,
+    this.expectedGainScore = 0,
+  });
+
+  factory _$AiScoreGainTopicImpl.fromJson(Map<String, dynamic> json) =>
+      _$$AiScoreGainTopicImplFromJson(json);
+
+  @override
+  @JsonKey()
+  final String topicUuid;
+  // 서버가 줄인 표시 이름
+  @override
+  @JsonKey()
+  final String topicName;
+  @override
+  @JsonKey()
+  final int correctRatePercent;
+  // 목표 정답률 (안정권 시작)
+  @override
+  @JsonKey()
+  final int targetCorrectRatePercent;
+  // 시험 50문항 중 이 영역 문항 수
+  @override
+  @JsonKey()
+  final int examQuestionCount;
+  // 기대 상승 점수 (소수 첫째 자리)
+  @override
+  @JsonKey()
+  final double expectedGainScore;
+
+  @override
+  String toString() {
+    return 'AiScoreGainTopic(topicUuid: $topicUuid, topicName: $topicName, correctRatePercent: $correctRatePercent, targetCorrectRatePercent: $targetCorrectRatePercent, examQuestionCount: $examQuestionCount, expectedGainScore: $expectedGainScore)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$AiScoreGainTopicImpl &&
+            (identical(other.topicUuid, topicUuid) ||
+                other.topicUuid == topicUuid) &&
+            (identical(other.topicName, topicName) ||
+                other.topicName == topicName) &&
+            (identical(other.correctRatePercent, correctRatePercent) ||
+                other.correctRatePercent == correctRatePercent) &&
+            (identical(
+                  other.targetCorrectRatePercent,
+                  targetCorrectRatePercent,
+                ) ||
+                other.targetCorrectRatePercent == targetCorrectRatePercent) &&
+            (identical(other.examQuestionCount, examQuestionCount) ||
+                other.examQuestionCount == examQuestionCount) &&
+            (identical(other.expectedGainScore, expectedGainScore) ||
+                other.expectedGainScore == expectedGainScore));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    topicUuid,
+    topicName,
+    correctRatePercent,
+    targetCorrectRatePercent,
+    examQuestionCount,
+    expectedGainScore,
+  );
+
+  /// Create a copy of AiScoreGainTopic
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$AiScoreGainTopicImplCopyWith<_$AiScoreGainTopicImpl> get copyWith =>
+      __$$AiScoreGainTopicImplCopyWithImpl<_$AiScoreGainTopicImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$AiScoreGainTopicImplToJson(this);
+  }
+}
+
+abstract class _AiScoreGainTopic implements AiScoreGainTopic {
+  const factory _AiScoreGainTopic({
+    final String topicUuid,
+    final String topicName,
+    final int correctRatePercent,
+    final int targetCorrectRatePercent,
+    final int examQuestionCount,
+    final double expectedGainScore,
+  }) = _$AiScoreGainTopicImpl;
+
+  factory _AiScoreGainTopic.fromJson(Map<String, dynamic> json) =
+      _$AiScoreGainTopicImpl.fromJson;
+
+  @override
+  String get topicUuid; // 서버가 줄인 표시 이름
+  @override
+  String get topicName;
+  @override
+  int get correctRatePercent; // 목표 정답률 (안정권 시작)
+  @override
+  int get targetCorrectRatePercent; // 시험 50문항 중 이 영역 문항 수
+  @override
+  int get examQuestionCount; // 기대 상승 점수 (소수 첫째 자리)
+  @override
+  double get expectedGainScore;
+
+  /// Create a copy of AiScoreGainTopic
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$AiScoreGainTopicImplCopyWith<_$AiScoreGainTopicImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 

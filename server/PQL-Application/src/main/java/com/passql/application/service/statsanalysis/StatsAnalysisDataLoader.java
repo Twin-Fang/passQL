@@ -8,6 +8,7 @@ import com.passql.meta.entity.Topic;
 import com.passql.meta.repository.TopicRepository;
 import com.passql.meta.service.ExamScheduleService;
 import com.passql.submission.repository.StatsAnalysisQueryRepository;
+import com.passql.submission.service.MockExamComposition;
 import com.passql.submission.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -140,7 +141,7 @@ public class StatsAnalysisDataLoader {
                 .orElse(null);
     }
 
-    /** 활성 토픽 전체 (정렬 순서) + 최근 90일 토픽 수치 (풀이 없으면 0문제, 결과 화면 세션 코멘트도 사용) */
+    /** 활성 토픽 전체 (정렬 순서) + 최근 90일 토픽 수치 + 출제 문항 수 (풀이 없으면 0문제, 결과 화면 세션 코멘트도 사용) */
     public List<TopicLearningStat> loadTopicStats(UUID memberUuid) {
         UUID subjectOneTopicUuid = topicRepository.findByCode(SUBJECT_ONE_TOPIC_CODE)
                 .map(Topic::getTopicUuid)
@@ -156,8 +157,12 @@ public class StatsAnalysisDataLoader {
                     Object[] row = statRowByTopicUuid.get(topic.getTopicUuid().toString());
                     int solvedCount = row == null ? 0 : ((Number) row[1]).intValue();
                     double correctRate = row == null ? 0.0 : ((Number) row[2]).doubleValue();
+                    // 출제 문항 수: 출제 경향 기반 모의고사 기본 구성 (없는 토픽 0)
+                    int examQuestionCount = MockExamComposition.DEFAULT_QUESTION_COUNT_BY_TOPIC_CODE
+                            .getOrDefault(topic.getCode(), 0);
                     return new TopicLearningStat(topic.getTopicUuid(), topic.getDisplayName(),
-                            Objects.equals(topic.getTopicUuid(), subjectOneTopicUuid), solvedCount, correctRate);
+                            Objects.equals(topic.getTopicUuid(), subjectOneTopicUuid), solvedCount, correctRate,
+                            examQuestionCount);
                 })
                 .toList();
     }
