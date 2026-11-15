@@ -260,3 +260,6 @@
 @media (prefers-reduced-motion: reduce) {
   .omr-bubble, .score-fill, .omr-progress-track span, .ak-chevron, .omr-subject-chevron { transition: none; }
 }
+
+/* 발표일 전 숨김 (#1077): display 지정이 hidden 속성을 덮지 않게 */
+.ak-app-link[hidden] { display: none; }

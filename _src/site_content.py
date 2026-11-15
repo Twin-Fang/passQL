@@ -483,6 +483,8 @@ GUIDE_PAGES = {
 GUIDE_MENU_PATHS = ["sqld/answers/", "sqld/schedule/", "sqld/subjects/", "sqld/pass/", "sqld/stats/", "sqld/trend/", "sqld/study/", "sqld/faq/", "sqlp/"]
 # 상단 메뉴 강조 경로 (시험 당일~합격자 발표 진행 중 가채점 회차, build_site 가 채움)
 NAV_LIVE_PATHS = set()
+# 진행 중 회차 경로 > 강조를 끌 날짜(합격자 발표일). site.js 가 방문 날짜로 판정해 재빌드 없이 꺼짐
+NAV_LIVE_UNTIL_BY_PATH = {}
 
 # ── 공부 방법 페이지 ──
 # 원칙: (아이콘, 제목, 설명)

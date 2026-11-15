@@ -111,6 +111,7 @@ def render_nav(root, current_path=None):
     """상단 바: 로고 + 안내 페이지 메뉴(모바일은 둘째 줄 가로 넘김) + 앱 받기"""
     menu_links = "".join(
         f'\n      <a href="{root}{path}"{' class="nav-live"' if path in content.NAV_LIVE_PATHS else ''}'
+        f'{f' data-live-until="{content.NAV_LIVE_UNTIL_BY_PATH[path]}"' if path in content.NAV_LIVE_UNTIL_BY_PATH else ''}'
         f'{' aria-current="page"' if path == current_path else ''}>'
         f'{escape(content.GUIDE_PAGES[path]["menu_name"])}</a>'
         for path in content.GUIDE_MENU_PATHS

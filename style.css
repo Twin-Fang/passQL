@@ -673,3 +673,6 @@ main > section:not(.section):not(.final-cta):not(.section-tight):not(.callout-se
 .stats-year { fill: var(--muted); font-size: 12px; text-anchor: middle; }
 .stats-unofficial { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--bg-soft); color: var(--muted); font-size: 12px; font-weight: 600; }
 .stats-sources { margin: 0; padding-left: 20px; color: var(--muted); font-size: 14px; line-height: 1.8; }
+
+/* 가채점 강조 종료 (#1077): 발표일 지나면 site.js 가 hidden 부여 */
+.live-banner[hidden] { display: none; }

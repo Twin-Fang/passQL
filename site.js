@@ -59,6 +59,22 @@
     });
   }
 
+  // 가채점 진행 중 강조(상단 메뉴·첫 화면 띠): 합격자 발표일이 지나면 재빌드 없이 끔 (#1077)
+  function expireLiveHighlights() {
+    document.querySelectorAll("[data-live-until]").forEach(function (element) {
+      if (calculateDaysUntil(element.getAttribute("data-live-until")) >= 0) return;
+      if (element.classList.contains("live-banner")) element.hidden = true;
+      element.classList.remove("nav-live");
+    });
+  }
+
+  // 합격자 발표일 다음부터만 보이는 요소 (가답안 문항별 앱 연결, #1077)
+  function showAfterDateElements() {
+    document.querySelectorAll("[data-show-after]").forEach(function (element) {
+      element.hidden = calculateDaysUntil(element.getAttribute("data-show-after")) >= 0;
+    });
+  }
+
   // 일정 페이지 회차 카드: 지난 회차 흐리게, 방문 날짜 기준 다음 회차 강조 (JS 없으면 모두 같은 모양)
   function markScheduleRounds() {
     var isNextFound = false;
@@ -211,6 +227,8 @@
 
   renderExamCountdown();
   showExamDayOnlyTexts();
+  expireLiveHighlights();
+  showAfterDateElements();
   markScheduleRounds();
   applyAndroidStoreLinks();
   revealOnScroll();

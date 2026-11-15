@@ -46,6 +46,7 @@ def register_answer_key_pages(today=None):
         menu_index = content.GUIDE_MENU_PATHS.index(answer_content.ANSWER_KEY_INDEX_PATH)
         content.GUIDE_MENU_PATHS[menu_index] = live_path
         content.NAV_LIVE_PATHS.add(live_path)
+        content.NAV_LIVE_UNTIL_BY_PATH[live_path] = answer_content.find_exam_round(live_round["round"])["result"]
 
 
 # ── 첫 화면 띠 ──
@@ -57,7 +58,7 @@ def render_home_answer_banner(today=None):
         return ""
     exam_round = answer_content.find_exam_round(live_round["round"])
     return f"""
-<a class="live-banner" href="{answer_content.to_round_path(live_round)}">
+<a class="live-banner" href="{answer_content.to_round_path(live_round)}" data-live-until="{exam_round['result']}">
   <span class="live-dot" aria-hidden="true"></span>
   <span class="live-banner-text"><strong><span data-exam-day-only="{exam_round['exam']}" hidden>오늘 시험 끝! </span>SQLD {live_round['round']}회 가채점</strong><span>가답안 보고 OMR로 내 점수·합격 확인</span></span>
   <span class="live-banner-go">가채점하기{render_symbol("arrow_forward")}</span>
@@ -235,8 +236,10 @@ def render_tally_rows(item):
     return "".join(rows)
 
 
-def render_answer_row(item):
-    """가답안 1행 (접기): 번호 > 정답 > 상태 > 합의율 > 개념 한 줄 > 내 채점 / 펼치면 보기 분포·메모·앱 연결"""
+def render_answer_row(item, result_date):
+    """가답안 1행 (접기): 번호 > 정답 > 상태 > 합의율 > 개념 한 줄 > 내 채점 / 펼치면 보기 분포·메모·앱 연결
+    앱 연결은 합격자 발표일(result_date) 다음부터 보임 — 시험 직후 답 맞추러 온 방문자에게 문제 풀기 유도 안 함
+    """
     question_number = item["questionNo"]
     status = item.get("answerStatus") or "UNKNOWN"
     answer = str(item["answer"]) if item.get("answer") else ""
@@ -261,12 +264,12 @@ def render_answer_row(item):
           <p class="ak-detail-head">보기별 선택 <small data-vote-count>{item.get("voteCount") or 0}명 응답</small></p>
           <ul class="tally">{render_tally_rows(item)}</ul>
           <p class="ak-note" data-note>{note_html}</p>
-          <a class="ak-app-link" href="{content.APP_STORE_URL}" rel="noopener"{render_play_link_attribute()}>{render_symbol("school")}앱에서 이 개념 풀기</a>
+          <a class="ak-app-link" href="{content.APP_STORE_URL}" rel="noopener"{render_play_link_attribute()} data-show-after="{result_date}" hidden>{render_symbol("school")}앱에서 이 개념 풀기</a>
         </div>
       </details>"""
 
 
-def render_answer_key_section(rule, snapshot):
+def render_answer_key_section(rule, snapshot, result_date):
     """가답안 표: 상태 범례 > 필터 > 과목별 행"""
     item_by_number = {item["questionNo"]: item for item in snapshot["items"]}
     legend = "".join(
@@ -276,7 +279,7 @@ def render_answer_key_section(rule, snapshot):
     groups = "".join(
         f"""
     <h3 class="ak-group-title">{escape(subject['name'])}<small>{subject['firstQuestionNo']}~{subject['lastQuestionNo']}번</small></h3>
-    <div class="ak-list">{"".join(render_answer_row(item_by_number[number]) for number in range(subject['firstQuestionNo'], subject['lastQuestionNo'] + 1))}
+    <div class="ak-list">{"".join(render_answer_row(item_by_number[number], result_date) for number in range(subject['firstQuestionNo'], subject['lastQuestionNo'] + 1))}
     </div>"""
         for subject in rule["subjects"]
     )
@@ -347,10 +350,10 @@ def render_answer_round_page(answer_round, snapshot):
     body = (
         render_omr_section(rule)
         + render_result_section(answer_round, rule)
-        + render_answer_key_section(rule, snapshot)
-        + render_app_callout(root, "헷갈린 개념, 다음 시험 전에 잡아요",
-                             "가답안에서 갈린 개념을 passQL 앱에서 비슷한 문제로 풀고, 보기 SQL을 직접 실행해 결과로 확인하세요.",
-                             [("terminal", "보기 SQL 직접 실행"), ("auto_awesome", "틀린 이유 AI 해설"), ("timer", "실전 모의고사")])
+        + render_answer_key_section(rule, snapshot, exam_round["result"])
+        + render_app_callout(root, "사전점수·합격 발표, 앱이 알려 드려요",
+                             "passQL 앱은 사전점수 공개, 합격자 발표, 다음 회차 접수 시작을 알림으로 알려 줘요. 다음 시험은 일정 알림과 모의고사로 준비하세요.",
+                             [("notifications_active", "발표일 알림"), ("calendar_month", "다음 회차 접수 알림"), ("timer", "실전 모의고사")])
         + render_disclaimer_section()
         + f"""
 <script type="application/json" id="answer-key-config">{config_json}</script>
