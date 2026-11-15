@@ -3,6 +3,7 @@ package com.passql.web.controller;
 import com.passql.ai.dto.AiCommentResponse;
 import com.passql.common.dto.Author;
 import com.passql.submission.dto.AccuracyDetailResponse;
+import com.passql.submission.dto.ExpectedPassResponse;
 import com.passql.submission.dto.StudyPatternResponse;
 import com.passql.member.auth.presentation.annotation.AuthMember;
 import com.passql.member.auth.presentation.security.LoginMember;
@@ -267,5 +268,24 @@ public interface ProgressControllerDocs {
         @AuthMember LoginMember loginMember,
         @RequestParam(required = false) String subject,
         @RequestParam(defaultValue = WrongNoteService.DEFAULT_RETRY_SET_SIZE) int size
+    );
+
+    @ApiLogs({
+        @ApiLog(date = "2026.11.16", author = Author.SUHSAECHAN, issueNumber = 1086, description = "예상 합격률 API (최근 모의고사 5회 기준)"),
+    })
+    @Operation(summary = "예상 합격률", description = """
+        ## 인증(JWT): **필요** | 등급 제한 없음
+        ## 계산 기준
+        - 채점된 모의고사 응시 최근 최대 5회 (회차 무관, 제출 최신 순)
+        - expectedPassPercent = 합격(60점 이상 + 과락 없음) 횟수 / 응시 수 × 100 (정수)
+        - 과락 위험(isFailRisk): 과목 평균이 과락 기준 + 4점 이하
+        ## 반환값 (ExpectedPassResponse)
+        - expectedPassPercent, averageScore: 응시 0회면 null
+        - basisAttemptCount, passedAttemptCount, passScore
+        - subjectAverages[]: subject, subjectName, averageScore, maxScore, failBelowScore, isFailRisk (응시 0회면 빈 목록)
+        - officialPassRatePercent, officialStatisticYear: 공식 최근 연도 합격률 (SQLD 알아보기 통계 마지막 연도)
+        """)
+    ResponseEntity<ExpectedPassResponse> getExpectedPass(
+        @AuthMember LoginMember loginMember
     );
 }

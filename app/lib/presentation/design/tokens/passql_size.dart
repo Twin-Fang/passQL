@@ -58,6 +58,8 @@ abstract final class PassqlSize {
   static const double examAnswerOmrBubble = 44; // OMR 보기 동그라미 (손가락 터치 최소 영역)
   static const double examAnswerNumberColumn = 32; // OMR·가답안 행 앞 문항 번호 칸
   static const double examAnswerScoreBarHeight = 10; // 과목 점수 막대 두께
+  // OX 퀴즈 O·X 큰 버튼 높이 (#1083)
+  static const double oxQuizAnswerButtonHeight = 88;
   static const double examAnswerCutLineWidth = 2; // 점수 막대 위 과락선·합격선 두께
   static const double examAnswerCutLineOverhang = 4; // 기준선이 막대 위아래로 삐져나오는 길이
   static const double examAnswerAgreementBarWidth = 56; // 가답안 행 합의율 막대 폭

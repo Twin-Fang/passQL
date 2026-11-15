@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 import '../models/progress/progress_response.dart';
 import '../models/progress/heatmap_response.dart';
+import '../models/progress/expected_pass_response.dart';
 import '../models/progress/topic_analysis_response.dart';
 import '../models/progress/wrong_questions_response.dart';
 import '../models/progress/ai_comment_response.dart';
@@ -17,6 +18,10 @@ abstract class ProgressApiClient {
   /// 전체 학습 현황.
   @GET('/progress')
   Future<ProgressResponse> getProgress();
+
+  /// 예상 합격률: 최근 모의고사 최대 5회 기준 + 공식 합격률 (#1086, 무료 공개)
+  @GET('/progress/expected-pass')
+  Future<ExpectedPassResponse> getExpectedPass();
 
   /// 날짜별 학습 히트맵.
   @GET('/progress/heatmap')

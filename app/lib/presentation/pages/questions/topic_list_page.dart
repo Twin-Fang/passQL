@@ -8,6 +8,7 @@ import '../../../presentation/providers/exam_trend_providers.dart';
 import '../../../presentation/providers/topic_providers.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
+import '../../providers/concept_providers.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/pro_ui_providers.dart';
 import '../../widgets/ads/ad_native_slot.dart';
@@ -21,6 +22,7 @@ import '../../widgets/question/questions_tab_segmented_control.dart';
 import '../../widgets/question/topic_card.dart';
 import '../../widgets/mock_exam/mock_exam_entry_row.dart';
 import '../../widgets/question/hardest_questions_entry_row.dart';
+import '../../widgets/question/ox_quiz_entry_row.dart';
 import '../../widgets/question/wrong_notes_shortcut_row.dart';
 import '../../../router/questions_tab_view.dart';
 
@@ -264,6 +266,8 @@ class _RandomPracticeSection extends ConsumerWidget {
     if (!ref.watch(isRandomPracticeVisibleProvider)) {
       return const SliverToBoxAdapter();
     }
+    // OX 카드는 개념 학습 본문에서 나오므로 개념 탭과 같은 노출 판정
+    final isOxQuizVisible = ref.watch(isConceptLearningAvailableProvider);
     return SliverPadding(
       padding: _sectionPadding,
       sliver: SliverToBoxAdapter(
@@ -275,6 +279,7 @@ class _RandomPracticeSection extends ConsumerWidget {
             if (hasMockExamRow) const MockExamEntryRow(),
             // 오답률 TOP 은 무료도 목록 공개 (#1080)
             if (hasMockExamRow) const HardestQuestionsEntryRow(),
+            if (hasMockExamRow && isOxQuizVisible) const OxQuizEntryRow(),
           ],
         ),
       ),
@@ -282,17 +287,20 @@ class _RandomPracticeSection extends ConsumerWidget {
   }
 }
 
-/// 세그먼트 아래 공통 영역: 모의고사 + 오답 노트 + 오답률 TOP (보기와 상관없이 항상 보임, 보기 방식은 풀이 화면 칩·설정에서, #907)
-class _CommonShortcutSection extends StatelessWidget {
+/// 세그먼트 아래 공통 영역: 모의고사 + 오답 노트 + 오답률 TOP + OX 퀴즈 (보기와 상관없이 항상 보임, 보기 방식은 풀이 화면 칩·설정에서, #907)
+class _CommonShortcutSection extends ConsumerWidget {
   const _CommonShortcutSection();
 
   @override
-  Widget build(BuildContext context) {
-    return const PassqlGroupedSection(
+  Widget build(BuildContext context, WidgetRef ref) {
+    // OX 카드는 개념 학습 본문에서 나오므로 개념 탭과 같은 노출 판정
+    final isOxQuizVisible = ref.watch(isConceptLearningAvailableProvider);
+    return PassqlGroupedSection(
       children: [
-        MockExamEntryRow(),
-        WrongNotesShortcutRow(),
-        HardestQuestionsEntryRow(),
+        const MockExamEntryRow(),
+        const WrongNotesShortcutRow(),
+        const HardestQuestionsEntryRow(),
+        if (isOxQuizVisible) const OxQuizEntryRow(),
       ],
     );
   }

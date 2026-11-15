@@ -45,6 +45,33 @@ class _ProgressApiClient implements ProgressApiClient {
   }
 
   @override
+  Future<ExpectedPassResponse> getExpectedPass() async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<ExpectedPassResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/progress/expected-pass',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late ExpectedPassResponse _value;
+    try {
+      _value = ExpectedPassResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<HeatmapResponse> getHeatmap(String? from, String? to) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'from': from, r'to': to};

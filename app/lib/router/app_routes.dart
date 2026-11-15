@@ -130,6 +130,9 @@ abstract final class AppRoutes {
   /// 오답률 TOP 한 번에 풀기 풀이. 오답률 TOP 화면 버튼에서 진입
   static const String hardestPractice = '/hardest-questions/practice';
 
+  /// OX 퀴즈: 개념 바로 확인 문장 간격 반복 (#1083)
+  static const String oxQuiz = '/ox-quiz';
+
   /// 즐겨찾기 목록 (#1082). 프로필 즐겨찾기 행에서 진입
   static const String bookmarks = '/bookmarks';
 

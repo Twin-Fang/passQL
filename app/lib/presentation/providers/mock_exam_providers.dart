@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/mock_exam/mock_exam_result.dart';
 import '../../data/models/mock_exam/mock_exam_round_list.dart';
+import '../../data/models/progress/expected_pass_response.dart';
 import '../../data/sources/api_providers.dart';
 import 'pro_ui_providers.dart';
 import 'session_reset.dart';
@@ -26,6 +27,17 @@ final mockExamHistoryProvider =
       if (await watchIsProFeatureLocked(ref)) return null;
       return mockExamApi.getHistory();
     });
+
+/// 예상 합격률 (#1086, 무료 공개): 최근 모의고사 최대 5회 기준 + 공식 합격률
+/// 로그아웃이면 로딩 유지 (API 호출 없음)
+final expectedPassProvider = FutureProvider.autoDispose<ExpectedPassResponse>((
+  ref,
+) async {
+  if (ref.watch(currentMemberUuidProvider) == null) {
+    return waitForSignedInMember();
+  }
+  return ref.read(progressApiProvider).getExpectedPass();
+});
 
 /// 응시 결과 (결과·문항 해설 화면 공용, 조회 시점 등급으로 서버가 잠금 판정)
 final mockExamResultProvider = FutureProvider.autoDispose

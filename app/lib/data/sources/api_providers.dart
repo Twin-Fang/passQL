@@ -27,6 +27,7 @@ import 'mock_exam_api.dart';
 import 'meta_api.dart';
 import 'community_api.dart';
 import 'notification_api.dart';
+import 'ox_quiz_api.dart';
 import 'progress_api.dart';
 import 'push_token_api.dart';
 import 'question_api.dart';
@@ -107,6 +108,10 @@ final progressApiProvider = Provider<ProgressApiClient>(
 
 final bookmarkApiProvider = Provider<BookmarkApiClient>(
   (ref) => BookmarkApiClient(ref.watch(dioProvider)),
+);
+
+final oxQuizApiProvider = Provider<OxQuizApiClient>(
+  (ref) => OxQuizApiClient(ref.watch(dioProvider)),
 );
 
 final homeApiProvider = Provider<HomeApiClient>(

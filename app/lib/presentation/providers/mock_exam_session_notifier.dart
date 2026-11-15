@@ -142,6 +142,7 @@ class MockExamSessionNotifier
     refreshLearningData(ref.invalidate);
     ref.invalidate(mockExamRoundsProvider);
     ref.invalidate(mockExamHistoryProvider);
+    ref.invalidate(expectedPassProvider);
   }
 
   void _updateAnswer(int questionNumber, MockExamLocalAnswer answer) {
