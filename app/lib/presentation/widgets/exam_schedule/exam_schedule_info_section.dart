@@ -5,13 +5,16 @@ import '../../design/design.dart';
 import 'sqld_exam_facts.dart';
 
 /// 시험 정보 묶음 (#991): 시험 시간·응시료·응시 자격 + 입실 시간·준비물은 공식 안내로
+/// + SQLD 알아보기 (시험 소개·역대 합격률, #1076)
 class ExamScheduleInfoSection extends StatelessWidget {
   const ExamScheduleInfoSection({
     super.key,
     required this.onOfficialGuidePressed,
+    required this.onExamGuidePressed,
   });
 
   final VoidCallback onOfficialGuidePressed;
+  final VoidCallback onExamGuidePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +45,12 @@ class ExamScheduleInfoSection extends StatelessWidget {
             ),
           ),
           onTap: onOfficialGuidePressed,
+        ),
+        PassqlListRow(
+          title: 'SQLD 알아보기',
+          subtitle: '시험 소개, 역대 응시자와 합격률',
+          hasChevron: true,
+          onTap: onExamGuidePressed,
         ),
       ],
     );

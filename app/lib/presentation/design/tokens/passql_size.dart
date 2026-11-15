@@ -84,4 +84,10 @@ abstract final class PassqlSize {
   static const double loadingIndicatorInlineRadius = 10;
   static const double loadingIndicatorSectionRadius = 12;
   static const double loadingIndicatorBlockingRadius = 14;
+
+  // SQLD 역대 통계 차트 (#1077): 그림 영역 높이, 합격률 선 굵기·점 반지름, 과목 비중 막대 높이
+  static const double examStatisticsChartHeight = 180;
+  static const double examStatisticsLineStroke = 2.5;
+  static const double examStatisticsPointRadius = 3.5;
+  static const double examSubjectShareBarHeight = 12;
 }

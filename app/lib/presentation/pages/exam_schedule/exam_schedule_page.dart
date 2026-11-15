@@ -71,6 +71,8 @@ class ExamSchedulePage extends ConsumerWidget {
                         unawaited(context.push(AppRoutes.mockExams)),
                     onOfficialGuidePressed: () =>
                         _openExternal(context, SqldExamFacts.officialGuideUrl),
+                    onExamGuidePressed: () =>
+                        unawaited(context.push(AppRoutes.examGuide)),
                   ),
           ),
         ),

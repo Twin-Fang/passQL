@@ -23,6 +23,7 @@ import '../presentation/pages/home/home_page.dart';
 import '../presentation/pages/legal/legal_page.dart';
 import '../presentation/pages/lock_screen/lock_screen_permission_page.dart';
 import '../presentation/pages/lock_screen/lock_screen_preview_page.dart';
+import '../presentation/pages/exam_guide/exam_guide_page.dart';
 import '../presentation/pages/exam_answer/exam_answer_page.dart';
 import '../presentation/pages/exam_schedule/exam_schedule_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_guide_page.dart';
@@ -418,6 +419,13 @@ abstract final class AppRouter {
         path: AppRoutes.examSchedule,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const ExamSchedulePage(),
+      ),
+
+      // 풀스크린: SQLD 알아보기 (#1076, #1077, 시험 일정 화면·홈 첫 방문 안내에서 진입)
+      GoRoute(
+        path: AppRoutes.examGuide,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const ExamGuidePage(),
       ),
 
       // 풀스크린: 회차별 가답안·OMR 가채점 (#1075, 홈 가답안 구간에서 진입). 회차 번호가 숫자가 아니면 0 > 없는 회차 안내
