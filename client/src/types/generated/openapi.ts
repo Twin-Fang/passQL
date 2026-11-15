@@ -3133,7 +3133,7 @@ export interface components {
             alternativeAnswers: number[];
             /**
              * Format: int32
-             * @description 표시용 정답 1~4: 상태 OFFICIAL·CONFIRMED·LEADING 이면 운영 가답안, 아니면 득표 1위 (득표 없으면 null)
+             * @description 표시용 정답 1~4: 상태 OFFICIAL·CONFIRMED·LEADING·DISPUTED 이고 운영 답이 있으면 운영 가답안, 아니면 득표 1위 (득표 없으면 null)
              */
             answer: number;
             /** @description 운영 가답안 상태: UNKNOWN 모름, LEADING 우세, DISPUTED 갈림, CONFIRMED 확정, OFFICIAL 공식 */
