@@ -1525,7 +1525,7 @@
             "type" : "array"
           },
           "answer" : {
-            "description" : "표시용 정답 1~4: 상태 OFFICIAL·CONFIRMED·LEADING 이면 운영 가답안, 아니면 득표 1위 (득표 없으면 null)",
+            "description" : "표시용 정답 1~4: 상태 OFFICIAL·CONFIRMED·LEADING·DISPUTED 이고 운영 답이 있으면 운영 가답안, 아니면 득표 1위 (득표 없으면 null)",
             "format" : "int32",
             "type" : "integer"
           },
