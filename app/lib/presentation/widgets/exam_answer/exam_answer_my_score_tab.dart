@@ -125,7 +125,7 @@ class _OmrView extends StatelessWidget {
   }
 }
 
-/// 결과: 점수 > 공유·답안 수정 > 갈림 안내 > 틀린 문항 복습
+/// 결과: 판정·점수·목록 > 결과 공유(채운 버튼 하나)·답안 수정(글자 버튼) > 틀린 문항 복습
 class _ResultView extends StatelessWidget {
   const _ResultView({
     required this.roundKey,
@@ -141,7 +141,6 @@ class _ResultView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
     final itemByQuestionNo = {
       for (final item in roundResponse.items) item.questionNo: item,
     };
@@ -156,44 +155,27 @@ class _ResultView extends StatelessWidget {
         ExamAnswerScoreResult(
           report: report,
           gradingRule: roundResponse.effectiveGradingRule,
+          unsettledQuestionCount: unsettledCount,
         ),
-        const SizedBox(height: PassqlSpacing.xl),
-        Row(
-          children: [
-            Expanded(
-              child: PassqlButton(
-                label: '답안 수정',
-                icon: CupertinoIcons.pencil,
-                variant: PassqlButtonVariant.tinted,
-                onPressed: onEdit,
-              ),
-            ),
-            const SizedBox(width: PassqlSpacing.sm),
-            Expanded(
-              child: PassqlButton(
-                label: '결과 공유',
-                icon: CupertinoIcons.share,
-                onPressed: () => showExamAnswerShareSheet(
-                  context,
-                  certType: roundKey.certType,
-                  roundNumber: roundKey.roundNumber,
-                  roundTitle: roundResponse.displayTitle,
-                  maxScore: roundResponse.effectiveGradingRule.maxScore,
-                  report: report,
-                ),
-              ),
-            ),
-          ],
-        ),
-        if (unsettledCount > 0) ...[
-          const SizedBox(height: PassqlSpacing.md),
-          Text(
-            '아직 갈리거나 정해지지 않은 $unsettledCount문항은 정답이 정해지면 점수가 바뀔 수 있어요.',
-            style: PassqlTypography.footnote.copyWith(
-              color: colors.secondaryLabel,
-            ),
+        const SizedBox(height: PassqlSpacing.lg),
+        // 채운 버튼은 결과 공유 하나, 답안 수정은 글자 버튼
+        PassqlButton(
+          label: '결과 공유',
+          icon: CupertinoIcons.share,
+          onPressed: () => showExamAnswerShareSheet(
+            context,
+            certType: roundKey.certType,
+            roundNumber: roundKey.roundNumber,
+            roundTitle: roundResponse.displayTitle,
+            maxScore: roundResponse.effectiveGradingRule.maxScore,
+            report: report,
           ),
-        ],
+        ),
+        PassqlButton(
+          label: '답안 수정',
+          variant: PassqlButtonVariant.plain,
+          onPressed: onEdit,
+        ),
         const SizedBox(height: PassqlSpacing.xl),
         if (wrongMarks.isEmpty)
           PassqlStatusView.empty(

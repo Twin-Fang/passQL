@@ -9,7 +9,7 @@ import '../../design/design.dart';
 import '../exam_answer/exam_answer_status_styles.dart';
 
 /// 홈 가답안 구간 (#1075): 시험일 ~ 공식 정답 반영 기간에만 (노출 판정은 examAnswerHomeEntryProvider)
-/// 행 하나: 가채점 안내 > 회차 상태·참여자 수 > 가답안 화면
+/// 행 하나(홈 다른 구간과 같은 목록 행 + ›): 가채점 안내 > 회차 상태, 참여자 수 회색 한 줄 > 가답안 화면
 class ExamAnswerHomeSection extends StatelessWidget {
   const ExamAnswerHomeSection({super.key, required this.roundResponse});
 
@@ -17,7 +17,6 @@ class ExamAnswerHomeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.passqlColors;
     final isOfficial = roundResponse.status == ExamAnswerRoundStatus.official;
     final participantCount = roundResponse.participantCount;
     return PassqlSection(
@@ -28,10 +27,6 @@ class ExamAnswerHomeSection extends StatelessWidget {
         subtitle: participantCount > 0
             ? '${roundResponse.status.label} | ${formatThousands(participantCount)}명 참여'
             : roundResponse.status.label,
-        leading: PassqlIconTile(
-          icon: CupertinoIcons.checkmark_seal_fill,
-          color: colors.accent,
-        ),
         hasChevron: true,
         hasHorizontalPadding: false,
         onTap: () => context.push(

@@ -130,6 +130,10 @@ class _ShareSheetBodyState extends State<_ShareSheetBody> {
                 maxScore: widget.maxScore,
                 report: widget.report,
                 isScorePublic: _isScorePublic,
+                siteAddress: ExamAnswerShareLink.displayRoundPageOf(
+                  widget.certType,
+                  widget.roundNumber,
+                ),
               ),
             ),
           ),

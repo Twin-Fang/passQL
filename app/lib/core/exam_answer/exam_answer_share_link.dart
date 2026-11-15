@@ -6,4 +6,11 @@ abstract final class ExamAnswerShareLink {
   /// 회차 페이지: https://passql.suhsaechan.kr/sqld/63/
   static String roundPageOf(String certType, int roundNumber) =>
       '$introSiteOrigin/${certType.toLowerCase()}/$roundNumber/';
+
+  /// 이미지에 적는 짧은 주소: passql.suhsaechan.kr/sqld/63 (scheme·끝 / 제외)
+  static String displayRoundPageOf(String certType, int roundNumber) =>
+      roundPageOf(
+        certType,
+        roundNumber,
+      ).replaceFirst(RegExp(r'^https?://'), '').replaceFirst(RegExp(r'/$'), '');
 }

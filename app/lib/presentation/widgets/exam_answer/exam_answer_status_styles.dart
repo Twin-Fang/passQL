@@ -4,7 +4,7 @@ import '../../../core/exam_answer/exam_answer_score_report.dart';
 import '../../../data/models/exam_answer/exam_answer_enums.dart';
 import '../../design/design.dart';
 
-/// 문항 가답안 상태 > 이름·배지·막대 색 (가답안 표·내 결과 공통 원본)
+/// 문항 가답안 상태 > 이름·의미색 (가답안 목록·내 결과 공통 원본)
 /// 공식·확정 초록, 우세 파랑, 갈림 주황, 미확정 회색
 extension ExamAnswerItemStatusStyle on ExamAnswerItemStatus {
   String get label => switch (this) {
@@ -24,12 +24,6 @@ extension ExamAnswerItemStatusStyle on ExamAnswerItemStatus {
     ExamAnswerItemStatus.unknown => PassqlBadgeKind.neutral,
   };
 
-  /// 배지 아이콘 (갈림은 주황 기본 불꽃 대신 갈래, 나머지는 배지 기본)
-  IconData? get badgeIcon => switch (this) {
-    ExamAnswerItemStatus.disputed => CupertinoIcons.arrow_branch,
-    _ => null,
-  };
-
   /// 막대·동그라미 채움 색 (배지와 같은 의미색)
   Color fillColorOf(PassqlColors colors) =>
       PassqlBadge.tonesOf(badgeKind, colors).$1;
@@ -39,7 +33,7 @@ extension ExamAnswerItemStatusStyle on ExamAnswerItemStatus {
       PassqlBadge.tonesOf(badgeKind, colors).$2;
 }
 
-/// 회차 상태 > 이름·배지
+/// 회차 상태 > 이름
 extension ExamAnswerRoundStatusStyle on ExamAnswerRoundStatus {
   String get label => switch (this) {
     ExamAnswerRoundStatus.collecting => '가답안 수집 중',
@@ -47,27 +41,14 @@ extension ExamAnswerRoundStatusStyle on ExamAnswerRoundStatus {
     ExamAnswerRoundStatus.closed => '마감',
     ExamAnswerRoundStatus.unknown => '준비 중',
   };
-
-  PassqlBadgeKind get badgeKind => switch (this) {
-    ExamAnswerRoundStatus.collecting => PassqlBadgeKind.info,
-    ExamAnswerRoundStatus.official => PassqlBadgeKind.success,
-    ExamAnswerRoundStatus.closed ||
-    ExamAnswerRoundStatus.unknown => PassqlBadgeKind.neutral,
-  };
 }
 
-/// 가채점 판정 > 문구·아이콘·의미색
+/// 가채점 판정 > 문구·의미색
 extension ExamAnswerPassStatusStyle on ExamAnswerPassStatus {
   String get label => switch (this) {
     ExamAnswerPassStatus.pass => '합격 예상',
     ExamAnswerPassStatus.fail => '불합격 예상',
     ExamAnswerPassStatus.borderline => '합격선에 걸쳐 있어요',
-  };
-
-  IconData get icon => switch (this) {
-    ExamAnswerPassStatus.pass => CupertinoIcons.checkmark_seal_fill,
-    ExamAnswerPassStatus.fail => CupertinoIcons.xmark_circle_fill,
-    ExamAnswerPassStatus.borderline => CupertinoIcons.arrow_up_arrow_down,
   };
 
   PassqlBadgeKind get badgeKind => switch (this) {
@@ -78,7 +59,4 @@ extension ExamAnswerPassStatusStyle on ExamAnswerPassStatus {
 
   Color textColorOf(PassqlColors colors) =>
       PassqlBadge.tonesOf(badgeKind, colors).$2;
-
-  Color fillColorOf(PassqlColors colors) =>
-      PassqlBadge.tonesOf(badgeKind, colors).$1;
 }
