@@ -9,6 +9,7 @@ import 'ai_analysis_action_buttons.dart';
 import 'ai_analysis_finding_row.dart';
 import 'ai_analysis_forecast_block.dart';
 import 'ai_analysis_readiness_block.dart';
+import 'ai_analysis_score_gain_block.dart';
 
 /// AI 영역 분석 구간 (#749 구간형): 반짝이 머리(+ 판정 기간) + 본문 + 아래 작은 분석 시각
 /// 본문: 구조화 분석(#861) 있으면 진단·예상 점수·약한 토픽·다음 할 일, 없으면 글 코멘트(단어 순차 등장). aiComment 가 null 이면 숨김
@@ -62,7 +63,7 @@ class AiAnalysisCard extends StatelessWidget {
   }
 }
 
-/// 구조화 분석 본문: 한 줄 진단 > 데이터 부족 안내 > 예상 점수(또는 남은 문제 안내) > 약한 토픽 최대 2
+/// 구조화 분석 본문: 한 줄 진단 > 데이터 부족 안내 > 예상 점수(또는 남은 문제 안내) > 점수 올리기 좋은 영역 > 약한 토픽 최대 2
 /// > 반복 오답·추세·강점·다음 목표 한 줄씩 > 바로 풀기 버튼. 묶음마다 순서대로 등장
 class _AiStatsAnalysisBody extends StatelessWidget {
   const _AiStatsAnalysisBody({required this.analysis});
@@ -104,6 +105,9 @@ class _AiStatsAnalysisBody extends StatelessWidget {
         AiAnalysisForecastBlock(forecast: forecast)
       else if (forecastHint != null && forecastHint.isNotEmpty)
         AiAnalysisForecastHint(hint: forecastHint),
+      // 예상 점수 다음: 어디를 올릴지 (#1111)
+      if (analysis.scoreGainTopics.isNotEmpty)
+        AiAnalysisScoreGainBlock(topics: analysis.scoreGainTopics),
       for (final finding in analysis.findings)
         AiAnalysisFindingRow(finding: finding),
       if (noteLines.isNotEmpty)

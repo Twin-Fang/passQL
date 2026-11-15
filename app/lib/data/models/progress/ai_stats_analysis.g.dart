@@ -36,6 +36,11 @@ _$AiStatsAnalysisImpl _$$AiStatsAnalysisImplFromJson(
       ? null
       : AiAnalysisReadiness.fromJson(json['readiness'] as Map<String, dynamic>),
   nextGoal: json['nextGoal'] as String?,
+  scoreGainTopics:
+      (json['scoreGainTopics'] as List<dynamic>?)
+          ?.map((e) => AiScoreGainTopic.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$AiStatsAnalysisImplToJson(
@@ -52,6 +57,7 @@ Map<String, dynamic> _$$AiStatsAnalysisImplToJson(
   'repeatedWrong': instance.repeatedWrong,
   'readiness': instance.readiness,
   'nextGoal': instance.nextGoal,
+  'scoreGainTopics': instance.scoreGainTopics,
 };
 
 _$AiAnalysisFindingImpl _$$AiAnalysisFindingImplFromJson(
@@ -91,6 +97,29 @@ const _$AiFindingKindEnumMap = {
   AiFindingKind.shaky: 'SHAKY',
   AiFindingKind.untried: 'UNTRIED',
   AiFindingKind.unknown: 'unknown',
+};
+
+_$AiScoreGainTopicImpl _$$AiScoreGainTopicImplFromJson(
+  Map<String, dynamic> json,
+) => _$AiScoreGainTopicImpl(
+  topicUuid: json['topicUuid'] as String? ?? '',
+  topicName: json['topicName'] as String? ?? '',
+  correctRatePercent: (json['correctRatePercent'] as num?)?.toInt() ?? 0,
+  targetCorrectRatePercent:
+      (json['targetCorrectRatePercent'] as num?)?.toInt() ?? 0,
+  examQuestionCount: (json['examQuestionCount'] as num?)?.toInt() ?? 0,
+  expectedGainScore: (json['expectedGainScore'] as num?)?.toDouble() ?? 0,
+);
+
+Map<String, dynamic> _$$AiScoreGainTopicImplToJson(
+  _$AiScoreGainTopicImpl instance,
+) => <String, dynamic>{
+  'topicUuid': instance.topicUuid,
+  'topicName': instance.topicName,
+  'correctRatePercent': instance.correctRatePercent,
+  'targetCorrectRatePercent': instance.targetCorrectRatePercent,
+  'examQuestionCount': instance.examQuestionCount,
+  'expectedGainScore': instance.expectedGainScore,
 };
 
 _$AiAnalysisStrengthImpl _$$AiAnalysisStrengthImplFromJson(
