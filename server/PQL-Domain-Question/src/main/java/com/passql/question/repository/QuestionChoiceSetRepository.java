@@ -188,6 +188,14 @@ public interface QuestionChoiceSetRepository extends JpaRepository<QuestionChoic
                                                           @Param("choiceCount") long choiceCount,
                                                           @Param("choiceSetUuids") Collection<UUID> choiceSetUuids);
 
+    /** 주어진 문제의 모의고사 출제 가능 세트 (기출 회차 구성, #1079) */
+    @Query(MOCK_EXAM_ELIGIBLE_SET_QUERY + " AND cs.questionUuid IN :questionUuids")
+    List<QuestionChoiceSet> findMockExamEligibleSetsOfQuestions(@Param("okStatus") ChoiceSetStatus okStatus,
+                                                                @Param("conceptMode") ExecutionMode conceptMode,
+                                                                @Param("curatedSources") Collection<ChoiceSetSource> curatedSources,
+                                                                @Param("choiceCount") long choiceCount,
+                                                                @Param("questionUuids") Collection<UUID> questionUuids);
+
     /** 형식 점검 대상 세트 (#905): 지정 상태 + (고정 출처 또는 재사용 풀), 회원별 일회성 AI 세트는 제외 */
     @Query("""
             select cs from QuestionChoiceSet cs

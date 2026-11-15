@@ -9,6 +9,15 @@ enum MockExamSubject {
   unknown,
 }
 
+/// 회차 종류 (#1079): 모의고사, 기출 복원 + 앱이 모르는 값
+enum MockExamRoundType {
+  @JsonValue('MOCK')
+  mock,
+  @JsonValue('PAST_EXAM')
+  pastExam,
+  unknown,
+}
+
 /// 응시 상태: 풀이 중, 채점 끝 + 앱이 모르는 값
 enum MockExamAttemptStatus {
   @JsonValue('IN_PROGRESS')

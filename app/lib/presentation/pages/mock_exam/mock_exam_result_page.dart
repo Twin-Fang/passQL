@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/review/store_review_prompter.dart';
+import '../../../data/models/mock_exam/mock_exam_enums.dart';
 import '../../../data/models/mock_exam/mock_exam_result.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/mock_exam_providers.dart';
+import '../../widgets/mock_exam/mock_exam_past_exam_notice.dart';
 import '../../widgets/mock_exam/mock_exam_result_grid.dart';
 import '../../widgets/mock_exam/mock_exam_score_hero.dart';
 import '../../widgets/mock_exam/mock_exam_subject_breakdown.dart';
@@ -19,6 +21,7 @@ import '../../widgets/stats/ai_analysis_action_buttons.dart';
 
 /// 모의고사 결과 (#866): 합격·불합격 > 과목·토픽(프로) > 다음에 할 일(프로) > 정오 번호판 > 문항 해설(프로)
 /// 무료는 서버가 뺀 묶음(lockedSections)을 잠금 자리 하나로 (첫 잠긴 묶음 자리, 둘 다면 합침, #993), 정오 번호판은 공개
+/// 기출 복원 회차는 맨 아래 면책 한 줄 (#1079)
 class MockExamResultPage extends ConsumerWidget {
   const MockExamResultPage({
     super.key,
@@ -137,6 +140,8 @@ class _ResultBody extends ConsumerWidget {
       // 과목이 잠겼으면 위에서 이미 합쳐 보임
       if (examResult.isReviewLocked && !examResult.isSubjectDetailLocked)
         ?lockedSection,
+      if (examResult.roundType == MockExamRoundType.pastExam)
+        const MockExamPastExamNotice(),
     ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(

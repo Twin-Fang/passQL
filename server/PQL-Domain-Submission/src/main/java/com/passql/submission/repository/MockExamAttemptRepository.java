@@ -35,8 +35,13 @@ public interface MockExamAttemptRepository extends JpaRepository<MockExamAttempt
     List<MockExamAttempt> findByMemberUuidAndStatusOrderBySubmittedAtDesc(UUID memberUuid, MockExamAttemptStatus status,
                                                                          Pageable pageable);
 
-    /** 무료 체험 소진 판정: 응시 기록이 하나라도 있는지 (회차·제출 여부 무관) */
-    boolean existsByMemberUuid(UUID memberUuid);
+    /** 무료 체험 소진 판정: 모의고사(MOCK) 회차 응시 기록이 하나라도 있는지 (제출 여부 무관, 기출 회차 응시는 제외 #1079) */
+    @Query("""
+            SELECT COUNT(a) > 0 FROM MockExamAttempt a, MockExamRound r
+            WHERE r.mockExamRoundUuid = a.mockExamRoundUuid AND a.memberUuid = :memberUuid
+              AND r.roundType = com.passql.submission.constant.MockExamRoundType.MOCK
+            """)
+    boolean existsMockRoundAttemptByMemberUuid(@Param("memberUuid") UUID memberUuid);
 
     long countByMockExamRoundUuid(UUID mockExamRoundUuid);
 
