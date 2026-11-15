@@ -15,6 +15,15 @@ _$WrongQuestionItemImpl _$$WrongQuestionItemImplFromJson(
   lastWrongAt: json['lastWrongAt'] == null
       ? null
       : DateTime.parse(json['lastWrongAt'] as String),
+  wrongCount: (json['wrongCount'] as num?)?.toInt() ?? 0,
+  isResolved: json['isResolved'] as bool? ?? false,
+  subject:
+      $enumDecodeNullable(
+        _$MockExamSubjectEnumMap,
+        json['subject'],
+        unknownValue: MockExamSubject.unknown,
+      ) ??
+      MockExamSubject.unknown,
 );
 
 Map<String, dynamic> _$$WrongQuestionItemImplToJson(
@@ -24,6 +33,15 @@ Map<String, dynamic> _$$WrongQuestionItemImplToJson(
   'stemPreview': instance.stemPreview,
   'topicName': instance.topicName,
   'lastWrongAt': instance.lastWrongAt?.toIso8601String(),
+  'wrongCount': instance.wrongCount,
+  'isResolved': instance.isResolved,
+  'subject': _$MockExamSubjectEnumMap[instance.subject]!,
+};
+
+const _$MockExamSubjectEnumMap = {
+  MockExamSubject.subjectOne: 'SUBJECT_ONE',
+  MockExamSubject.subjectTwo: 'SUBJECT_TWO',
+  MockExamSubject.unknown: 'unknown',
 };
 
 _$WrongQuestionsResponseImpl _$$WrongQuestionsResponseImplFromJson(
@@ -43,3 +61,17 @@ Map<String, dynamic> _$$WrongQuestionsResponseImplToJson(
   'items': instance.items,
   'totalCount': instance.totalCount,
 };
+
+_$WrongQuestionRetrySetResponseImpl
+_$$WrongQuestionRetrySetResponseImplFromJson(Map<String, dynamic> json) =>
+    _$WrongQuestionRetrySetResponseImpl(
+      questionUuids:
+          (json['questionUuids'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$$WrongQuestionRetrySetResponseImplToJson(
+  _$WrongQuestionRetrySetResponseImpl instance,
+) => <String, dynamic>{'questionUuids': instance.questionUuids};

@@ -9,6 +9,9 @@ import com.passql.member.auth.presentation.security.LoginMember;
 import com.passql.submission.dto.HeatmapResponse;
 import com.passql.submission.dto.ProgressResponse;
 import com.passql.submission.dto.TopicAnalysisResponse;
+import com.passql.submission.dto.WrongQuestionRetrySetResponse;
+import com.passql.submission.dto.WrongQuestionsResponse;
+import com.passql.submission.service.WrongNoteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.suhsaechan.suhapilog.annotation.ApiLog;
@@ -208,5 +211,61 @@ public interface ProgressControllerDocs {
     )
     ResponseEntity<AccuracyDetailResponse> getAccuracyDetail(
         @AuthMember LoginMember loginMember
+    );
+    @ApiLogs({
+        @ApiLog(date = "2026.11.16", author = Author.SUHSAECHAN, issueNumber = 1081, description = "오답 노트 과목(subject)·정렬(sort)·정리됨 포함(includeResolved) 인자, 항목 wrongCount·isResolved·subject 추가. 기본 목록은 정리된 문제(최신 제출 정답) 제외"),
+    })
+    @Operation(
+        summary = "오답 노트 조회",
+        description = """
+            ## 인증(JWT): **필요**
+
+            ## 등급
+            - 프로 전용 (결제 켜짐 무료 회원 403 PRO_REQUIRED)
+
+            ## 요청 파라미터
+            - subject (optional): SUBJECT_ONE 1과목(토픽 data_modeling) | SUBJECT_TWO 2과목(그 외), 없으면 전체
+            - sort (optional): RECENT 최근 틀린 순(기본) | MOST_WRONG 많이 틀린 순
+            - includeResolved (기본 false): true 면 정리된 문제(그 문제 최신 제출이 정답)도 포함
+            - size (기본 20, 1~100 보정)
+            - 없는 subject·sort 값 > 400 INVALID_INPUT_VALUE
+
+            ## 반환값 (WrongQuestionsResponse)
+            - items[]: questionUuid, stemPreview(50자), topicName, lastWrongAt, wrongCount(틀린 횟수), isResolved, subject
+            - totalCount: 필터 적용 전체 수 (size 제한 전)
+            - 활성 문제만
+            """
+    )
+    ResponseEntity<WrongQuestionsResponse> getWrongQuestions(
+        @AuthMember LoginMember loginMember,
+        @RequestParam(required = false) String subject,
+        @RequestParam(required = false) String sort,
+        @RequestParam(defaultValue = "false") boolean includeResolved,
+        @RequestParam(defaultValue = WrongNoteService.DEFAULT_WRONG_QUESTION_COUNT) int size
+    );
+
+    @ApiLogs({
+        @ApiLog(date = "2026.11.16", author = Author.SUHSAECHAN, issueNumber = 1081, description = "오답 다시 풀기 묶음 API 추가: 정리 안 된 오답을 많이 틀린 순으로 최대 10개 UUID"),
+    })
+    @Operation(
+        summary = "오답 다시 풀기 묶음",
+        description = """
+            ## 인증(JWT): **필요**
+
+            ## 등급
+            - 프로 전용 (오답 노트와 같은 기능 단위)
+
+            ## 요청 파라미터
+            - subject (optional): SUBJECT_ONE | SUBJECT_TWO, 없으면 전체
+            - size (기본 10, 1~10 보정)
+
+            ## 반환값 (WrongQuestionRetrySetResponse)
+            - questionUuids: 정리 안 된 활성 오답 문제, 많이 틀린 순(같으면 최근 틀린 순). 없으면 빈 목록
+            """
+    )
+    ResponseEntity<WrongQuestionRetrySetResponse> getWrongQuestionRetrySet(
+        @AuthMember LoginMember loginMember,
+        @RequestParam(required = false) String subject,
+        @RequestParam(defaultValue = WrongNoteService.DEFAULT_RETRY_SET_SIZE) int size
     );
 }

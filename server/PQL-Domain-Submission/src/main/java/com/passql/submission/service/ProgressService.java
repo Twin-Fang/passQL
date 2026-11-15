@@ -1,8 +1,6 @@
 package com.passql.submission.service;
 
-import com.passql.common.util.MarkdownTextStripper;
 import com.passql.common.util.ServiceTimeZone;
-import com.passql.common.util.TextPreview;
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
 import com.passql.member.repository.MemberRepository;
@@ -14,8 +12,6 @@ import com.passql.submission.dto.HeatmapResponse;
 import com.passql.submission.dto.ProgressResponse;
 import com.passql.submission.dto.ReadinessResponse;
 import com.passql.submission.dto.RecentAttemptProjection;
-import com.passql.submission.dto.WrongQuestionItem;
-import com.passql.submission.dto.WrongQuestionsResponse;
 import com.passql.submission.readiness.ReadinessCalculator;
 import com.passql.submission.readiness.ReadinessConstants;
 import com.passql.submission.readiness.ToneKey;
@@ -39,9 +35,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ProgressService {
-
-    // 오답 목록 기본 개수 (@RequestParam defaultValue 용 문자열 상수)
-    public static final String DEFAULT_WRONG_QUESTION_COUNT = "20";
 
     private final SubmissionRepository submissionRepository;
     private final MemberRepository memberRepository;
@@ -175,36 +168,5 @@ public class ProgressService {
             .toList();
 
         return new HeatmapResponse(entries);
-    }
-
-    public WrongQuestionsResponse getWrongQuestions(UUID memberUuid, int size) {
-        if (!memberRepository.existsByMemberUuidAndIsDeletedFalse(memberUuid)) {
-            throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
-        }
-
-        List<Object[]> rows = submissionRepository.findWrongQuestionsWithMeta(memberUuid.toString(), size);
-
-        List<WrongQuestionItem> items = rows.stream()
-            .map(row -> new WrongQuestionItem(
-                UUID.fromString((String) row[0]),
-                buildStemPreview((String) row[1]),
-                (String) row[2],
-                ((java.sql.Timestamp) row[3]).toLocalDateTime()
-            ))
-            .toList();
-
-        long totalCount = submissionRepository.countDistinctWrongQuestions(memberUuid.toString());
-
-        return new WrongQuestionsResponse(items, totalCount);
-    }
-
-    // 마크다운 표 > [표], 코드 블록 > [SQL], 줄바꿈 제거 후 50자 미리보기
-    private String buildStemPreview(String stem) {
-        if (stem == null) return "";
-        String cleaned = MarkdownTextStripper.replaceTables(stem)
-            .replaceAll("```[\\s\\S]*?```", "[SQL]")
-            .replaceAll("\n", " ")
-            .trim();
-        return TextPreview.truncateWithEllipsis(cleaned, TextPreview.SHORT_STEM_LENGTH);
     }
 }

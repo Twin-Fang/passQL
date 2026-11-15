@@ -3,6 +3,7 @@ import 'package:retrofit/retrofit.dart';
 import '../models/home/recommendations_request.dart';
 import '../models/home/question_summary.dart';
 import '../models/home/recommendations_response.dart';
+import '../models/question/hardest_questions_response.dart';
 import '../models/question/question_detail.dart';
 import '../models/question/question_list_response.dart';
 import '../models/question/execute_request.dart';
@@ -45,6 +46,12 @@ abstract class QuestionApiClient {
   Future<HttpResponse<dynamic>> getLockScreenQuestion(
     @Query('isExecutableExcluded') bool isExecutableExcluded,
   );
+
+  /// 오답률 TOP (#1080): 첫 제출 기준, limit 최대 30, 등급 제한 없음
+  @GET('/questions/hardest')
+  Future<HardestQuestionsResponse> getHardestQuestions({
+    @Query('limit') int? limit,
+  });
 
   /// 문제 상세 조회.
   @GET('/questions/{questionUuid}')

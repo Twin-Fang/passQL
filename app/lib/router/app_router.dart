@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/models/community/community_models.dart';
+import '../data/models/progress/wrong_note_filter.dart';
+import '../presentation/flows/bookmark_flow.dart';
 import '../presentation/flows/daily_set_flow.dart';
 import '../presentation/flows/daily_set_retry_flow.dart';
+import '../presentation/flows/hardest_flow.dart';
 import '../presentation/flows/question_flow.dart';
 import '../presentation/flows/concept_related_flow.dart';
 import '../presentation/flows/random_practice_flow.dart';
+import '../presentation/flows/wrong_note_retry_flow.dart';
+import '../presentation/pages/bookmarks/bookmarks_page.dart';
 import '../presentation/pages/community/blocked_members_page.dart';
 import '../presentation/pages/settings/app_info_page.dart';
 import '../presentation/pages/concepts/concept_page.dart';
@@ -40,6 +45,7 @@ import '../presentation/pages/notification/notification_inbox_page.dart';
 import '../presentation/pages/questions/topic_list_page.dart';
 import '../presentation/pages/questions/chapter_page.dart';
 import '../presentation/pages/questions/chapter_result_page.dart';
+import '../presentation/pages/questions/hardest_questions_page.dart';
 import '../presentation/pages/questions/random_practice_summary_page.dart';
 import '../presentation/pages/questions/question_detail_page.dart';
 import '../presentation/pages/result/result_page.dart';
@@ -284,6 +290,40 @@ abstract final class AppRouter {
         path: AppRoutes.wrongNotes,
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const WrongNotesPage(),
+      ),
+      // 오답률 TOP 목록·한 번에 풀기 (#1080)
+      GoRoute(
+        path: AppRoutes.hardestQuestions,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const HardestQuestionsPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.hardestPractice,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const ChapterPage(flow: HardestFlow()),
+      ),
+      // 즐겨찾기 목록·풀기 (#1082)
+      GoRoute(
+        path: AppRoutes.bookmarks,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const BookmarksPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.bookmarkPractice,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const ChapterPage(flow: BookmarkFlow()),
+      ),
+      // 오답 다시 풀기 풀이 (#1081): 끝나면 오답 노트로 복귀
+      GoRoute(
+        path: AppRoutes.wrongNoteRetrySet,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => ChapterPage(
+          flow: WrongNoteRetryFlow(
+            subject: subjectFromQueryValue(
+              state.uri.queryParameters[AppRoutes.subjectQuery],
+            ),
+          ),
+        ),
       ),
 
       // 풀스크린: 문제별 의견 (#525), 차단한 사용자 관리

@@ -116,6 +116,7 @@ public class QuestionDetailService {
                 question.getHint(),
                 choiceSets,
                 Boolean.TRUE.equals(question.getIsLatestTrend()),
+                false,
                 false
         );
     }

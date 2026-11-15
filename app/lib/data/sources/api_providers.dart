@@ -14,6 +14,7 @@ import '../../core/network/service_maintenance_signal.dart';
 import 'ai_api.dart';
 import 'auth_api.dart';
 import 'billing_api.dart';
+import 'bookmark_api.dart';
 import 'feedback_api.dart';
 import 'daily_set_api.dart';
 import 'exam_answer_api.dart';
@@ -102,6 +103,10 @@ final reportApiProvider = Provider<ReportApiClient>(
 
 final progressApiProvider = Provider<ProgressApiClient>(
   (ref) => ProgressApiClient(ref.watch(dioProvider)),
+);
+
+final bookmarkApiProvider = Provider<BookmarkApiClient>(
+  (ref) => BookmarkApiClient(ref.watch(dioProvider)),
 );
 
 final homeApiProvider = Provider<HomeApiClient>(

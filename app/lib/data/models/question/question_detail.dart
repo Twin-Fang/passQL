@@ -30,6 +30,8 @@ class QuestionDetail with _$QuestionDetail {
     @Default(false) bool isLatestTrend,
     // 오늘의 세트 무료 체험: 무료 회원도 이 문제에서 SQL 실행·AI 해설 사용 (구버전 서버면 false, #992)
     @Default(false) bool isDailySetFreeTrial,
+    // 로그인 회원의 즐겨찾기 여부 (구버전 서버면 false, #1082)
+    @Default(false) bool isBookmarked,
   }) = _QuestionDetail;
 
   factory QuestionDetail.fromJson(Map<String, dynamic> json) =>

@@ -23,6 +23,7 @@ import '../../design/design.dart';
 import '../../widgets/question/question_sections.dart';
 import '../../widgets/question/question_load_error_view.dart';
 import '../../widgets/question/question_pro_access_notice.dart';
+import '../../widgets/question/question_bookmark_button.dart';
 
 /// 문제 풀이 플로우 메인 페이지 (풀스크린).
 ///
@@ -209,7 +210,14 @@ class _ChapterPageState extends ConsumerState<ChapterPage>
           for (final result in chapter.results) result.isCorrect,
         ],
         shouldConfirmExit: hasStarted,
-        accessory: const AiExplanationHistoryButton(),
+        // 즐겨찾기 별 (#1082) + 해설함
+        accessory: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            QuestionBookmarkButton(questionUuid: currentUuid),
+            const AiExplanationHistoryButton(),
+          ],
+        ),
         isContinuous: widget.flow.isContinuous,
         onExit: widget.flow.isContinuous ? leaveContinuousFlow : null,
       ),

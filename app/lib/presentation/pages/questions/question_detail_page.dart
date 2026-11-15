@@ -9,6 +9,7 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../widgets/practice/daily_limit_reward_view.dart';
 import '../../widgets/pro/pro_access_feedback.dart';
+import '../../widgets/question/question_bookmark_button.dart';
 import '../../widgets/question/question_sections.dart';
 import '../../widgets/question/question_load_error_view.dart';
 import '../../widgets/question/question_pro_access_notice.dart';
@@ -109,6 +110,8 @@ class _QuestionDetailPageState extends ConsumerState<QuestionDetailPage> {
         title: detailAsync.valueOrNull?.topicName ?? '문제 풀기',
         leading: PassqlNavLeading.back,
         onLeadingTap: () => context.pop(),
+        // 즐겨찾기 별 (#1082)
+        trailing: QuestionBookmarkButton(questionUuid: widget.questionUuid),
       ),
       // 로딩 자리 스켈레톤 > 내용 페이드 교체
       body: PassqlFadeSwitcher(
