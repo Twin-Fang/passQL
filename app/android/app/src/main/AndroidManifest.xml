@@ -39,6 +39,7 @@
             </intent-filter>
         </activity>
         <!-- 잠금화면 문제 화면 (#990): 별도 태스크·최근 앱 제외, 잠금 위 표시. 엔진은 서비스가 데운 캐시 엔진 -->
+        <!-- 화면 켜기(turnScreenOn) 없음: 화면 꺼짐 때 미리 띄우므로 켜면 꺼짐 > 켜짐 반복 (#1096) -->
         <activity
             android:name=".lockscreen.LockScreenActivity"
             android:exported="false"
@@ -46,7 +47,6 @@
             android:taskAffinity="com.coldredrice.passql.lockscreen"
             android:excludeFromRecents="true"
             android:showWhenLocked="true"
-            android:turnScreenOn="true"
             android:theme="@style/NormalTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"

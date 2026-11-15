@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 200
+members: 201
 status: active
 related: []
 ---
@@ -222,3 +222,4 @@ related: []
 - [[ISS-0421-surface-direct-sql-execution]] (resolved, GitHub #727) — 직접 실행 경험 드러내기 — 실행 버튼·결과 비교·실습 칸·입력 보조
 - [[ISS-0517-lock-screen-free-pro-explanation-continue]] — 잠금화면 무료·PRO 해설 구분, 이어 풀기, 선택지 방식 통합 (resolved, #1068)
 - [[ISS-0518-lock-screen-engine-stale-refresh-token-reuse]] — 잠금화면 엔진 옛 refreshToken 재사용으로 전체 세션 폐기 위험, 저장소 기준 재판단 (resolved, #1071)
+- [[ISS-0522-lock-screen-turn-screen-on-wake-loop]] — 잠금화면 문제 화면의 turnScreenOn 이 화면 꺼짐 때 화면을 다시 켜 꺼짐·켜짐 반복, 잠금 위 표시만 남김 (resolved, #1096)
