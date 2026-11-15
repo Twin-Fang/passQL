@@ -247,3 +247,6 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-14 19:14 | W8 | 교훈 2개 생성 (사용자 위임 지시) | LSN-0002 하네스 lint vs 서버 형식 규칙, LSN-0003 내보내기 500건 한도
 - 2026-11-14 19:14 | W2 | 관련 이슈·관련 교훈 절 추가, fix W10 members question-bank 90, dev-workflow 79, admin 108, ops-infra 70 | cluster-question-bank, cluster-dev-workflow, cluster-admin, cluster-ops-infra
 - 2026-11-14 22:42 | W2 | main 병합 충돌 해소: cluster-admin members 110 (양쪽 PR 노트 합산) | clusters/cluster-admin.md
+- 2026-11-15 22:03 | W6 | completion-report 생성, issue resolved + resolution 연결 (#1074 닫힘, 릴리스 PR #1094 배포) | ISS-0519-sqld-round63-trend-new-questions-report, ISS-0519
+- 2026-11-15 22:03 | W6 | completion-report 생성, issue resolved + resolution 연결 (#1075 닫힘, 릴리스 PR #1094 배포·63회 운영 가답안 입력) | ISS-0520-sqld-round-answer-key-omr-grading-report, ISS-0520
+- 2026-11-15 22:03 | W2 | 관련 이슈 줄 open > resolved 갱신, members 변동 없음(W10 0) | cluster-question-bank, cluster-practice, cluster-store-release, cluster-admin

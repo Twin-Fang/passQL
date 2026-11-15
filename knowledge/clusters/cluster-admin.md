@@ -48,7 +48,7 @@ related: []
 - [[DEC-0081-admin-session-chain-yml-account]] → DEC-0130
 
 ## 관련 이슈
-- [[ISS-0520-sqld-round-answer-key-omr-grading]] (open, #1075): SQLD 회차별 가답안·OMR 가채점, 소개 사이트 sqld/63/ 배포, 서버·앱 PR #1089 배포 보류(앱 심사 동반), 서버 배포 직후 63회 운영 가답안 입력 필요
+- [[ISS-0520-sqld-round-answer-key-omr-grading]] (resolved, #1075): SQLD 회차별 가답안·OMR 가채점, 2026-11-15 릴리스 PR #1094 로 서버·앱 배포, 63회 운영 가답안 50문항 입력(우세 34, 갈림 15, 미복원 1), 사이트 제출·채점·CORS 실측 정상. 완료 리포트 [[ISS-0520-sqld-round-answer-key-omr-grading-report]]
 - [[ISS-0513-admin-app-operation-settings]] (resolved, GitHub #961, PR #969): 최소 버전 입구가 둘, 결제 켜기 전 점검표 없음, 비밀 설정 미설정 문구 오해
 - [[ISS-0506-sqld-exam-schedule-auto-sync]] (resolved, #991, PR #1025): SQLD 시험 일정 자동 수집, 앱 시험 일정 화면, 접수·발표 자동 알림 5종(운영 켬)
 - [[ISS-0509-admin-billing-payout-app-store-refund-check]] (resolved, #1032, PR #1033): 관리자 결제 관리(실수령액·결제 목록·App Store 환불 점검·알림 기록)
