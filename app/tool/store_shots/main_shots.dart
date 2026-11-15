@@ -19,6 +19,7 @@
 // 알림 권한 안내 시트: echo show > /tmp/passql_shot_permission.txt (없으면 "나중에"를 고른 상태로 시작해 시트를 띄우지 않음)
 // Android 에뮬레이터(호스트 /tmp 못 읽음): --dart-define=SHOT_ROUTE=/stats 로 경로·연출 지정
 // 개념 전수 점검 (#577): echo concept-sweep > /tmp/passql_shot_route.txt (export_shot_concepts.py --all 데이터로 빌드, 결과 /tmp/passql_sweep)
+// 가답안·가채점 (#1075): SHOT_ROUTE=/exam-answers/SQLD/63 (홈에도 가답안 구간), 가짜 응답은 shot_exam_answer_responses.dart
 // 개념 학습 (#577): SHOT_ROUTE=/concepts (개념 탭), /concept-study/44444444-0000-4000-8000-000000000014 (관계형 DB와 SQL), 대표 개념 3개는 shot_concept_data.dart
 // 등급 상황 (#576): --dart-define=SHOT_PLAN=off|free|pro (결제 꺼짐 | 무료·결제 켜짐 | 프로·결제 켜짐, 없으면 off)
 //   연출 result: 오답 제출 결과 화면 (무료면 실행 결과·해설 잠금)
@@ -60,6 +61,7 @@ import 'package:passql_app/router/result_route_arguments.dart';
 import 'package:passql_app/data/models/question/submit_result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'shot_exam_answer_responses.dart';
 import 'shot_concept_responses.dart';
 import 'shot_concept_sweep.dart';
 import 'shot_plan_responses.dart';
@@ -544,6 +546,9 @@ Object? _respond(RequestOptions o) {
   // 개념 학습 (#577)
   final conceptResponse = conceptShotResponse(o);
   if (conceptResponse != null || p.contains('/concepts/')) return conceptResponse;
+  // 가답안·가채점 (#1075)
+  final examAnswerResponse = examAnswerShotResponse(o);
+  if (examAnswerResponse != null || p.contains('/exam-answers/')) return examAnswerResponse;
   if (p.endsWith('/home/greeting')) {
     return {'nickname': '새찬', 'message': '오늘도 한 문제씩, 합격에 가까워지고 있어요', 'messageType': 'ENCOURAGE'};
   }

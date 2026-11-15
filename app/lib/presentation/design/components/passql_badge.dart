@@ -13,6 +13,7 @@ enum PassqlBadgeKind {
   ai, // AI 생성 내용
   latestTrend, // 최신 출제 경향 반영 문제 (#523)
   memorize, // 꼭 외울 것 (#876)
+  info, // 정보·우세 (파랑, 가답안 #1075)
 }
 
 /// 작은 캡슐 태그: 옅은 배경 + 얇은 테두리 + (선택) 아이콘
@@ -49,11 +50,14 @@ class PassqlBadge extends StatelessWidget {
     PassqlBadgeKind.warning => (colors.warning, colors.warningText),
     PassqlBadgeKind.important => (colors.wrong, colors.wrongText),
     PassqlBadgeKind.memorize => (colors.memorize, colors.memorizeText),
+    PassqlBadgeKind.info => (colors.info, colors.infoText),
   };
 
   /// 의미 > 기본 아이콘 (topic·neutral 은 없음)
   static IconData? _defaultIconOf(PassqlBadgeKind kind) => switch (kind) {
-    PassqlBadgeKind.topic || PassqlBadgeKind.neutral => null,
+    PassqlBadgeKind.topic ||
+    PassqlBadgeKind.neutral ||
+    PassqlBadgeKind.info => null,
     PassqlBadgeKind.success => CupertinoIcons.checkmark_alt,
     PassqlBadgeKind.warning ||
     PassqlBadgeKind.latestTrend => CupertinoIcons.flame_fill,

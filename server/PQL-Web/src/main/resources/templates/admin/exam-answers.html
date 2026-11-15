@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+
+<th:block layout:fragment="title">회차별 가답안</th:block>
+
+<th:block layout:fragment="content">
+<!-- 회차별 가답안·OMR 가채점 (#1075): exam-answers.js 가 /admin/exam-answers JSON API 호출, 조회 전용 계정은 저장 버튼 비활성 -->
+<div id="examAnswerPage" class="space-y-5 max-w-[1500px]"
+     th:data-can-write-admin="${canWriteAdmin == true}"
+     th:data-round-uuid="${selectedRound != null} ? ${selectedRound.roundUuid} : ''">
+
+    <div>
+        <h2 class="text-xl font-bold">회차별 가답안</h2>
+        <p class="text-base-content/60 text-sm mt-1">
+            실제 시험 회차의 문항 번호·출제 개념·운영 가답안을 관리합니다. 원문 지문·보기는 넣지 않아요.
+            공개 화면 표시 정답 = 상태 OFFICIAL·CONFIRMED·LEADING 이면 운영 가답안, 아니면 사용자 득표 1위 (집계 최대 60초 지연).
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 items-start">
+        <!-- 회차 목록 (행 클릭 > 그 회차 편집) -->
+        <section class="card bg-base-100 shadow-sm xl:col-span-2">
+            <div class="card-body p-0">
+                <table class="table table-sm w-full">
+                    <thead>
+                    <tr><th>자격증</th><th>회차</th><th>제목</th><th>시험일</th><th>상태</th><th class="text-right">참여자</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(rounds)}">
+                        <td colspan="6" class="text-center py-8 text-base-content/50">등록된 회차가 없습니다. 오른쪽에서 만들어 주세요.</td>
+                    </tr>
+                    <tr th:each="round : ${rounds}" class="hover cursor-pointer"
+                        th:classappend="${selectedRound != null and selectedRound.roundUuid == round.roundUuid} ? 'bg-base-200'"
+                        th:data-href="@{/admin/exam-answers(roundUuid=${round.roundUuid})}"
+                        onclick="location.href=this.dataset.href">
+                        <td th:text="${round.certType}">SQLD</td>
+                        <td th:text="${round.roundNumber} + '회'">63회</td>
+                        <td th:text="${round.title}">제63회 SQLD</td>
+                        <td th:text="${round.examDate}">2026-11-14</td>
+                        <td><span class="badge badge-sm" th:text="${round.status}">COLLECTING</span></td>
+                        <td class="text-right" th:text="${round.participantCount}">0</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 새 회차 (문항 50행 자동 생성) -->
+        <section class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4 gap-2">
+                <h3 class="card-title text-base"><i data-lucide="plus" class="size-5"></i>새 회차</h3>
+                <form id="createRoundForm" class="space-y-2">
+                    <div class="flex gap-2">
+                        <select id="createCertType" class="select select-sm select-bordered w-28">
+                            <option th:each="certType : ${certTypes}" th:value="${certType}" th:text="${certType}">SQLD</option>
+                        </select>
+                        <input id="createRoundNumber" type="number" min="1" required placeholder="회차" class="input input-sm input-bordered w-24"/>
+                        <input id="createExamDate" type="date" required class="input input-sm input-bordered grow"/>
+                    </div>
+                    <input id="createTitle" type="text" maxlength="100" required placeholder="제목 (예: 제63회 SQLD 가답안)" class="input input-sm input-bordered w-full"/>
+                    <textarea id="createNotice" rows="2" placeholder="안내 문구 (선택)" class="textarea textarea-sm textarea-bordered w-full"></textarea>
+                    <button type="submit" class="btn btn-sm btn-primary w-full" data-requires-write>회차 만들기</button>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <th:block th:if="${selectedRound != null}">
+        <!-- 선택 회차 정보·공식 정답 -->
+        <section class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4 gap-3">
+                <h3 class="card-title text-base">
+                    <i data-lucide="settings-2" class="size-5"></i>
+                    <span th:text="${selectedRound.certType} + ' ' + ${selectedRound.roundNumber} + '회 정보'">SQLD 63회 정보</span>
+                    <span class="text-xs font-normal text-base-content/50"
+                          th:text="'공개 API: /api/exam-answers/' + ${selectedRound.certType} + '/' + ${selectedRound.roundNumber}">공개 API</span>
+                </h3>
+                <form id="roundForm" class="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+                    <label class="flex flex-col gap-1 md:col-span-2">
+                        <span class="label-text text-xs">제목</span>
+                        <input id="roundTitle" type="text" maxlength="100" required th:value="${selectedRound.title}" class="input input-sm input-bordered"/>
+                    </label>
+                    <label class="flex flex-col gap-1">
+                        <span class="label-text text-xs">시험일</span>
+                        <input id="roundExamDate" type="date" required th:value="${selectedRound.examDate}" class="input input-sm input-bordered"/>
+                    </label>
+                    <label class="flex flex-col gap-1">
+                        <span class="label-text text-xs">상태 (CLOSED 면 제출 막힘)</span>
+                        <select id="roundStatus" class="select select-sm select-bordered">
+                            <option th:each="status : ${roundStatuses}" th:value="${status}" th:text="${status}"
+                                    th:selected="${status.name() == selectedRound.status}">COLLECTING</option>
+                        </select>
+                    </label>
+                    <label class="flex flex-col gap-1 md:col-span-3">
+                        <span class="label-text text-xs">안내 문구</span>
+                        <textarea id="roundNotice" rows="2" class="textarea textarea-sm textarea-bordered" th:text="${selectedRound.notice}"></textarea>
+                    </label>
+                    <button type="submit" class="btn btn-sm btn-primary" data-requires-write>회차 정보 저장</button>
+                </form>
+
+                <div class="divider my-0"></div>
+                <form id="officialForm" class="flex flex-wrap items-end gap-2">
+                    <label class="flex flex-col gap-1 grow">
+                        <span class="label-text text-xs">공식 정답 50자 (1~4, 0 은 건너뜀) > 해당 문항 OFFICIAL, 회차 OFFICIAL</span>
+                        <input id="officialAnswers" type="text" maxlength="50" pattern="[0-4]{50}" required
+                               placeholder="13422341..." class="input input-sm input-bordered font-mono tracking-widest"/>
+                    </label>
+                    <span id="officialAnswersLength" class="text-xs text-base-content/60">0 / 50</span>
+                    <button type="submit" class="btn btn-sm btn-warning" data-requires-write>공식 정답 반영</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 50문항 편집 + 득표 현황 -->
+        <section class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4 gap-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h3 class="card-title text-base"><i data-lucide="table" class="size-5"></i>문항 50개</h3>
+                    <button type="button" id="saveItemsButton" class="btn btn-sm btn-primary" data-requires-write>
+                        <i data-lucide="save" class="size-4"></i>문항 전체 저장
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="table table-xs w-full">
+                        <thead>
+                        <tr>
+                            <th>번호</th><th>과목</th><th class="min-w-56">출제 개념 한 줄</th><th class="min-w-40">태그 (쉼표)</th>
+                            <th class="min-w-28">토픽 코드</th><th>운영 답</th><th>상태</th><th class="min-w-16">복수 정답</th>
+                            <th class="min-w-48">메모</th><th>득표 1/2/3/4</th><th>표시 정답</th><th>합의율</th>
+                        </tr>
+                        </thead>
+                        <tbody id="itemTableBody">
+                        <tr th:each="item : ${itemRows}" th:data-question-no="${item.questionNo}">
+                            <td class="font-semibold" th:text="${item.questionNo}">1</td>
+                            <td th:text="${item.subjectNo}">1</td>
+                            <td><input data-field="conceptTitle" type="text" maxlength="200" th:value="${item.conceptTitle}" class="input input-xs input-bordered w-full"/></td>
+                            <td><input data-field="conceptTags" type="text" maxlength="300" th:value="${item.conceptTags}" class="input input-xs input-bordered w-full"/></td>
+                            <td><input data-field="topicCode" type="text" maxlength="50" th:value="${item.topicCode}" class="input input-xs input-bordered w-full"/></td>
+                            <td>
+                                <select data-field="operatorAnswer" class="select select-xs select-bordered">
+                                    <option value="0" th:selected="${item.operatorAnswer == null}">-</option>
+                                    <option th:each="choice : ${#numbers.sequence(1, 4)}" th:value="${choice}" th:text="${choice}"
+                                            th:selected="${item.operatorAnswer == choice}">1</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select data-field="operatorAnswerStatus" class="select select-xs select-bordered">
+                                    <option th:each="status : ${itemStatuses}" th:value="${status}" th:text="${status}"
+                                            th:selected="${status.name() == item.operatorAnswerStatus}">UNKNOWN</option>
+                                </select>
+                            </td>
+                            <td><input data-field="alternativeAnswers" type="text" maxlength="7" placeholder="2,3" th:value="${item.alternativeAnswers}" class="input input-xs input-bordered w-16"/></td>
+                            <td><input data-field="note" type="text" maxlength="500" th:value="${item.note}" class="input input-xs input-bordered w-full"/></td>
+                            <td class="font-mono whitespace-nowrap"
+                                th:text="${item.tally['1']} + ' / ' + ${item.tally['2']} + ' / ' + ${item.tally['3']} + ' / ' + ${item.tally['4']}">0 / 0 / 0 / 0</td>
+                            <td class="font-semibold" th:text="${item.displayedAnswer != null} ? ${item.displayedAnswer} : '-'">-</td>
+                            <td th:text="${item.voteCount > 0} ? ${#numbers.formatDecimal(item.agreementRate * 100, 1, 0)} + '% (' + ${item.voteCount} + ')' : '-'">-</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </th:block>
+</div>
+</th:block>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/js/admin/exam-answers.js}"></script>
+</th:block>
+</html>
