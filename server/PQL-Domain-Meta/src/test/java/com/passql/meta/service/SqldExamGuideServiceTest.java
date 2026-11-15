@@ -21,7 +21,7 @@ class SqldExamGuideServiceTest {
         assertThat(guide.yearlyStatistics()).hasSize(15);
         assertThat(guide.yearlyStatistics().get(0).year()).isEqualTo(2011);
         assertThat(guide.yearlyStatistics().get(14).year()).isEqualTo(2025);
-        assertThat(guide.insights()).isEqualTo(new Insights(2025, 2018, 11.5, -15.61));
+        assertThat(guide.insights()).isEqualTo(new Insights(2025, 2024, 2018, 11.5, -15.61));
     }
 
     @Test

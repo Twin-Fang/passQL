@@ -38,6 +38,15 @@ class _ExamStatisticsChartState extends State<ExamStatisticsChart>
     }
   }
 
+  // 목록이 바뀌어 짧아지면 선택을 최신 연도로
+  @override
+  void didUpdateWidget(ExamStatisticsChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (selectedIndex >= widget.statistics.length) {
+      selectedIndex = widget.statistics.length - 1;
+    }
+  }
+
   @override
   void dispose() {
     growController.dispose();
@@ -188,6 +197,8 @@ class _ExamStatisticsPainter extends CustomPainter {
     final maxExamineeCount = statistics
         .map((s) => s.examineeCount)
         .reduce(math.max);
+    // 응시자 전부 0 이면 막대 없이 선만
+    final barScale = maxExamineeCount > 0 ? 1 / maxExamineeCount : 0.0;
     final slotWidth = size.width / statistics.length;
     final barWidth = slotWidth * _barWidthRatio;
 
@@ -195,8 +206,8 @@ class _ExamStatisticsPainter extends CustomPainter {
     for (var index = 0; index < statistics.length; index++) {
       final barHeight =
           size.height *
-          statistics[index].examineeCount /
-          maxExamineeCount *
+          statistics[index].examineeCount *
+          barScale *
           growProgress;
       final left = slotWidth * index + (slotWidth - barWidth) / 2;
       final barRect = RRect.fromRectAndCorners(

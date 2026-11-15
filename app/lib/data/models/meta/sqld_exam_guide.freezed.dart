@@ -1708,6 +1708,7 @@ SqldExamInsights _$SqldExamInsightsFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$SqldExamInsights {
   int get latestYear => throw _privateConstructorUsedError;
+  int get previousYear => throw _privateConstructorUsedError;
   int get growthBaseYear => throw _privateConstructorUsedError;
   double get examineeGrowthMultiple => throw _privateConstructorUsedError;
   double get passRateChangePoints => throw _privateConstructorUsedError;
@@ -1731,6 +1732,7 @@ abstract class $SqldExamInsightsCopyWith<$Res> {
   @useResult
   $Res call({
     int latestYear,
+    int previousYear,
     int growthBaseYear,
     double examineeGrowthMultiple,
     double passRateChangePoints,
@@ -1753,6 +1755,7 @@ class _$SqldExamInsightsCopyWithImpl<$Res, $Val extends SqldExamInsights>
   @override
   $Res call({
     Object? latestYear = null,
+    Object? previousYear = null,
     Object? growthBaseYear = null,
     Object? examineeGrowthMultiple = null,
     Object? passRateChangePoints = null,
@@ -1762,6 +1765,10 @@ class _$SqldExamInsightsCopyWithImpl<$Res, $Val extends SqldExamInsights>
             latestYear: null == latestYear
                 ? _value.latestYear
                 : latestYear // ignore: cast_nullable_to_non_nullable
+                      as int,
+            previousYear: null == previousYear
+                ? _value.previousYear
+                : previousYear // ignore: cast_nullable_to_non_nullable
                       as int,
             growthBaseYear: null == growthBaseYear
                 ? _value.growthBaseYear
@@ -1792,6 +1799,7 @@ abstract class _$$SqldExamInsightsImplCopyWith<$Res>
   @useResult
   $Res call({
     int latestYear,
+    int previousYear,
     int growthBaseYear,
     double examineeGrowthMultiple,
     double passRateChangePoints,
@@ -1813,6 +1821,7 @@ class __$$SqldExamInsightsImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? latestYear = null,
+    Object? previousYear = null,
     Object? growthBaseYear = null,
     Object? examineeGrowthMultiple = null,
     Object? passRateChangePoints = null,
@@ -1822,6 +1831,10 @@ class __$$SqldExamInsightsImplCopyWithImpl<$Res>
         latestYear: null == latestYear
             ? _value.latestYear
             : latestYear // ignore: cast_nullable_to_non_nullable
+                  as int,
+        previousYear: null == previousYear
+            ? _value.previousYear
+            : previousYear // ignore: cast_nullable_to_non_nullable
                   as int,
         growthBaseYear: null == growthBaseYear
             ? _value.growthBaseYear
@@ -1845,6 +1858,7 @@ class __$$SqldExamInsightsImplCopyWithImpl<$Res>
 class _$SqldExamInsightsImpl implements _SqldExamInsights {
   const _$SqldExamInsightsImpl({
     required this.latestYear,
+    required this.previousYear,
     required this.growthBaseYear,
     required this.examineeGrowthMultiple,
     required this.passRateChangePoints,
@@ -1856,6 +1870,8 @@ class _$SqldExamInsightsImpl implements _SqldExamInsights {
   @override
   final int latestYear;
   @override
+  final int previousYear;
+  @override
   final int growthBaseYear;
   @override
   final double examineeGrowthMultiple;
@@ -1864,7 +1880,7 @@ class _$SqldExamInsightsImpl implements _SqldExamInsights {
 
   @override
   String toString() {
-    return 'SqldExamInsights(latestYear: $latestYear, growthBaseYear: $growthBaseYear, examineeGrowthMultiple: $examineeGrowthMultiple, passRateChangePoints: $passRateChangePoints)';
+    return 'SqldExamInsights(latestYear: $latestYear, previousYear: $previousYear, growthBaseYear: $growthBaseYear, examineeGrowthMultiple: $examineeGrowthMultiple, passRateChangePoints: $passRateChangePoints)';
   }
 
   @override
@@ -1874,6 +1890,8 @@ class _$SqldExamInsightsImpl implements _SqldExamInsights {
             other is _$SqldExamInsightsImpl &&
             (identical(other.latestYear, latestYear) ||
                 other.latestYear == latestYear) &&
+            (identical(other.previousYear, previousYear) ||
+                other.previousYear == previousYear) &&
             (identical(other.growthBaseYear, growthBaseYear) ||
                 other.growthBaseYear == growthBaseYear) &&
             (identical(other.examineeGrowthMultiple, examineeGrowthMultiple) ||
@@ -1887,6 +1905,7 @@ class _$SqldExamInsightsImpl implements _SqldExamInsights {
   int get hashCode => Object.hash(
     runtimeType,
     latestYear,
+    previousYear,
     growthBaseYear,
     examineeGrowthMultiple,
     passRateChangePoints,
@@ -1912,6 +1931,7 @@ class _$SqldExamInsightsImpl implements _SqldExamInsights {
 abstract class _SqldExamInsights implements SqldExamInsights {
   const factory _SqldExamInsights({
     required final int latestYear,
+    required final int previousYear,
     required final int growthBaseYear,
     required final double examineeGrowthMultiple,
     required final double passRateChangePoints,
@@ -1922,6 +1942,8 @@ abstract class _SqldExamInsights implements SqldExamInsights {
 
   @override
   int get latestYear;
+  @override
+  int get previousYear;
   @override
   int get growthBaseYear;
   @override

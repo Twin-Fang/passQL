@@ -34,6 +34,7 @@ class _FaqRowState extends State<_FaqRow> {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     return Semantics(
+      button: true,
       expanded: isExpanded,
       child: PassqlPressable(
         onTap: () => setState(() => isExpanded = !isExpanded),

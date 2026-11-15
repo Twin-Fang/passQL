@@ -43,8 +43,8 @@ public record SqldExamGuideResponse(
 
     public record CertificationComparison(String certificationName, int year, double passRatePercent) {}
 
-    /** 통계에서 계산한 요약: 기준 연도 대비 응시자 배수, 직전 연도 대비 합격률 증감(%p) */
-    public record Insights(int latestYear, int growthBaseYear, double examineeGrowthMultiple,
+    /** 통계에서 계산한 요약: 기준 연도 대비 응시자 배수, 바로 앞 통계 연도(previousYear) 대비 합격률 증감(%p) */
+    public record Insights(int latestYear, int previousYear, int growthBaseYear, double examineeGrowthMultiple,
                            double passRateChangePoints) {}
 
     public record Source(String name, @Schema(nullable = true) String url, String checkedDate) {}

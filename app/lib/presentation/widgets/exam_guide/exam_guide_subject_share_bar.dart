@@ -12,7 +12,7 @@ class ExamGuideSubjectShareBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    // 과목 순서대로 강조색 > 진한 강조 글자색 (2과목까지, 그 이상은 반복)
+    // 과목 순서대로 진한 강조 글자색 > 강조색 (2과목까지, 그 이상은 반복)
     final subjectColors = [colors.accentText, colors.accent];
     return PassqlCard(
       title: '과목 구성',

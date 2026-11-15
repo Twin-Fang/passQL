@@ -123,7 +123,7 @@ public interface MetaControllerDocs {
           - yearlyStatistics: 연도별 공식 통계 (연도 오름차순, 접수자·응시자·취득자·합격률)
           - roundNotes: 회차 메모 (체감 난이도, 알려진 합격률). isOfficial=false 면 수험생 전언·후기
           - comparisons: 다른 자격 합격률 비교 (SQLP)
-          - insights: 최신 연도, 7년 전 대비 응시자 배수, 직전 연도 대비 합격률 증감(%p). 연도 2건 미만이면 null
+          - insights: 최신 연도, 비교 연도(previousYear, 바로 앞 통계 연도), 7년 전 대비 응시자 배수, 비교 연도 대비 합격률 증감(%p). 연도 2건 미만이면 null
           - sources: 출처 이름·주소(없으면 null)·확인일
           """
   )

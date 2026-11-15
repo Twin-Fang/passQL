@@ -30,7 +30,7 @@ class ExamGuideInsightCards extends StatelessWidget {
         _InsightCard(
           headline: _formatChangePoints(currentInsights.passRateChangePoints),
           description:
-              '${currentInsights.latestYear - 1}년 대비 ${currentInsights.latestYear}년 합격률 변화예요',
+              '${currentInsights.previousYear}년 대비 ${currentInsights.latestYear}년 합격률 변화예요',
         ),
       ],
       if (comparison != null)
@@ -50,8 +50,9 @@ class ExamGuideInsightCards extends StatelessWidget {
     );
   }
 
-  // -15.61 > "15.61%p 하락", 3.2 > "3.2%p 상승"
+  // -15.61 > "15.61%p 하락", 3.2 > "3.2%p 상승", 0 > "변화 없음"
   static String _formatChangePoints(double changePoints) {
+    if (changePoints == 0) return '변화 없음';
     final direction = changePoints < 0 ? '하락' : '상승';
     return '${changePoints.abs()}%p $direction';
   }

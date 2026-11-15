@@ -99,11 +99,12 @@ class SqldCertificationComparison with _$SqldCertificationComparison {
       _$SqldCertificationComparisonFromJson(json);
 }
 
-/// 서버 계산 요약: 기준 연도 대비 응시자 배수, 직전 연도 대비 합격률 증감(%p)
+/// 서버 계산 요약: 기준 연도 대비 응시자 배수, 비교 연도(바로 앞 통계 연도) 대비 합격률 증감(%p)
 @freezed
 class SqldExamInsights with _$SqldExamInsights {
   const factory SqldExamInsights({
     required int latestYear,
+    required int previousYear,
     required int growthBaseYear,
     required double examineeGrowthMultiple,
     required double passRateChangePoints,

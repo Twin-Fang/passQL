@@ -14,12 +14,12 @@ import '../../providers/plan_providers.dart';
 import '../../providers/push_notification_providers.dart';
 import '../notification/notification_permission_flow.dart';
 
-/// 홈 첫 방문 환영 안내 (#975, #1041): 기기에서 한 번만 짧은 시트로 띄움 (오늘 할 일 3단계, 차례로 떠오름)
-/// 오늘의 세트 시작 > 세트로 이동, 둘러보기·닫기 > 알림 허용 안내로 이어짐 (#980)
-/// 자리만 차지하지 않는 위젯 (홈 목록에 끼워 두면 첫 프레임 뒤 판정)
 /// 환영 안내에서 고른 다음 행동 3개: 오늘의 세트, SQLD 알아보기(#1076), 둘러보기
 enum _WelcomeGuideChoice { startDailySet, openExamGuide, browse }
 
+/// 홈 첫 방문 환영 안내 (#975, #1041): 기기에서 한 번만 짧은 시트로 띄움 (오늘 할 일 3단계, 차례로 떠오름)
+/// 오늘의 세트 시작 > 세트로 이동, 둘러보기·닫기 > 알림 허용 안내로 이어짐 (#980)
+/// 자리만 차지하지 않는 위젯 (홈 목록에 끼워 두면 첫 프레임 뒤 판정)
 class HomeWelcomeGuideTrigger extends ConsumerStatefulWidget {
   const HomeWelcomeGuideTrigger({super.key});
 
@@ -211,6 +211,7 @@ class _HomeWelcomeGuideBody extends StatelessWidget {
                     variant: PassqlButtonVariant.plain,
                     onPressed: onBrowse,
                   ),
+                  const SizedBox(height: PassqlSpacing.xs),
                   PassqlButton(
                     label: 'SQLD가 처음이라면 시험부터 알아보기',
                     variant: PassqlButtonVariant.plain,

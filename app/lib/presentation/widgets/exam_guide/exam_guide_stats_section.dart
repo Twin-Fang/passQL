@@ -85,7 +85,7 @@ class _LatestYearHeadline extends StatelessWidget {
             ),
             const SizedBox(height: PassqlSpacing.xxs),
             Text(
-              '합격 ${formatThousands(latest.passerCount)}명, 합격률 ${latest.passRatePercent}%',
+              '합격 ${formatThousands(latest.passerCount)}명, 합격률 ${latest.passRatePercent.toStringAsFixed(2)}%',
               style: PassqlTypography.headline.copyWith(
                 color: colors.accentText,
               ),

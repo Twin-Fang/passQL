@@ -62,11 +62,13 @@ public class SqldExamGuideService {
         double examineeGrowthMultiple = roundTo(
                 (double) latest.examineeCount() / growthBase.examineeCount(), 1);
         double passRateChangePoints = roundTo(latest.passRatePercent() - previous.passRatePercent(), 2);
-        return new Insights(latest.year(), growthBase.year(), examineeGrowthMultiple, passRateChangePoints);
+        return new Insights(latest.year(), previous.year(), growthBase.year(), examineeGrowthMultiple,
+                passRateChangePoints);
     }
 
-    // 원본 > 응답 (연도 오름차순 정렬, 인사이트 계산)
+    // 원본 > 응답 (검증, 연도 오름차순 정렬, 인사이트 계산)
     private static SqldExamGuideResponse toResponse(SqldExamGuideContent content) {
+        validateYearlyStatistics(content.yearlyStatistics());
         List<YearlyStatistic> sortedStatistics = content.yearlyStatistics().stream()
                 .sorted(Comparator.comparingInt(YearlyStatistic::year))
                 .toList();
@@ -76,6 +78,24 @@ public class SqldExamGuideService {
                 content.examFeeWon(), content.validityDescription(), content.faqs(), sortedStatistics,
                 content.roundNotes(), content.comparisons(), calculateInsights(sortedStatistics),
                 content.sources());
+    }
+
+    // 연도 통계 검증 (목록 존재, 연도 중복 없음, 응시자 1명 이상): 위반이면 원인 담아 기동 실패
+    private static void validateYearlyStatistics(List<YearlyStatistic> yearlyStatistics) {
+        if (yearlyStatistics == null) {
+            throw new IllegalStateException("[exam guide] yearlyStatistics is missing");
+        }
+        long distinctYearCount = yearlyStatistics.stream().mapToInt(YearlyStatistic::year).distinct().count();
+        if (distinctYearCount != yearlyStatistics.size()) {
+            throw new IllegalStateException("[exam guide] yearlyStatistics has duplicate year");
+        }
+        yearlyStatistics.stream()
+                .filter(statistic -> statistic.examineeCount() <= 0)
+                .findFirst()
+                .ifPresent(statistic -> {
+                    throw new IllegalStateException(
+                            "[exam guide] examineeCount must be positive : year " + statistic.year());
+                });
     }
 
     /** 리소스 JSON > 원본 */

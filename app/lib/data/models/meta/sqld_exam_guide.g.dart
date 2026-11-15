@@ -163,6 +163,7 @@ _$SqldExamInsightsImpl _$$SqldExamInsightsImplFromJson(
   Map<String, dynamic> json,
 ) => _$SqldExamInsightsImpl(
   latestYear: (json['latestYear'] as num).toInt(),
+  previousYear: (json['previousYear'] as num).toInt(),
   growthBaseYear: (json['growthBaseYear'] as num).toInt(),
   examineeGrowthMultiple: (json['examineeGrowthMultiple'] as num).toDouble(),
   passRateChangePoints: (json['passRateChangePoints'] as num).toDouble(),
@@ -172,6 +173,7 @@ Map<String, dynamic> _$$SqldExamInsightsImplToJson(
   _$SqldExamInsightsImpl instance,
 ) => <String, dynamic>{
   'latestYear': instance.latestYear,
+  'previousYear': instance.previousYear,
   'growthBaseYear': instance.growthBaseYear,
   'examineeGrowthMultiple': instance.examineeGrowthMultiple,
   'passRateChangePoints': instance.passRateChangePoints,
