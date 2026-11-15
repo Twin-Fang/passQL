@@ -258,3 +258,8 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-16 00:45 | W6 | issue 생성 + completion-report, issue resolved + resolution 연결 (#1101 갈림 문항 운영 후보 답 표시, 릴리스 PR #1105 서버 배포·실측) | ISS-0523, ISS-0523-exam-answer-disputed-shows-operator-candidate-report
 - 2026-11-16 00:45 | W4 | decision 생성, DEC-0316 superseded > DEC-0320 (표시 정답에 갈림 후보 답 포함, 사용자 승인) | DEC-0320, DEC-0316
 - 2026-11-16 00:45 | W2 | 활성 결정 교체·대체된 결정·관련 이슈·현재 상태 요약 줄 추가, members 갱신(W10 수정, W11 크기·요약 날짜 경고는 보고만) | cluster-practice, cluster-admin
+- 2026-11-16 02:26 | W6 | issue 생성 + completion-report, issue resolved + resolution 연결 (#1109 가답안 화면 카드·칩·그라데이션 정리, PR #1113·소개 사이트 dd16038, 릴리스 PR #1115) | ISS-0524, ISS-0524-exam-answer-screen-no-card-chip-gradient-report
+- 2026-11-16 02:26 | W4 | decision 생성 (가답안·가채점 화면에 DEC-0116·DEC-0189 원칙 적용 범위 확장, 충돌 없음) | DEC-0321
+- 2026-11-16 02:26 | W6 | issue 생성 + completion-report, issue resolved + resolution 연결 (#1111 과락선 여유 문항·점수 올리기 좋은 영역, PR #1114, 릴리스 PR #1115) | ISS-0525, ISS-0525-pass-fail-margin-score-gain-topics-report
+- 2026-11-16 02:26 | W4 | decision 생성 2건 (점수 올리기 좋은 영역 계산·노출, 과락·합격선 여유 단일 지점; 충돌 없음) | DEC-0322, DEC-0323
+- 2026-11-16 02:26 | W2 | 활성 결정·관련 이슈·현재 상태 요약 줄 추가, members 실제 수로 갱신(W10 수정, W11 크기·요약 날짜 경고는 보고만) | cluster-design-system, cluster-practice, cluster-progress-stats, cluster-billing
