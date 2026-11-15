@@ -2622,6 +2622,19 @@ export interface components {
             promptVersion: number;
             text: string;
         };
+        AiScoreGainTopic: {
+            /** Format: int32 */
+            correctRatePercent: number;
+            /** Format: int32 */
+            examQuestionCount: number;
+            /** Format: double */
+            expectedGainScore: number;
+            /** Format: int32 */
+            targetCorrectRatePercent: number;
+            topicName: string;
+            /** Format: uuid */
+            topicUuid: string;
+        };
         AiStatsAnalysis: {
             actions: components["schemas"]["AiAnalysisAction"][];
             findings: components["schemas"]["AiAnalysisFinding"][];
@@ -2632,6 +2645,7 @@ export interface components {
             periodLabel: string;
             readiness: components["schemas"]["AiAnalysisReadiness"] | null;
             repeatedWrong: components["schemas"]["AiRepeatedWrong"] | null;
+            scoreGainTopics: components["schemas"]["AiScoreGainTopic"][];
             strength: components["schemas"]["AiAnalysisStrength"] | null;
             trend: string | null;
         };
@@ -3675,6 +3689,8 @@ export interface components {
             /** Format: int32 */
             maxScore: number;
             nextStep: components["schemas"]["MockExamNextStep"] | null;
+            /** @description 합격선 여유 문장 (예: 합격선까지 3문제 더 맞히면 돼요 / 합격선보다 2문제 여유가 있어요, #1111) */
+            passMarginText: string;
             /** Format: int32 */
             passScore: number;
             /** Format: int32 */
@@ -4155,6 +4171,8 @@ export interface components {
             correctCount: number;
             /** Format: int32 */
             failBelowScore: number;
+            /** @description 과락 여유 (예: 과락까지 여유 2문제 / 과락을 넘으려면 1문제 더, #1111) */
+            failMarginText: string;
             isFailed: boolean;
             /** Format: int32 */
             maxScore: number;

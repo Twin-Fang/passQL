@@ -3,22 +3,23 @@ package com.passql.application.service.statsanalysis;
 import com.passql.ai.constant.AiForecastVerdict;
 import com.passql.ai.dto.AiExamForecast;
 
+import com.passql.submission.constant.MockExamSubject;
+import com.passql.submission.service.MockExamRule;
+import com.passql.submission.service.SqldScoreMargin;
+
 import java.util.List;
 import java.util.Optional;
 
 /**
- * SQLD 예상 점수 (#862): 과목별 예상 정답률 > 1과목 10·2과목 40문항 예상 맞힐 수 > 100점 환산 > 판정·문구 (근거 부족이면 "N문제 더" 안내)
+ * SQLD 예상 점수 (#862): 과목별 예상 정답률 > 1과목 10·2과목 40문항 예상 맞힐 수 > 100점 환산 > 판정·여유 문구(#1111) (근거 부족이면 "N문제 더" 안내)
  * 2과목 = 토픽 같은 비중 평균 (문제 은행 토픽별 문제 수는 출제 비중이 아닌 제작량), 풀이 적은 토픽은 2과목 전체 정답률 쪽으로 당김
  */
 public final class ExamForecastCalculator {
 
-    // SQLD 문항 수 (1과목 데이터 모델링의 이해 10, 2과목 SQL 기본 및 활용 40), 문항당 2점
-    static final int SUBJECT_ONE_QUESTION_COUNT = 10;
-    static final int SUBJECT_TWO_QUESTION_COUNT = 40;
-    static final int POINTS_PER_QUESTION = 2;
-    // 합격 기준: 총점 60 이상, 과목별 40% 이상 (미만이면 과락)
-    static final int PASS_SCORE = 60;
-    static final double SUBJECT_FAIL_RATE = 0.40;
+    // SQLD 문항 수·배점 (원본 MockExamSubject·MockExamRule: 1과목 10, 2과목 40, 문항당 2점, 60점 합격, 과목 40% 미만 과락)
+    static final int SUBJECT_ONE_QUESTION_COUNT = MockExamSubject.SUBJECT_ONE.getQuestionCount();
+    static final int SUBJECT_TWO_QUESTION_COUNT = MockExamSubject.SUBJECT_TWO.getQuestionCount();
+    static final int POINTS_PER_QUESTION = MockExamRule.POINTS_PER_QUESTION;
     // 판정 구간: 70점 이상 합격권(합격선 + 5문제), 54점 이상 합격선 근처(합격선 - 3문제)
     static final int PASS_LIKELY_SCORE = 70;
     static final int BORDERLINE_MIN_SCORE = 54;
@@ -56,17 +57,20 @@ public final class ExamForecastCalculator {
         return remainingText + " 더 풀면 예상 점수를 알려 드려요";
     }
 
-    /** 예상 맞힐 수 > 점수·판정·문구 */
+    /** 예상 맞힐 수 > 점수·판정·문구 (과락·합격선 여유는 SqldScoreMargin 원본) */
     static AiExamForecast toForecast(int subjectOneExpected, int subjectTwoExpected) {
         int expectedScore = (subjectOneExpected + subjectTwoExpected) * POINTS_PER_QUESTION;
-        boolean isSubjectOneFailRisk = subjectOneExpected < failLineCount(SUBJECT_ONE_QUESTION_COUNT);
-        boolean isSubjectTwoFailRisk = subjectTwoExpected < failLineCount(SUBJECT_TWO_QUESTION_COUNT);
+        int subjectOneFailMargin = SqldScoreMargin.failMarginCountOf(MockExamSubject.SUBJECT_ONE, subjectOneExpected);
+        int subjectTwoFailMargin = SqldScoreMargin.failMarginCountOf(MockExamSubject.SUBJECT_TWO, subjectTwoExpected);
+        boolean isSubjectOneFailRisk = subjectOneFailMargin < 0;
+        boolean isSubjectTwoFailRisk = subjectTwoFailMargin < 0;
         AiForecastVerdict verdict = toVerdict(expectedScore, isSubjectOneFailRisk || isSubjectTwoFailRisk);
         String summary = "1과목 예상 " + subjectOneExpected + "/" + SUBJECT_ONE_QUESTION_COUNT
                 + " · 2과목 예상 " + subjectTwoExpected + "/" + SUBJECT_TWO_QUESTION_COUNT;
         String detail = verdict == AiForecastVerdict.SUBJECT_FAIL_RISK
-                ? toSubjectFailDetail(isSubjectOneFailRisk, isSubjectTwoFailRisk)
-                : toScoreGapDetail(expectedScore);
+                ? toSubjectFailDetail(subjectOneFailMargin, subjectTwoFailMargin)
+                : toMarginDetail(subjectOneFailMargin, subjectTwoFailMargin,
+                        SqldScoreMargin.passMarginCountOf(subjectOneExpected + subjectTwoExpected));
         return new AiExamForecast(expectedScore, subjectOneExpected, SUBJECT_ONE_QUESTION_COUNT, isSubjectOneFailRisk,
                 subjectTwoExpected, SUBJECT_TWO_QUESTION_COUNT, isSubjectTwoFailRisk, verdict, toVerdictLabel(verdict),
                 summary, detail);
@@ -120,30 +124,23 @@ public final class ExamForecastCalculator {
         return (int) Math.round(rate * questionCount);
     }
 
-    /** 과락 경계 문제 수 (10문항 > 4, 40문항 > 16) */
-    private static int failLineCount(int questionCount) {
-        return (int) Math.ceil(questionCount * SUBJECT_FAIL_RATE);
+    /** 과락 위험 문장: "1과목 과락을 넘으려면 1문제 더 맞혀야 해요" (두 과목이면 과목별 문제 수) */
+    private static String toSubjectFailDetail(int subjectOneFailMargin, int subjectTwoFailMargin) {
+        if (subjectOneFailMargin < 0 && subjectTwoFailMargin < 0) {
+            return "두 과목 모두 과락 위험, 1과목 " + (-subjectOneFailMargin) + "문제, 2과목 "
+                    + (-subjectTwoFailMargin) + "문제 더 맞혀야 해요";
+        }
+        boolean isSubjectOneFailRisk = subjectOneFailMargin < 0;
+        int neededCount = -(isSubjectOneFailRisk ? subjectOneFailMargin : subjectTwoFailMargin);
+        return (isSubjectOneFailRisk ? "1과목" : "2과목") + " 과락을 넘으려면 " + neededCount + "문제 더 맞혀야 해요";
     }
 
-    /** "1과목 과락 위험, 10문제 중 4문제 이상 맞혀야 해요" (두 과목 모두면 과목별 40%) */
-    private static String toSubjectFailDetail(boolean isSubjectOneFailRisk, boolean isSubjectTwoFailRisk) {
-        if (isSubjectOneFailRisk && isSubjectTwoFailRisk) {
-            return "두 과목 모두 과락 위험, 과목마다 40% 이상 맞혀야 해요";
-        }
-        int questionCount = isSubjectOneFailRisk ? SUBJECT_ONE_QUESTION_COUNT : SUBJECT_TWO_QUESTION_COUNT;
-        String subjectName = isSubjectOneFailRisk ? "1과목" : "2과목";
-        return subjectName + " 과락 위험, " + questionCount + "문제 중 " + failLineCount(questionCount) + "문제 이상 맞혀야 해요";
-    }
-
-    /** 합격선 대비 문제 수: 위면 여유, 아래면 더 맞힐 수 */
-    private static String toScoreGapDetail(int expectedScore) {
-        if (expectedScore == PASS_SCORE) {
-            return "합격선에 딱 걸려 있어요, 한 문제가 갈라요";
-        }
-        if (expectedScore > PASS_SCORE) {
-            return "합격선보다 " + (expectedScore - PASS_SCORE) / POINTS_PER_QUESTION + "문제 여유가 있어요";
-        }
-        int neededCount = (PASS_SCORE - expectedScore + POINTS_PER_QUESTION - 1) / POINTS_PER_QUESTION;
-        return "합격선까지 " + neededCount + "문제 더 맞히면 돼요";
+    /** 여유 한 줄 (#1111): 여유가 적은 과목(같으면 1과목) 과락 여유 · 합격선 거리. 예: "1과목 과락까지 여유 2문제, 합격선까지 3문제 더" */
+    static String toMarginDetail(int subjectOneFailMargin, int subjectTwoFailMargin, int passMargin) {
+        boolean isSubjectOneTighter = subjectOneFailMargin <= subjectTwoFailMargin;
+        String subjectName = isSubjectOneTighter ? "1과목 " : "2과목 ";
+        int tighterFailMargin = isSubjectOneTighter ? subjectOneFailMargin : subjectTwoFailMargin;
+        return subjectName + SqldScoreMargin.toFailMarginText(tighterFailMargin)
+                + ", " + SqldScoreMargin.toPassMarginShortText(passMargin);
     }
 }

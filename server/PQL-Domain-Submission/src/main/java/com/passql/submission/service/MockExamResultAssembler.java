@@ -60,6 +60,7 @@ public final class MockExamResultAssembler {
             paper.items().size(),
             Boolean.TRUE.equals(attempt.getIsPassed()),
             attempt.getFailReason(),
+            SqldScoreMargin.toPassMarginText(SqldScoreMargin.passMarginCountOf(attempt.getCorrectCount())),
             ranking,
             toSubjectResults(paper, questionMarks),
             toTopicResults(paper, questionMarks),
@@ -80,7 +81,9 @@ public final class MockExamResultAssembler {
             .map(subjectScore -> new MockExamResultResponse.SubjectResult(
                 subjectScore.subject(), subjectScore.subject().getDisplayName(), subjectScore.correctCount(),
                 subjectScore.questionCount(), subjectScore.score(), subjectScore.maxScore(),
-                MockExamRule.failBelowScoreOf(subjectScore.subject()), subjectScore.isFailed()))
+                MockExamRule.failBelowScoreOf(subjectScore.subject()), subjectScore.isFailed(),
+                SqldScoreMargin.toFailMarginText(
+                    SqldScoreMargin.failMarginCountOf(subjectScore.subject(), subjectScore.correctCount()))))
             .toList();
     }
 

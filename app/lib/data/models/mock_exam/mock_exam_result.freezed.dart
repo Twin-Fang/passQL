@@ -39,7 +39,9 @@ mixin _$MockExamResultResponse {
   int get questionCount => throw _privateConstructorUsedError;
   bool get isPassed => throw _privateConstructorUsedError;
   @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
-  MockExamFailReason get failReason => throw _privateConstructorUsedError; // 같은 회차 응시자 중 내 위치 (응시자 10명 미만이면 null, #1041)
+  MockExamFailReason get failReason => throw _privateConstructorUsedError; // 합격선 여유 문장 (서버 SqldScoreMargin, 옛 서버면 빈 값, #1111)
+  String get passMarginText =>
+      throw _privateConstructorUsedError; // 같은 회차 응시자 중 내 위치 (응시자 10명 미만이면 null, #1041)
   MockExamRanking? get ranking => throw _privateConstructorUsedError;
   List<MockExamSubjectResult> get subjects =>
       throw _privateConstructorUsedError;
@@ -86,6 +88,7 @@ abstract class $MockExamResultResponseCopyWith<$Res> {
     bool isPassed,
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     MockExamFailReason failReason,
+    String passMarginText,
     MockExamRanking? ranking,
     List<MockExamSubjectResult> subjects,
     List<MockExamTopicResult> topics,
@@ -132,6 +135,7 @@ class _$MockExamResultResponseCopyWithImpl<
     Object? questionCount = null,
     Object? isPassed = null,
     Object? failReason = null,
+    Object? passMarginText = null,
     Object? ranking = freezed,
     Object? subjects = null,
     Object? topics = null,
@@ -202,6 +206,10 @@ class _$MockExamResultResponseCopyWithImpl<
                 ? _value.failReason
                 : failReason // ignore: cast_nullable_to_non_nullable
                       as MockExamFailReason,
+            passMarginText: null == passMarginText
+                ? _value.passMarginText
+                : passMarginText // ignore: cast_nullable_to_non_nullable
+                      as String,
             ranking: freezed == ranking
                 ? _value.ranking
                 : ranking // ignore: cast_nullable_to_non_nullable
@@ -291,6 +299,7 @@ abstract class _$$MockExamResultResponseImplCopyWith<$Res>
     bool isPassed,
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     MockExamFailReason failReason,
+    String passMarginText,
     MockExamRanking? ranking,
     List<MockExamSubjectResult> subjects,
     List<MockExamTopicResult> topics,
@@ -336,6 +345,7 @@ class __$$MockExamResultResponseImplCopyWithImpl<$Res>
     Object? questionCount = null,
     Object? isPassed = null,
     Object? failReason = null,
+    Object? passMarginText = null,
     Object? ranking = freezed,
     Object? subjects = null,
     Object? topics = null,
@@ -406,6 +416,10 @@ class __$$MockExamResultResponseImplCopyWithImpl<$Res>
             ? _value.failReason
             : failReason // ignore: cast_nullable_to_non_nullable
                   as MockExamFailReason,
+        passMarginText: null == passMarginText
+            ? _value.passMarginText
+            : passMarginText // ignore: cast_nullable_to_non_nullable
+                  as String,
         ranking: freezed == ranking
             ? _value.ranking
             : ranking // ignore: cast_nullable_to_non_nullable
@@ -460,6 +474,7 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
     required this.isPassed,
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     required this.failReason,
+    this.passMarginText = '',
     this.ranking,
     final List<MockExamSubjectResult> subjects = const [],
     final List<MockExamTopicResult> topics = const [],
@@ -508,6 +523,10 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
   @override
   @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
   final MockExamFailReason failReason;
+  // 합격선 여유 문장 (서버 SqldScoreMargin, 옛 서버면 빈 값, #1111)
+  @override
+  @JsonKey()
+  final String passMarginText;
   // 같은 회차 응시자 중 내 위치 (응시자 10명 미만이면 null, #1041)
   @override
   final MockExamRanking? ranking;
@@ -560,7 +579,7 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
 
   @override
   String toString() {
-    return 'MockExamResultResponse(attemptUuid: $attemptUuid, roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, submitReason: $submitReason, startedAt: $startedAt, submittedAt: $submittedAt, elapsedSeconds: $elapsedSeconds, totalScore: $totalScore, maxScore: $maxScore, passScore: $passScore, correctCount: $correctCount, questionCount: $questionCount, isPassed: $isPassed, failReason: $failReason, ranking: $ranking, subjects: $subjects, topics: $topics, questionMarks: $questionMarks, reviews: $reviews, nextStep: $nextStep, lockedSections: $lockedSections)';
+    return 'MockExamResultResponse(attemptUuid: $attemptUuid, roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, submitReason: $submitReason, startedAt: $startedAt, submittedAt: $submittedAt, elapsedSeconds: $elapsedSeconds, totalScore: $totalScore, maxScore: $maxScore, passScore: $passScore, correctCount: $correctCount, questionCount: $questionCount, isPassed: $isPassed, failReason: $failReason, passMarginText: $passMarginText, ranking: $ranking, subjects: $subjects, topics: $topics, questionMarks: $questionMarks, reviews: $reviews, nextStep: $nextStep, lockedSections: $lockedSections)';
   }
 
   @override
@@ -597,6 +616,8 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
                 other.isPassed == isPassed) &&
             (identical(other.failReason, failReason) ||
                 other.failReason == failReason) &&
+            (identical(other.passMarginText, passMarginText) ||
+                other.passMarginText == passMarginText) &&
             (identical(other.ranking, ranking) || other.ranking == ranking) &&
             const DeepCollectionEquality().equals(other._subjects, _subjects) &&
             const DeepCollectionEquality().equals(other._topics, _topics) &&
@@ -632,6 +653,7 @@ class _$MockExamResultResponseImpl implements _MockExamResultResponse {
     questionCount,
     isPassed,
     failReason,
+    passMarginText,
     ranking,
     const DeepCollectionEquality().hash(_subjects),
     const DeepCollectionEquality().hash(_topics),
@@ -678,6 +700,7 @@ abstract class _MockExamResultResponse implements MockExamResultResponse {
     required final bool isPassed,
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     required final MockExamFailReason failReason,
+    final String passMarginText,
     final MockExamRanking? ranking,
     final List<MockExamSubjectResult> subjects,
     final List<MockExamTopicResult> topics,
@@ -721,7 +744,9 @@ abstract class _MockExamResultResponse implements MockExamResultResponse {
   bool get isPassed;
   @override
   @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
-  MockExamFailReason get failReason; // 같은 회차 응시자 중 내 위치 (응시자 10명 미만이면 null, #1041)
+  MockExamFailReason get failReason; // 합격선 여유 문장 (서버 SqldScoreMargin, 옛 서버면 빈 값, #1111)
+  @override
+  String get passMarginText; // 같은 회차 응시자 중 내 위치 (응시자 10명 미만이면 null, #1041)
   @override
   MockExamRanking? get ranking;
   @override
@@ -968,7 +993,9 @@ mixin _$MockExamSubjectResult {
   int get score => throw _privateConstructorUsedError;
   int get maxScore => throw _privateConstructorUsedError;
   int get failBelowScore => throw _privateConstructorUsedError;
-  bool get isFailed => throw _privateConstructorUsedError;
+  bool get isFailed =>
+      throw _privateConstructorUsedError; // 과락 여유 (예: 과락까지 여유 2문제, 옛 서버면 빈 값, #1111)
+  String get failMarginText => throw _privateConstructorUsedError;
 
   /// Serializes this MockExamSubjectResult to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -996,6 +1023,7 @@ abstract class $MockExamSubjectResultCopyWith<$Res> {
     int maxScore,
     int failBelowScore,
     bool isFailed,
+    String failMarginText,
   });
 }
 
@@ -1025,6 +1053,7 @@ class _$MockExamSubjectResultCopyWithImpl<
     Object? maxScore = null,
     Object? failBelowScore = null,
     Object? isFailed = null,
+    Object? failMarginText = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1060,6 +1089,10 @@ class _$MockExamSubjectResultCopyWithImpl<
                 ? _value.isFailed
                 : isFailed // ignore: cast_nullable_to_non_nullable
                       as bool,
+            failMarginText: null == failMarginText
+                ? _value.failMarginText
+                : failMarginText // ignore: cast_nullable_to_non_nullable
+                      as String,
           )
           as $Val,
     );
@@ -1084,6 +1117,7 @@ abstract class _$$MockExamSubjectResultImplCopyWith<$Res>
     int maxScore,
     int failBelowScore,
     bool isFailed,
+    String failMarginText,
   });
 }
 
@@ -1110,6 +1144,7 @@ class __$$MockExamSubjectResultImplCopyWithImpl<$Res>
     Object? maxScore = null,
     Object? failBelowScore = null,
     Object? isFailed = null,
+    Object? failMarginText = null,
   }) {
     return _then(
       _$MockExamSubjectResultImpl(
@@ -1145,6 +1180,10 @@ class __$$MockExamSubjectResultImplCopyWithImpl<$Res>
             ? _value.isFailed
             : isFailed // ignore: cast_nullable_to_non_nullable
                   as bool,
+        failMarginText: null == failMarginText
+            ? _value.failMarginText
+            : failMarginText // ignore: cast_nullable_to_non_nullable
+                  as String,
       ),
     );
   }
@@ -1162,6 +1201,7 @@ class _$MockExamSubjectResultImpl implements _MockExamSubjectResult {
     required this.maxScore,
     required this.failBelowScore,
     required this.isFailed,
+    this.failMarginText = '',
   });
 
   factory _$MockExamSubjectResultImpl.fromJson(Map<String, dynamic> json) =>
@@ -1184,10 +1224,14 @@ class _$MockExamSubjectResultImpl implements _MockExamSubjectResult {
   final int failBelowScore;
   @override
   final bool isFailed;
+  // 과락 여유 (예: 과락까지 여유 2문제, 옛 서버면 빈 값, #1111)
+  @override
+  @JsonKey()
+  final String failMarginText;
 
   @override
   String toString() {
-    return 'MockExamSubjectResult(subject: $subject, name: $name, correctCount: $correctCount, questionCount: $questionCount, score: $score, maxScore: $maxScore, failBelowScore: $failBelowScore, isFailed: $isFailed)';
+    return 'MockExamSubjectResult(subject: $subject, name: $name, correctCount: $correctCount, questionCount: $questionCount, score: $score, maxScore: $maxScore, failBelowScore: $failBelowScore, isFailed: $isFailed, failMarginText: $failMarginText)';
   }
 
   @override
@@ -1207,7 +1251,9 @@ class _$MockExamSubjectResultImpl implements _MockExamSubjectResult {
             (identical(other.failBelowScore, failBelowScore) ||
                 other.failBelowScore == failBelowScore) &&
             (identical(other.isFailed, isFailed) ||
-                other.isFailed == isFailed));
+                other.isFailed == isFailed) &&
+            (identical(other.failMarginText, failMarginText) ||
+                other.failMarginText == failMarginText));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1222,6 +1268,7 @@ class _$MockExamSubjectResultImpl implements _MockExamSubjectResult {
     maxScore,
     failBelowScore,
     isFailed,
+    failMarginText,
   );
 
   /// Create a copy of MockExamSubjectResult
@@ -1253,6 +1300,7 @@ abstract class _MockExamSubjectResult implements MockExamSubjectResult {
     required final int maxScore,
     required final int failBelowScore,
     required final bool isFailed,
+    final String failMarginText,
   }) = _$MockExamSubjectResultImpl;
 
   factory _MockExamSubjectResult.fromJson(Map<String, dynamic> json) =
@@ -1274,7 +1322,9 @@ abstract class _MockExamSubjectResult implements MockExamSubjectResult {
   @override
   int get failBelowScore;
   @override
-  bool get isFailed;
+  bool get isFailed; // 과락 여유 (예: 과락까지 여유 2문제, 옛 서버면 빈 값, #1111)
+  @override
+  String get failMarginText;
 
   /// Create a copy of MockExamSubjectResult
   /// with the given fields replaced by the non-null parameter values.

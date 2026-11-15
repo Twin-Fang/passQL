@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import '../../../data/models/mock_exam/mock_exam_result.dart';
 import '../../design/design.dart';
 
-/// 과목 2칸(점수·정답 수·과락) + 토픽별 이번 시험 정답 수 (정답률 낮은 순)
+/// 과목 2칸(점수·정답 수·과락 여유) + 토픽별 이번 시험 정답 수 (정답률 낮은 순)
 class MockExamSubjectBreakdown extends StatelessWidget {
   const MockExamSubjectBreakdown({super.key, required this.examResult});
 
@@ -86,6 +86,16 @@ class _SubjectCard extends StatelessWidget {
               color: colors.secondaryLabel,
             ),
           ),
+          // 과락 여유 (서버 문구, #1111): 통과 과목도 몇 문제 더 틀리면 과락인지
+          if (!subject.isFailed && subject.failMarginText.isNotEmpty) ...[
+            const SizedBox(height: PassqlSpacing.xxs),
+            Text(
+              subject.failMarginText,
+              style: PassqlTypography.caption.copyWith(
+                color: colors.secondaryLabel,
+              ),
+            ),
+          ],
           if (subject.isFailed) ...[
             const SizedBox(height: PassqlSpacing.xs),
             const PassqlBadge(
@@ -95,7 +105,9 @@ class _SubjectCard extends StatelessWidget {
             ),
             const SizedBox(height: PassqlSpacing.xxs),
             Text(
-              '${subject.failBelowScore}점 이상이어야 해요',
+              subject.failMarginText.isNotEmpty
+                  ? subject.failMarginText
+                  : '${subject.failBelowScore}점 이상이어야 해요',
               style: PassqlTypography.caption.copyWith(color: colors.wrongText),
             ),
           ],
