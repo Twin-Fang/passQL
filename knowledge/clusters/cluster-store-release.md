@@ -2,7 +2,7 @@
 type: cluster
 topic: store-release
 created: 2026-10-29
-members: 83
+members: 84
 status: active
 related: []
 ---
@@ -43,6 +43,7 @@ related: []
 - [[DEC-0247-promo-site-free-banner-while-billing-off]] — 결제 스위치가 꺼진 동안 소개 사이트는 비교표 대신 "지금은 모든 기능이 무료" 안내 (`IS_PRO_PLAN_VISIBLE`)
 - [[DEC-0248-site-icons-generated-from-brand]] — 소개 사이트 아이콘·OG와 Play 등록정보 아이콘 512는 앱 아이콘 원본에서 생성
 - [[DEC-0307-dev-build-skips-minimum-version]] — 개발용 빌드(컴파일 상수)는 최소 지원 버전 비교를 건너뛰고, 점검 중에는 막는다 (#962)
+- [[DEC-0319-round-pass-rate-unofficial-only]]: 합격률은 연도별 공식 값만 수치로, 회차별은 확인된 전언(61회 약 26%)만 비공식 배지로
 
 ## 대체된 결정 (역사)
 - [[DEC-0119-legal-urls-on-github-pages]] — 약관 공개 URL은 GitHub Pages에 두고 웹 `/legal/*`은 그쪽으로 리다이렉트 (대체: DEC-0294)

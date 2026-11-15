@@ -2,7 +2,7 @@
 type: cluster
 topic: dev-workflow
 created: 2026-10-29
-members: 79
+members: 80
 status: active
 related: []
 ---
@@ -46,6 +46,7 @@ related: []
 - [[DEC-0224-attach-to-existing-common-points]] — 사본 정리는 기존 공통 위치(`UuidUtils`, `PassqlThemeContext`, `crash_reporter`)에 붙이고, 호출부 동작이 다른 곳은 뺀다
 - [[DEC-0240-dev-tools-two-layer-gate-test-builds]] — 앱 개발자 도구는 `APP_FLAVOR=dev`(또는 디버그)와 `.env` `APP_SHOW_DEV_TOOLS=true` 두 층이 모두 켜질 때만, 강제값은 표시만 바꿈
 - [[DEC-0246-dev-tools-no-prod-writes-store-exclusion]] — 개발자 도구에 운영 데이터 변경 기능 없음, 스토어 빌드 제외는 컴파일 상수 + 두 스토어 워크플로 release 프로파일 + 규칙 테스트
+- [[DEC-0318-exam-guide-single-source-public-api]]: SQLD 시험 소개·역대 통계는 서버 JSON 단일 원본 + 공개 API(GET /api/meta/exam-guide/sqld)를 앱·소개 사이트가 함께 읽음
 
 ## 대체된 결정 (역사)
 - [[DEC-0068-dev-mode-hidden-easter-egg]] → null
