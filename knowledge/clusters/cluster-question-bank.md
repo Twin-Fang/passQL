@@ -52,7 +52,7 @@ related: []
 - [[DOC-0007-question-bank-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — 문제 은행 지도: 등록 3경로와 형식 관문, 선택지 세트 관리, 비활성화 삭제, 신고 처리(비활성화·소급 보정·신고자 알림)
 
 ## 관련 이슈
-- [[ISS-0519-sqld-round63-trend-new-questions]] (open, #1074): 63회 출제 경향 반영(제58~63회), 신규 38건 등록 499 > 537, 서버 형식 규칙 위반 24건 재등록. 교훈 [[LSN-0002-harness-lint-misses-server-format-rule]], [[LSN-0003-question-export-500-limit-backup-by-topic]]
+- [[ISS-0519-sqld-round63-trend-new-questions]] (resolved, #1074): 63회 출제 경향 반영(제58~63회), 신규 38건 등록 499 > 537, 서버 형식 규칙 위반 24건 재등록, 기존 5문항 최신 경향 해제, 2026-11-15 릴리스 PR #1094 배포. 완료 리포트 [[ISS-0519-sqld-round63-trend-new-questions-report]]. 교훈 [[LSN-0002-harness-lint-misses-server-format-rule]], [[LSN-0003-question-export-500-limit-backup-by-topic]]
 - [[ISS-0502-stem-table-same-columns-overwritten]] (resolved, #1015): 이름 다른 같은 컬럼 표가 지문 표를 덮음, 제약 주석이 코드 제목으로
 - [[ISS-0504-question-structure-audit-harness]] (resolved, #1017): 운영 활성 499건 구조 전수조사(데이터 누락 0, 표 소실 17건은 앱 배치), 하네스 lint 3개
 - [[ISS-0480-stem-table-sql-format-data-cleanup-deferred]] (open, GitHub #923): 지문 중복 표와 SQL 서식 운영 데이터 정리, #903 앱 보급과 최소 버전 상향 뒤 적용

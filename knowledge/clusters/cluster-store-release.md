@@ -51,7 +51,7 @@ related: []
 - [[DEC-0290-lock-screen-question-policy]] → [[DEC-0314-lock-screen-free-reason-pro-detail-continue]] — 프로만 한 문제 더 > 무료도 크레딧으로 이어 풀기 (#1068)
 
 ## 관련 이슈
-- [[ISS-0520-sqld-round-answer-key-omr-grading]] (open, #1075): SQLD 회차별 가답안·OMR 가채점, 소개 사이트 sqld/63/ 배포, 서버·앱 PR #1089 배포 보류(앱 심사 동반), 서버 배포 직후 63회 운영 가답안 입력 필요
+- [[ISS-0520-sqld-round-answer-key-omr-grading]] (resolved, #1075): SQLD 회차별 가답안·OMR 가채점, 2026-11-15 릴리스 PR #1094 로 서버·앱 배포, 63회 운영 가답안 50문항 입력(우세 34, 갈림 15, 미복원 1), 사이트 제출·채점·CORS 실측 정상. 완료 리포트 [[ISS-0520-sqld-round-answer-key-omr-grading-report]]
 - [[ISS-0512-test-build-minimum-version-block]] (resolved, GitHub #962, PR #967): 최소 지원 버전을 올리면 테스트 빌드도 업데이트 필요 화면에 막힘
 - [[ISS-0508-search-visibility-site-domain-aso]] (open, #1027): 소개 사이트 개편·passql.suhsaechan.kr 이전·스토어 검색 최적화, Play 검토 제출·App Store 이름/부제/키워드 남음
 - [[ISS-0501-lock-screen-question-android]] (resolved, #990): 잠금화면 위 SQLD 문제 1개(Android), 서버 출제 API·운영 설정 3개
