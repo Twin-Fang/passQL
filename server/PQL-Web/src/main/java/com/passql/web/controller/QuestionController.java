@@ -24,6 +24,9 @@ import com.passql.question.dto.SubmitRequest;
 import com.passql.question.dto.SubmitResult;
 import com.passql.question.service.QuestionDetailService;
 import com.passql.question.service.QuestionService;
+import com.passql.submission.dto.HardestQuestionsResponse;
+import com.passql.submission.service.HardestQuestionService;
+import com.passql.submission.service.QuestionBookmarkService;
 import com.passql.submission.service.SubmissionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +59,8 @@ public class QuestionController implements QuestionControllerDocs {
     private final QuestionFeatureAccessPolicy questionFeatureAccessPolicy;
     private final ProResponseRedactor proResponseRedactor;
     private final DailyQuestionSubmitAdmission dailyQuestionSubmitAdmission;
+    private final QuestionBookmarkService questionBookmarkService;
+    private final HardestQuestionService hardestQuestionService;
 
     // 문제 목록은 토픽 골라 풀기 전용 (필터 없는 목록·최신 경향도 토픽 정보로 같은 기능을 대신하므로 함께 잠금, #860)
     @RequiresProFeature(ProFeature.TOPIC_PRACTICE)
@@ -79,6 +84,15 @@ public class QuestionController implements QuestionControllerDocs {
         @RequestParam(defaultValue = "" + RandomPracticeService.DEFAULT_SIZE) int size
     ) {
         return ResponseEntity.ok(randomPracticeService.findRandomQuestions(loginMember.memberUuid(), size));
+    }
+
+    // 오답률 TOP: 목록은 전원 공개, 풀이는 상세 열기의 크레딧 규칙 그대로 (#1080)
+    @GetMapping("/hardest")
+    public ResponseEntity<HardestQuestionsResponse> getHardestQuestions(
+        @AuthMember LoginMember loginMember,
+        @RequestParam(defaultValue = HardestQuestionService.DEFAULT_LIMIT) int limit
+    ) {
+        return ResponseEntity.ok(hardestQuestionService.getHardestQuestions(limit));
     }
 
     // 잠금화면 문제 1개: 출제할 문제 없음·기능 꺼짐 > 204, 한도는 상세 열기·제출에서 판정 (#990)
@@ -115,7 +129,11 @@ public class QuestionController implements QuestionControllerDocs {
         featureAccessPolicy.assertCanOpenQuestion(loginMember.memberUuid(), questionUuid);
         // 오늘의 세트 무료 체험 표시 (앱이 실행·해설 잠금을 이 문제에서 풀어 그림, #992)
         boolean isDailySetFreeTrial = questionFeatureAccessPolicy.isDailySetFreeTrial(loginMember.memberUuid(), questionUuid);
-        return ResponseEntity.ok(questionDetailService.getQuestionForSolving(questionUuid).withDailySetFreeTrial(isDailySetFreeTrial));
+        // 즐겨찾기 별 표시 (#1082)
+        boolean isBookmarked = questionBookmarkService.isBookmarked(loginMember.memberUuid(), questionUuid);
+        return ResponseEntity.ok(questionDetailService.getQuestionForSolving(questionUuid)
+            .withDailySetFreeTrial(isDailySetFreeTrial)
+            .withBookmarked(isBookmarked));
     }
 
     @PostMapping("/{questionUuid}/execute")

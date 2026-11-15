@@ -34,6 +34,7 @@ _$QuestionDetailImpl _$$QuestionDetailImplFromJson(Map<String, dynamic> json) =>
           const [],
       isLatestTrend: json['isLatestTrend'] as bool? ?? false,
       isDailySetFreeTrial: json['isDailySetFreeTrial'] as bool? ?? false,
+      isBookmarked: json['isBookmarked'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$QuestionDetailImplToJson(
@@ -55,4 +56,5 @@ Map<String, dynamic> _$$QuestionDetailImplToJson(
   'choiceSets': instance.choiceSets,
   'isLatestTrend': instance.isLatestTrend,
   'isDailySetFreeTrial': instance.isDailySetFreeTrial,
+  'isBookmarked': instance.isBookmarked,
 };

@@ -11,10 +11,12 @@ import com.passql.submission.dto.HeatmapResponse;
 import com.passql.submission.dto.ProgressResponse;
 import com.passql.submission.dto.StudyPatternResponse;
 import com.passql.submission.dto.TopicAnalysisResponse;
+import com.passql.submission.dto.WrongQuestionRetrySetResponse;
 import com.passql.submission.dto.WrongQuestionsResponse;
 import com.passql.submission.service.ProgressService;
 import com.passql.submission.service.StudyStatsService;
 import com.passql.submission.service.TopicAnalysisService;
+import com.passql.submission.service.WrongNoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +34,7 @@ public class ProgressController implements ProgressControllerDocs {
     private final TopicAnalysisService topicAnalysisService;
     private final AiCommentService aiCommentService;
     private final StudyStatsService studyStatsService;
+    private final WrongNoteService wrongNoteService;
 
     @GetMapping
     public ResponseEntity<ProgressResponse> getProgress(
@@ -71,9 +74,24 @@ public class ProgressController implements ProgressControllerDocs {
     @GetMapping("/wrong-questions")
     public ResponseEntity<WrongQuestionsResponse> getWrongQuestions(
         @AuthMember LoginMember loginMember,
-        @RequestParam(defaultValue = ProgressService.DEFAULT_WRONG_QUESTION_COUNT) int size
+        @RequestParam(required = false) String subject,
+        @RequestParam(required = false) String sort,
+        @RequestParam(defaultValue = "false") boolean includeResolved,
+        @RequestParam(defaultValue = WrongNoteService.DEFAULT_WRONG_QUESTION_COUNT) int size
     ) {
-        return ResponseEntity.ok(progressService.getWrongQuestions(loginMember.memberUuid(), size));
+        return ResponseEntity.ok(wrongNoteService.getWrongQuestions(
+            loginMember.memberUuid(), subject, sort, includeResolved, size));
+    }
+
+    // 오답 다시 풀기 묶음: 오답 목록과 같은 프로 기능 단위 (#1081)
+    @RequiresProFeature(ProFeature.TOPIC_ANALYSIS)
+    @GetMapping("/wrong-questions/retry-set")
+    public ResponseEntity<WrongQuestionRetrySetResponse> getWrongQuestionRetrySet(
+        @AuthMember LoginMember loginMember,
+        @RequestParam(required = false) String subject,
+        @RequestParam(defaultValue = WrongNoteService.DEFAULT_RETRY_SET_SIZE) int size
+    ) {
+        return ResponseEntity.ok(wrongNoteService.getRetrySet(loginMember.memberUuid(), subject, size));
     }
 
     // 활동 기록이라 히트맵처럼 무료 (#909)

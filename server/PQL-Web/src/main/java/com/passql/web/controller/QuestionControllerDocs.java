@@ -12,6 +12,8 @@ import com.passql.question.dto.RecommendationsRequest;
 import com.passql.question.dto.RecommendationsResponse;
 import com.passql.question.dto.SubmitRequest;
 import com.passql.question.dto.SubmitResult;
+import com.passql.submission.dto.HardestQuestionsResponse;
+import com.passql.submission.service.HardestQuestionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.suhsaechan.suhapilog.annotation.ApiLog;
@@ -57,6 +59,30 @@ public interface QuestionControllerDocs {
   ResponseEntity<List<QuestionSummary>> getRandomQuestions(
       @AuthMember LoginMember loginMember,
       @RequestParam(defaultValue = "10") int size
+  );
+
+  @ApiLogs({
+      @ApiLog(date = "2026.11.16", author = Author.SUHSAECHAN, issueNumber = 1080, description = "오답률 TOP API 추가: 회원별 첫 제출 기준 오답률, 첫 제출 20명 미만 제외, 1시간 집계 캐시"),
+  })
+  @Operation(summary = "오답률 TOP",
+      description = """
+          ## 인증(JWT): **필요** | 등급 제한 없음 (풀이는 문제 상세 열기의 크레딧 규칙)
+
+          ## 집계
+          - 활성 문제별 회원 첫 제출만 셈 (테스트 계정 제외)
+          - 오답률 = 첫 제출 오답 회원 수 / 첫 제출 회원 수, 첫 제출 회원 20명 미만 문제 제외
+          - 오답률 내림차순 (같으면 첫 제출 회원 많은 순), 서버 메모리 1시간 보관 (기동 후 첫 요청에서 계산)
+
+          ## 요청 파라미터
+          - limit (기본 30, 1~30 보정)
+
+          ## 반환값 (HardestQuestionsResponse)
+          - items[]: rank, questionUuid, stemPreview(50자), topicName, subject(SUBJECT_ONE | SUBJECT_TWO), wrongRatePercent(소수 1자리), attemptCount
+          - aggregatedAt: 집계 기준 시각, minimumAttemptCount: 20
+          """)
+  ResponseEntity<HardestQuestionsResponse> getHardestQuestions(
+      @AuthMember LoginMember loginMember,
+      @RequestParam(defaultValue = HardestQuestionService.DEFAULT_LIMIT) int limit
   );
 
   @ApiLogs({
@@ -109,6 +135,7 @@ public interface QuestionControllerDocs {
       @ApiLog(date = "2026.10.18", author = Author.SUHSAECHAN, issueNumber = 523, description = "isLatestTrend 추가: 최신 출제 경향 반영 문제 여부 ('최신 경향' 배지)"),
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 879, description = "비활성 문제는 404 QUESTION_NOT_FOUND"),
       @ApiLog(date = "2026.11.12", author = Author.SUHSAECHAN, issueNumber = 992, description = "isDailySetFreeTrial 추가: 무료 회원이 오늘의 세트 문제에서 SQL 실행·AI 해설을 쓸 수 있는지"),
+      @ApiLog(date = "2026.11.16", author = Author.SUHSAECHAN, issueNumber = 1082, description = "isBookmarked 추가: 로그인 회원의 즐겨찾기 여부"),
   })
   @Operation(summary = "문제 상세 조회", description = "풀이용 상세. 정답 SQL·정답 여부·해설은 내려가지 않는다(제출 응답에서만 제공).")
   ResponseEntity<QuestionDetail> getQuestion(

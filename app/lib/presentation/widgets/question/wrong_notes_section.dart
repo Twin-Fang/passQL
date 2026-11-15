@@ -8,9 +8,9 @@ import '../../../data/models/progress/wrong_questions_response.dart';
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/wrong_questions_provider.dart';
-import 'stem_text.dart';
+import 'question_preview_row.dart';
 
-/// 오답 노트 섹션. 최근에 틀린 문제를 보여주고, 누르면 그 문제로 이동한다.
+/// 오답 노트 섹션. 필터에 맞는 오답을 보여주고, 누르면 그 문제로 이동한다.
 class WrongNotesSection extends ConsumerWidget {
   const WrongNotesSection({super.key, this.shouldShowHeader = true});
 
@@ -68,8 +68,8 @@ class WrongNotesSection extends ConsumerWidget {
               child: data.items.isEmpty
                   ? PassqlStatusView.empty(
                       icon: CupertinoIcons.checkmark_seal,
-                      title: '아직 틀린 문제가 없어요',
-                      message: '문제를 풀면 오답이 여기에 쌓여요',
+                      title: '남은 오답이 없어요',
+                      message: '틀린 문제를 다시 맞히면 목록에서 빠져요',
                     )
                   : PassqlGroupedSection(
                       children: [
@@ -92,67 +92,26 @@ class _WrongRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final when = formatRelativeDay(item.lastWrongAt);
-    final meta = [
-      if (item.topicName != null) item.topicName!,
-      if (when.isNotEmpty) when,
-    ].join(' | ');
-
-    return PassqlPressable(
-      onTap: () => context.push(AppRoutes.wrongNoteRetry(item.questionUuid)),
-      // 읽는 순서: 오답 > 지문 > 토픽·시점 (화면 글자는 덮음)
-      semanticLabel: [
-        '오답',
-        stripCodeFences(item.stemPreview),
-        if (meta.isNotEmpty) meta,
-      ].join(', '),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: PassqlSpacing.md,
-          vertical: PassqlSpacing.sm,
-        ),
-        child: Row(
-          children: [
-            // 아이콘만 쓰면 오답 표식이 글자 없이 들어간다(PassqlResultMark 는 라벨이 붙는다).
-            Icon(
-              CupertinoIcons.xmark_circle_fill,
-              size: PassqlIconSize.lg,
-              color: colors.wrong,
-            ),
-            const SizedBox(width: PassqlSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    stripCodeFences(item.stemPreview),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: PassqlTypography.subheadline.copyWith(
-                      color: colors.label,
-                    ),
-                  ),
-                  if (meta.isNotEmpty) ...[
-                    const SizedBox(height: PassqlSpacing.xxs),
-                    Text(
-                      meta,
-                      style: PassqlTypography.caption.copyWith(
-                        color: colors.secondaryLabel,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: PassqlSpacing.xs),
-            Icon(
-              CupertinoIcons.chevron_forward,
-              size: PassqlIconSize.xs,
-              color: colors.tertiaryLabel,
-            ),
-          ],
-        ),
+    return QuestionPreviewRow(
+      // 아이콘만 쓰면 오답 표식이 글자 없이 들어간다(PassqlResultMark 는 라벨이 붙는다).
+      // 정리된 문제(다시 맞힘)는 정답 표식
+      leading: Icon(
+        item.isResolved
+            ? CupertinoIcons.checkmark_circle_fill
+            : CupertinoIcons.xmark_circle_fill,
+        size: PassqlIconSize.lg,
+        color: item.isResolved ? colors.correct : colors.wrong,
       ),
+      leadingSemanticLabel: '오답',
+      stemPreview: item.stemPreview,
+      // 메타 한 줄: 정리됨 | 토픽 | N번 틀림 | 시점 (#1081)
+      metaParts: [
+        if (item.isResolved) '정리됨',
+        item.topicName ?? '',
+        if (item.wrongCount > 0) '${item.wrongCount}번 틀림',
+        formatRelativeDay(item.lastWrongAt),
+      ],
+      onTap: () => context.push(AppRoutes.wrongNoteRetry(item.questionUuid)),
     );
   }
 }
