@@ -2,7 +2,7 @@
 type: cluster
 topic: admin
 created: 2026-10-29
-members: 120
+members: 122
 status: active
 related: []
 ---
@@ -53,8 +53,9 @@ related: []
 - [[DEC-0081-admin-session-chain-yml-account]] → DEC-0130
 
 ## 관련 이슈
+- [[ISS-0540-past-exam-figure-erd-generator]] (resolved, #1132): 기출 복원 그림 문항에 그림 없음 > 문제 그림 필드 `figureSvg`·시험지 모양 ERD 생성기·그림 문항 46개 운영 반영, 지문 8문항 수정, 관리자 편집 CRLF > LF, PR #1134·#1139. 완료 리포트 [[ISS-0540-past-exam-figure-erd-generator-report]]
 - [[ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking]] (resolved, #1126) — SQLD 63회 가답안·모의고사 결과 실기 검수 결함 7건: 빈 답안 순위 제외, 공유 이미지 흰 바탕, 합의율 응답 5명 미만이면 "응답 N명", 관리자 답안지 삭제. 완료 리포트 [[ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking-report]] (PR #1127, 릴리스 #1130)
-- [[ISS-0535-past-exam-restored-rounds]] (open, #1079): 기출 복원 회차 — 52~62회 11회차 550문항(다시 쓴 문항) 공개, PR #1124·릴리스 #1125. 남은 일 45~51회·학습 모드(#1084)·단답형(#1085)·그림 머메이드
+- [[ISS-0535-past-exam-restored-rounds]] (open, #1079): 기출 복원 회차 — 52~62회 11회차 550문항(다시 쓴 문항) 공개, PR #1124·릴리스 #1125. 남은 일 45~51회·학습 모드(#1084)·단답형(#1085)·그림 머메이드 — 단답형은 4지선다 변환으로 취소(DEC-0340), 그림은 생성기 SVG 로 반영(ISS-0540)
 - [[ISS-0526-question-internal-tags]] (resolved, #1117): 문제 내부 관리 태그, PR #1120, 릴리스 #1121 서버만 배포, 운영 213건 백필. 완료 리포트 [[ISS-0526-question-internal-tags-report]]
 - [[ISS-0520-sqld-round-answer-key-omr-grading]] (resolved, #1075): SQLD 회차별 가답안·OMR 가채점, 2026-11-15 릴리스 PR #1094 로 서버·앱 배포, 63회 운영 가답안 50문항 입력(우세 34, 갈림 15, 미복원 1), 사이트 제출·채점·CORS 실측 정상. 완료 리포트 [[ISS-0520-sqld-round-answer-key-omr-grading-report]]
 - [[ISS-0513-admin-app-operation-settings]] (resolved, GitHub #961, PR #969): 최소 버전 입구가 둘, 결제 켜기 전 점검표 없음, 비밀 설정 미설정 문구 오해
@@ -140,5 +141,6 @@ related: []
 - [[ISS-0536-mock-exam-study-mode-final-round]] (resolved, #1084) — 모의고사 학습 모드·FINAL 회차·회차 난이도 표시. 완료 리포트 [[ISS-0536-mock-study-final-study-guide-report]] (PR #1129, 릴리스 #1130)
 
 ## 관련 교훈
+- [[LSN-0007-admin-403-read-only-check-csrf-session]] — 관리자 403 "조회 전용"은 계정 권한보다 세션 만료·CSRF 헤더 누락 먼저 확인 (#1132)
 - [[LSN-0005-question-export-500-limit-split-before-dedupe]] — 등록 전 중복·건수 집계도 내보내기 500건 상한, 토픽·난이도로 나눠 합계 대조 (#1079)
 - [[LSN-0003-question-export-500-limit-backup-by-topic]] — 문제 내보내기 1회 500건 한도, 전체 백업은 토픽별로 (#1074)

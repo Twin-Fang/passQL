@@ -2,7 +2,7 @@
 type: cluster
 topic: notification
 created: 2026-10-29
-members: 28
+members: 29
 status: active
 related: []
 ---
@@ -13,9 +13,10 @@ related: []
 푸시·알림
 
 ## 현재 상태 요약
-(2026-11-12, 자동 생성) 활성 결정 3개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 시험 일정 자동 알림 5종(새 연도 공개·접수 시작·접수 마감 D-1·수험표·합격 발표)이 운영에서 켜졌고 누르면 앱 시험 일정 화면(`EXAM_SCHEDULE`)으로 간다 — [[ISS-0506-sqld-exam-schedule-auto-sync]]. (2026-11-13) 알림 권한 안내는 실제 알림(원서접수 마감 D-1·신고 처리 결과) 미리보기 카드, 문구는 서버 알림 문구 사본 — [[ISS-0511-qa-1112-ui-polish-eight]]. (2026-11-12) 알림 권한 안내는 처음 켤 때 홈 환영 안내 「시작하기」 직후에도 뜬다 — [[DEC-0304-first-launch-notification-prompt-after-welcome]] (DEC-0149 대체). (2026-11-16) FINAL 회차 공개 시 여는 날 09:00 전체 회원 푸시 예약, 링크 `MOCK_EXAM`(광고성 해당 여부는 확인 필요) — [[DEC-0330-final-round-opens-exam-date-minus-3-pro-only]] (#1084).
+(2026-11-12, 자동 생성) 활성 결정 3개, 열린 이슈 2개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 시험 일정 자동 알림 5종(새 연도 공개·접수 시작·접수 마감 D-1·수험표·합격 발표)이 운영에서 켜졌고 누르면 앱 시험 일정 화면(`EXAM_SCHEDULE`)으로 간다 — [[ISS-0506-sqld-exam-schedule-auto-sync]]. (2026-11-13) 알림 권한 안내는 실제 알림(원서접수 마감 D-1·신고 처리 결과) 미리보기 카드, 문구는 서버 알림 문구 사본 — [[ISS-0511-qa-1112-ui-polish-eight]]. (2026-11-12) 알림 권한 안내는 처음 켤 때 홈 환영 안내 「시작하기」 직후에도 뜬다 — [[DEC-0304-first-launch-notification-prompt-after-welcome]] (DEC-0149 대체). (2026-11-16) FINAL 회차 공개 시 여는 날 09:00 전체 회원 푸시 예약, 링크 `MOCK_EXAM`(광고성 해당 여부는 확인 필요) — [[DEC-0330-final-round-opens-exam-date-minus-3-pro-only]] (#1084). (2026-11-16) FINAL 공개 알림은 전체 회원 대상 유지 + PRO 응시 권유 문구 — [[DEC-0341-final-push-all-members-pro-invite-wording]] (#1132, 광고성 해당 여부는 여전히 확인 필요).
 
 ## 활성 결정
+- [[DEC-0341-final-push-all-members-pro-invite-wording]] — FINAL 공개 알림은 전체 회원 대상 유지 + 문구로 PRO 응시 권유 (DEC-0330 보완, 광고성 해당 여부는 여전히 확인 필요, #1132)
 - [[DEC-0302-first-run-sheets-today-steps-notification-preview]] — 홈 첫 진입 환영 시트는 오늘 할 일 3단계 + 오늘의 세트 바로 시작, 알림 안내는 실제 알림 미리보기 카드 (#1041)
 - [[DEC-0293-exam-schedule-rule-based-auto-sync]] — SQLD 시험 일정은 공식 페이지를 규칙 기반으로 매일 자동 수집, 해석 이상이면 덮어쓰지 않음, 수동 입력은 대체 (#991, DEC-0108 대체)
 - [[DEC-0131-member-notification-inbox-single-entry]] — 회원 알림함은 `알림`/`공지` 두 탭, 생성 입구는 `MemberNotificationService` 하나, 일반 알림 90일 보관, 웹 브라우저 푸시는 하지 않음
