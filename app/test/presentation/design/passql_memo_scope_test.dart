@@ -46,8 +46,28 @@ void main() {
       ),
     );
 
+    // 내용이 길면 펜은 내용 끝에서만 보임 (보기 카드 가림 방지, #1136)
+    double toggleButtonOpacity() => tester
+        .widget<AnimatedOpacity>(
+          find.ancestor(
+            of: find.bySemanticsLabel('메모 켜기'),
+            matching: find.byType(AnimatedOpacity),
+          ),
+        )
+        .opacity;
+    await tester.pumpAndSettle();
+    expect(toggleButtonOpacity(), 0);
+    scrollController.jumpTo(scrollController.position.maxScrollExtent);
+    await tester.pumpAndSettle();
+    expect(toggleButtonOpacity(), 1);
+    scrollController.jumpTo(0);
+    await tester.pumpAndSettle();
+
     // 켬: 보기 위 가로·세로로 그어도 탭·스크롤 없이 획 2개
+    scrollController.jumpTo(scrollController.position.maxScrollExtent);
+    await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('메모 켜기'));
+    scrollController.jumpTo(0);
     await tester.pumpAndSettle();
     expect(memoController.isMemoMode, isTrue);
     await tester.dragFrom(
@@ -66,11 +86,15 @@ void main() {
     // 탭도 콕 찍은 점 획으로 남음
     expect(memoController.strokesOf(pageKey), hasLength(3));
 
-    // 끔(완료): 메모는 남고 펜 버튼에 메모 있음 표시
+    // 끔(완료): 메모는 남고 (내용 끝에서) 펜 버튼에 메모 있음 표시
     await tester.tap(find.text('완료'));
     await tester.pumpAndSettle();
     expect(memoController.isMemoMode, isFalse);
+    scrollController.jumpTo(scrollController.position.maxScrollExtent);
+    await tester.pumpAndSettle();
     expect(find.bySemanticsLabel('메모 켜기, 메모 있음'), findsOneWidget);
+    scrollController.jumpTo(0);
+    await tester.pumpAndSettle();
 
     // 끔: 메모가 그려진 보기도 탭되고 세로로 끌면 스크롤
     await tester.tap(find.text('보기 0'));

@@ -132,8 +132,13 @@ class ExamAnswerSheetNotifier
   // 로그 접두사
   static const String _logTag = 'exam answer sheet';
 
+  // 답안 주인: 로그인 회원 uuid, 비로그인 null (#1136)
+  String? _memberUuid;
+
   @override
   ExamAnswerSheetState build(ExamAnswerRoundKey roundKey) {
+    // 계정이 바뀌면 다시 만듦 > 새 주인의 임시 답안·답안지만 불러옴
+    _memberUuid = ref.watch(currentMemberUuidProvider);
     unawaited(Future.microtask(_load));
     return ExamAnswerSheetState(
       answers: ExamAnswerSheetState.emptyAnswersOf(
@@ -147,16 +152,21 @@ class ExamAnswerSheetNotifier
 
   /// 불러오기: 임시 답안이 있으면 그 답안, 없으면 서버 답안지 (결과는 서버 답안지 기준)
   Future<void> _load() async {
+    final loadingMemberUuid = _memberUuid;
     final draftAnswers = await _repository.readDraftAnswers(
       arg.certType,
       arg.roundNumber,
+      memberUuid: loadingMemberUuid,
     );
     ExamAnswerMySheet? serverSheet;
     var rule = ExamGradingRule.sqldFallback;
     try {
       final roundResponse = await ref.read(examAnswerRoundProvider(arg).future);
       rule = roundResponse.effectiveGradingRule;
-      serverSheet = await _repository.fetchMySheet(roundResponse);
+      serverSheet = await _repository.fetchMySheet(
+        roundResponse,
+        memberUuid: loadingMemberUuid,
+      );
     } catch (exception) {
       // 회차·답안지 조회 실패 > 임시 답안만으로 입력 (회차 오류는 화면이 따로 보여 줌)
       AppLogger.warn(
@@ -164,6 +174,8 @@ class ExamAnswerSheetNotifier
         'sheet load failed : ${exception.asAppException}',
       );
     }
+    // 불러오는 사이 계정이 바뀌었으면 버림 (새 주인 불러오기가 따로 돎)
+    if (loadingMemberUuid != _memberUuid) return;
     final answers =
         _normalizedDraft(draftAnswers, rule) ??
         serverSheet?.answers ??
@@ -188,7 +200,12 @@ class ExamAnswerSheetNotifier
     final answers = state.answers.replaceRange(index, index + 1, nextMark);
     state = state.copyWith(answers: answers);
     unawaited(
-      _repository.saveDraftAnswers(arg.certType, arg.roundNumber, answers),
+      _repository.saveDraftAnswers(
+        arg.certType,
+        arg.roundNumber,
+        answers,
+        memberUuid: _memberUuid,
+      ),
     );
   }
 
@@ -201,6 +218,7 @@ class ExamAnswerSheetNotifier
       final gradedSheet = await _repository.submitSheet(
         roundResponse,
         state.submittableAnswers,
+        memberUuid: _memberUuid,
       );
       state = state.copyWith(
         gradedSheet: gradedSheet,

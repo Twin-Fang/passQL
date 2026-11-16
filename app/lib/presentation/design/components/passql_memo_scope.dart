@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 
@@ -22,7 +21,7 @@ part 'memo/memo_tool_icon.dart';
 
 /// 풀이 화면 메모 틀: 끔이면 오른쪽 아래 펜 버튼, 켬이면 아래 도구 막대 + 위 안내를 문항 영역 위에 띄움
 /// 안쪽 [PassqlMemoCanvas] 가 이 상태로 그림. 화면은 컨트롤러를 State 에 두고(응시 동안 유지) 문항 영역을 감싸기만 함
-/// 펜 버튼은 내용을 아래로 읽는 동안 숨김 > 위로 올리거나 맨 위·맨 아래면 다시 보임 (보기 카드 가림 방지, #995)
+/// 펜 버튼은 내용 끝(펜 자리 여백이 보일 때)이나 내용이 한 화면에 들어갈 때만 보임 > 보기 카드를 가리지 않음 (#995, #1136)
 class PassqlMemoScope extends StatefulWidget {
   const PassqlMemoScope({
     super.key,
@@ -54,15 +53,18 @@ class PassqlMemoScope extends StatefulWidget {
 }
 
 class _PassqlMemoScopeState extends State<PassqlMemoScope> {
-  /// 아래로 읽는 중이라 펜 버튼을 숨겼는지
+  /// 펜 자리 여백이 화면 밖이라 펜 버튼을 숨겼는지
   bool _isToggleButtonHidden = false;
+
+  // 내용 끝 판정 허용 오차 (논리 픽셀, 반올림 오차로 끝에서 깜빡이지 않게)
+  static const double _scrollEndTolerance = 1;
 
   PassqlMemoController get controller => widget.controller;
 
   @override
   void didUpdateWidget(PassqlMemoScope oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // 다음 문항은 맨 위부터 > 펜 버튼 다시 보임
+    // 다음 문항: 일단 보임 > 새 문항 스크롤 배치 알림으로 다시 판정
     if (oldWidget.activePageKey != widget.activePageKey) {
       _isToggleButtonHidden = false;
     }
@@ -70,22 +72,23 @@ class _PassqlMemoScopeState extends State<PassqlMemoScope> {
 
   /// 세로 스크롤 > 펜 버튼 숨김·보임 (가로 스크롤 표는 무시, 끝을 알리지 않음)
   bool _onScrollNotification(ScrollNotification notification) {
-    final metrics = notification.metrics;
-    if (metrics.axis != Axis.vertical) return false;
-    final isAtEdge = metrics.extentBefore <= 0 || metrics.extentAfter <= 0;
-    var shouldHide = _isToggleButtonHidden;
-    if (isAtEdge) {
-      // 맨 아래는 메모 층이 버튼 높이만큼 비워 둬 가리지 않음
-      shouldHide = false;
-    } else if (notification is UserScrollNotification) {
-      // reverse = 손가락을 올려 내용을 아래로 읽는 중
-      if (notification.direction == ScrollDirection.reverse) shouldHide = true;
-      if (notification.direction == ScrollDirection.forward) shouldHide = false;
-    }
+    _updateToggleButtonVisibility(notification.metrics);
+    return false;
+  }
+
+  /// 첫 배치·내용 크기 변경 (스크롤 없이도 펜 자리 판정)
+  bool _onScrollMetricsNotification(ScrollMetricsNotification notification) {
+    _updateToggleButtonVisibility(notification.metrics);
+    return false;
+  }
+
+  /// 내용 끝이면 보임: 메모 층이 끝에 펜 높이만큼 비워 둬 가리지 않음 (한 화면에 들어가면 늘 끝)
+  void _updateToggleButtonVisibility(ScrollMetrics metrics) {
+    if (metrics.axis != Axis.vertical) return;
+    final shouldHide = metrics.extentAfter > _scrollEndTolerance;
     if (shouldHide != _isToggleButtonHidden) {
       setState(() => _isToggleButtonHidden = shouldHide);
     }
-    return false;
   }
 
   /// 켬·끔 전환 + 햅틱, 켤 때 스크린리더에 안내 문구
@@ -111,9 +114,12 @@ class _PassqlMemoScopeState extends State<PassqlMemoScope> {
       child: Stack(
         fit: StackFit.passthrough,
         children: [
-          NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
-            child: widget.child,
+          NotificationListener<ScrollMetricsNotification>(
+            onNotification: _onScrollMetricsNotification,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: _onScrollNotification,
+              child: widget.child,
+            ),
           ),
           Positioned.fill(
             child: ListenableBuilder(
