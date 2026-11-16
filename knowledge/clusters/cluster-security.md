@@ -2,7 +2,7 @@
 type: cluster
 topic: security
 created: 2026-10-29
-members: 50
+members: 51
 status: active
 related: []
 ---
@@ -69,3 +69,6 @@ related: []
 - [[ISS-0378-admin-audit-log-search-access-events]] (resolved, GitHub #623) — 관리자 감사 로그에 동작 필터·검색이 없고 접근 이벤트가 기록되지 않는 것으로 보임
 - [[ISS-0487-synology-secret-upload-ssh-handshake-flaky]] (resolved, GitHub #950) — 시놀로지 시크릿 업로드가 NAS SSH 무차별 대입 급증으로 handshake 간헐 실패, 최대 3회 재시도
 - [[ISS-0518-lock-screen-engine-stale-refresh-token-reuse]] — 잠금화면 엔진 옛 refreshToken 재사용으로 전체 세션 폐기 위험, 저장소 기준 재판단 (resolved, #1071)
+
+## 관련 교훈
+- [[LSN-0007-admin-403-read-only-check-csrf-session]] — 관리자 403 "조회 전용"은 계정 권한보다 세션 만료·CSRF 헤더 누락 먼저 확인 (#1132)
