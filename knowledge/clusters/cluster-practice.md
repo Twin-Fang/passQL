@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 224
+members: 228
 status: active
 related: []
 ---
@@ -16,6 +16,9 @@ related: []
 (2026-11-07, 자동 생성) 활성 결정 39개, 열린 이슈 2개. 풀이 화면 보기 방식 칩은 제출 전이면 지금 문제부터, 제출 뒤면 다음 풀이부터 적용하고 같은 화면 생성은 겹치지 않으며, 오답 노트 다시 풀기에서는 숨긴다. 바꾸는 곳은 풀이 칩과 설정이고 웹도 회원 방식을 지킨다: [[DEC-0275-choice-mode-chip-applies-before-submit]] (#907, #913, DEC-0261 대체). 지문은 블록으로 나눠 그리고 표는 지문 카드 안 한 가지 모양(행 전부, 같은 컬럼 표 한 번): [[DEC-0278-stem-blocks-single-table-shape]] (#903). 풀이 화면 메모(끄면 터치 통과, 서버 저장 없음): [[ISS-0473-solving-memo-pen-toggle]]. 풀이 중 모의고사 회차는 안내 없이 이어 풀기: [[ISS-0471-mock-exam-resume-shows-start-guide]]. 이상 2026-11-07 main 머지, 배포 전. 내린 보기 묶음(DISABLED·REPORTED)·비활성 문제는 열기·채점 모두 `CHOICE_SET_UNAVAILABLE`, 무료 제출은 샌드박스를 실행하지 않는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 무료 하루 한도 판정은 제출 기록 트랜잭션 안 회원 행 잠금 뒤 — [[DEC-0271-daily-limit-judged-in-submit-record-tx]] (PR #898 머지, [[ISS-0469-billing-switch-unverified-screens-races]] 열림). 웹 선택지 생성 시작 전 거부는 `errorCode` 사유를 보여 준다 — [[ISS-0468-web-audit-cross-tab-reissue-logout]]. SQLD 모의고사(고정 회차, 서버 판정, 무료 1회) — [[DEC-0264-mock-exam-fixed-rounds-server-judged]] (PR #889 머지, 이슈 #866 열림). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 무료 랜덤 풀기는 10문제 묶음 없이 이어 풀고 남은 수를 늘 보여 주며, 서버는 안 푼 문제를 먼저 낸다 — [[DEC-0283-daily-limit-view-reward-first]], [[DEC-0282-ad-bonus-unlimited-fair-use-200]] (#963, PR #964). (2026-11-12) 무료 랜덤 한도는 크레딧, 풀이 상단은 제목·해설함·크레딧 알약만 — [[DEC-0287-credit-term-top-bar-balance]]. (2026-11-12) 잠금화면 문제(Android)는 무료도 하루 크레딧을 같이 쓰고 프로는 한 문제 더 — [[DEC-0290-lock-screen-question-policy]](배포 앱은 Play 권한 신고 전까지 숨김, [[ISS-0499-play-fgs-declaration-lock-screen]]). 무료 해설은 기본 해설 한 단락 공개 — [[DEC-0291-free-basic-explanation-pro-detail-shape-only]]. 지문 스키마 표는 이름 기준 대체 — [[DEC-0292-stem-table-match-by-name-short-code-caption]]. 결과 요약 위에서 연 문제를 닫으면 요약으로 — [[ISS-0503-result-summary-close-goes-home]]. (2026-11-13) 모의고사 결과에 같은 회차 응시자 중 상위 N% 한 줄(회원별 첫 응시, 10명 미만 숨김), 과락 안내는 과목별 기준 칸 — [[ISS-0511-qa-1112-ui-polish-eight]]. (2026-11-14) 잠금화면 문제는 무료도 정답 이유를 보고 크레딧으로 이어 풀며, PRO는 상세 해설을 바로 보고 PRO 안내는 해설 한 곳만, 선택지 방식은 앱 설정 하나 — [[DEC-0314-lock-screen-free-reason-pro-detail-continue]](DEC-0290 대체), [[ISS-0517-lock-screen-free-pro-explanation-continue]]. (2026-11-16) 회차 가답안은 갈림 문항도 운영 후보 답을 표시하고 채점은 점수 범위로 둔다 — [[DEC-0320-exam-answer-disputed-shows-operator-candidate]](DEC-0316 대체), [[ISS-0523-exam-answer-disputed-shows-operator-candidate]]. (2026-11-16) 가답안 화면 디자인 정리 — [[DEC-0321-exam-answer-screen-list-rows-no-chip-gradient]] (#1109). 모의고사 결과에 합격선·과목 과락 여유 문항 수 — [[DEC-0323-pass-fail-margin-count-single-source]] (#1111, 릴리스 #1115). (2026-11-16) 모의고사 학습 모드(응시 기록 없음, 기기 진도)·FINAL 회차(시험일 3일 전 공개, PRO)·학습 가이드 — [[DEC-0329-mock-study-mode-reuses-question-flow-device-progress]], [[DEC-0330-final-round-opens-exam-date-minus-3-pro-only]], [[DEC-0331-study-guide-four-stages-progress-counts-study]] (#1084·#1078, 릴리스 #1130). (2026-11-16) 가답안 공유 이미지는 다크 모드여도 흰 바탕 — [[DEC-0332-exam-answer-share-image-always-light]](DEC-0321 대체); 모의고사 순위는 빈 답안 제외 — [[DEC-0333-mock-exam-ranking-excludes-empty-attempts]] (#1126, 릴리스 #1130). (2026-11-16) 가채점 임시 답안·답안지 토큰은 계정(주인)별 기기 저장 — [[DEC-0336-exam-answer-draft-token-per-owner]] (#1136, 릴리스 #1138).
 
 ## 활성 결정
+- [[DEC-0338-app-figure-white-paper-tap-to-zoom]] — 앱 그림은 지문 카드 아래 흰 종이(검정 선, 라이트·다크 공통) + 눌러서 크게 보기(시안 C), `QuestionFigure` 한 부품·토큰, 머메이드 앱 렌더링 안 함 (#1132)
+- [[DEC-0340-no-short-answer-convert-to-four-choice]] — 단답형 유형은 만들지 않고 기출 단답형 60문항은 같은 개념 4지선다로 (2024 개정 뒤 단답형 없음, #1085 취소)
+- [[DEC-0341-final-push-all-members-pro-invite-wording]] — FINAL 공개 알림은 전체 회원 대상 유지 + 문구로 PRO 응시 권유 (DEC-0330 보완, 광고성 해당 여부는 여전히 확인 필요, #1132)
 - [[DEC-0327-answer-key-highlight-exam-date-plus-7]] — 가채점 강조(사이트 메뉴·첫 화면 띠, 앱 홈 가답안 카드)는 시험일 + 7일까지만, 회차 페이지는 계속 열람 (#1079·#1088)
 - [[DEC-0315-exam-answer-page-concept-line-no-original]] — 가답안 페이지는 원문 대신 번호·과목·개념 한 줄·가답안, 면책·게시 중단 요청 (#1075)
 - [[DEC-0320-exam-answer-disputed-shows-operator-candidate]] — 가답안 표시는 운영 가답안(갈림 후보 답 포함) 우선·없으면 득표 1위, 확정 채점은 LEADING·CONFIRMED·OFFICIAL 만(갈림은 점수 범위), 출처 2개·60초 캐시·10명 미만 상위 % 숨김 유지 (#1101, DEC-0316 대체)
@@ -96,8 +99,9 @@ related: []
 - [[DOC-0003-practice-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — 풀이 구현 지도: 열기·SSE 선택지·실행·제출 채점, 하루 한도 판정(열기·제출 공통), 보너스·크레딧 내역, 오늘의 세트
 
 ## 관련 이슈
+- [[ISS-0540-past-exam-figure-erd-generator]] (resolved, #1132): 기출 복원 그림 문항에 그림 없음 > 문제 그림 필드 `figureSvg`·시험지 모양 ERD 생성기·그림 문항 46개 운영 반영, 지문 8문항 수정, 관리자 편집 CRLF > LF, PR #1134·#1139. 완료 리포트 [[ISS-0540-past-exam-figure-erd-generator-report]]
 - [[ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking]] (resolved, #1126) — SQLD 63회 가답안·모의고사 결과 실기 검수 결함 7건: 빈 답안 순위 제외, 공유 이미지 흰 바탕, 합의율 응답 5명 미만이면 "응답 N명", 관리자 답안지 삭제. 완료 리포트 [[ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking-report]] (PR #1127, 릴리스 #1130)
-- [[ISS-0535-past-exam-restored-rounds]] (open, #1079): 기출 복원 회차 — 52~62회 11회차 550문항(다시 쓴 문항) 공개, PR #1124·릴리스 #1125. 남은 일 45~51회·학습 모드(#1084)·단답형(#1085)·그림 머메이드
+- [[ISS-0535-past-exam-restored-rounds]] (open, #1079): 기출 복원 회차 — 52~62회 11회차 550문항(다시 쓴 문항) 공개, PR #1124·릴리스 #1125. 남은 일 45~51회·학습 모드(#1084)·단답형(#1085)·그림 머메이드 — 단답형은 4지선다 변환으로 취소(DEC-0340), 그림은 생성기 SVG 로 반영(ISS-0540)
 - [[ISS-0533-lock-screen-ox-card-no-credit]] (resolved, #1110): Android 잠금화면 표시 3번에 1번 OX 카드, 크레딧 없음, 비율 설정 화면 없음. 완료 리포트 [[ISS-0531-ox-quiz-expected-pass-lock-screen-ox-report]]
 - [[ISS-0531-ox-quiz-leitner-review]] (resolved, #1083): 개념 '바로 확인' 표를 OX 카드로, Leitner 5칸 간격 반복, PR #1118·릴리스 #1119. 완료 리포트(#1086·#1110 공유) [[ISS-0531-ox-quiz-expected-pass-lock-screen-ox-report]]
 - [[ISS-0530-question-bookmark-practice]] (resolved, #1082): 문제 즐겨찾기(무료 개수 제한 없음)와 랜덤 10문제 풀기. 완료 리포트 [[ISS-0528-review-bundle-wrong-note-bookmark-hardest-report]]

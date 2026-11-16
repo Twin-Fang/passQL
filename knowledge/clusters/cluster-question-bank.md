@@ -2,7 +2,7 @@
 type: cluster
 topic: question-bank
 created: 2026-10-29
-members: 99
+members: 103
 status: active
 related: []
 ---
@@ -13,9 +13,12 @@ related: []
 문제 등록·품질·검증·신고·토픽·난이도
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 23개, 열린 이슈 1개. 문항 형식 규칙 단일 원본 `QuestionFormatRule`(사유별 결과, 규칙 7개)을 가져오기, 관리자 저장과 편집, 모의고사 공개 검사가 거치고, 문항과 생성 글에는 줄표와 가운뎃점을 쓰지 않으며 데이터 표는 스키마 표 한 곳: [[DEC-0277-no-dash-middle-dot-server-cleaner]] (#905, 운영 데이터와 프롬프트 정리 완료, 코드 배포 전). 지문 화면 규칙: [[DEC-0278-stem-blocks-single-table-shape]] (#903). 운영 문항의 지문 표 자동 정리는 옛 앱 보호를 위해 #903 앱 보급과 최소 버전 상향 뒤 적용: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림). 실제 SQLD 형식(결과 행 수, 오류 나는 SQL)과 함정 문제 92개 추가: [[ISS-0479-sqld-real-format-trap-questions]] (#834). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 운영 활성 499건 구조 전수조사: 데이터 누락 0, 표 소실 17건은 앱 배치 원인 — [[ISS-0504-question-structure-audit-harness]]. 표 대체는 이름 기준(서버 `QuestionFormatRule`·하네스 lint 포함) — [[DEC-0292-stem-table-match-by-name-short-code-caption]](DEC-0278 대체).
+(2026-11-07, 자동 생성) 활성 결정 23개, 열린 이슈 1개. 문항 형식 규칙 단일 원본 `QuestionFormatRule`(사유별 결과, 규칙 7개)을 가져오기, 관리자 저장과 편집, 모의고사 공개 검사가 거치고, 문항과 생성 글에는 줄표와 가운뎃점을 쓰지 않으며 데이터 표는 스키마 표 한 곳: [[DEC-0277-no-dash-middle-dot-server-cleaner]] (#905, 운영 데이터와 프롬프트 정리 완료, 코드 배포 전). 지문 화면 규칙: [[DEC-0278-stem-blocks-single-table-shape]] (#903). 운영 문항의 지문 표 자동 정리는 옛 앱 보호를 위해 #903 앱 보급과 최소 버전 상향 뒤 적용: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림). 실제 SQLD 형식(결과 행 수, 오류 나는 SQL)과 함정 문제 92개 추가: [[ISS-0479-sqld-real-format-trap-questions]] (#834). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 운영 활성 499건 구조 전수조사: 데이터 누락 0, 표 소실 17건은 앱 배치 원인 — [[ISS-0504-question-structure-audit-harness]]. 표 대체는 이름 기준(서버 `QuestionFormatRule`·하네스 lint 포함) — [[DEC-0292-stem-table-match-by-name-short-code-caption]](DEC-0278 대체). (2026-11-16) 문제 그림 필드 `figureSvg` 와 생성기 `tools/question-figure` 로 ERD 그림 문항 46개 운영 반영, 그림은 AI 이미지가 아니라 코드로 — [[DEC-0337-question-figure-code-generator-not-ai-image]] (#1132). 단답형은 만들지 않음 — [[DEC-0340-no-short-answer-convert-to-four-choice]].
 
 ## 활성 결정
+- [[DEC-0337-question-figure-code-generator-not-ai-image]] — 문제 그림은 AI 이미지가 아니라 생성기 `tools/question-figure`(머메이드 또는 명세 > SVG), 지문이 그림을 가리키거나 기호를 읽어야 풀리는 문항에만. DEC-0328 「관계를 지문에 글로」와의 관계는 사용자 확인 필요 (#1132)
+- [[DEC-0339-figure-style-close-to-exam-sheet]] — 그림 모양은 시험지와 어느 정도 비슷하게: 이름 상자 밖 한글, 채움 없음, 의존 엔터티 둥근 모서리, `(FK)` 붙여 쓰기, 라벨 상자 없음, 바커 `□` (#1132)
+- [[DEC-0340-no-short-answer-convert-to-four-choice]] — 단답형 유형은 만들지 않고 기출 단답형 60문항은 같은 개념 4지선다로 (2024 개정 뒤 단답형 없음, #1085 취소)
 - [[DEC-0328-past-exam-rewrite-operation-rules]] — 기출 복원 문항: 지문·보기·정답만 수집, 다시 쓰기 + 5-gram 유사도 0.35 이하 + Oracle 검증, 원본 레포 밖, 가장 최근 1회차 무료, 게시 중단 시 round 태그로 비활성화 (#1079)
 - [[DEC-0326-site-past-exam-five-question-preview]] — 소개 사이트는 기출 복원 회차마다 다시 쓴 문항 5개만 지문·보기·정답 공개, 해설·나머지 45문항은 앱. 숨긴 글씨·키워드 나열 금지·공개 정보 페이지·리뷰 규칙은 DEC-0295 에서 이어받음 (#1088, DEC-0295 대체)
 - [[DEC-0324-question-internal-tag-namespace-format]] — 문제 내부 관리 태그는 별도 테이블 소문자 `네임스페이스:값`(source·round·trend·batch·concept + 자유 태그), 규칙은 `QuestionInternalTagRule` 한 곳 (#1117)
@@ -56,7 +59,8 @@ related: []
 - [[DOC-0007-question-bank-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — 문제 은행 지도: 등록 3경로와 형식 관문, 선택지 세트 관리, 비활성화 삭제, 신고 처리(비활성화·소급 보정·신고자 알림)
 
 ## 관련 이슈
-- [[ISS-0535-past-exam-restored-rounds]] (open, #1079): 기출 복원 회차 — 52~62회 11회차 550문항(다시 쓴 문항) 공개, PR #1124·릴리스 #1125. 남은 일 45~51회·학습 모드(#1084)·단답형(#1085)·그림 머메이드
+- [[ISS-0540-past-exam-figure-erd-generator]] (resolved, #1132): 기출 복원 그림 문항에 그림 없음 > 문제 그림 필드 `figureSvg`·시험지 모양 ERD 생성기·그림 문항 46개 운영 반영, 지문 8문항 수정, 관리자 편집 CRLF > LF, PR #1134·#1139. 완료 리포트 [[ISS-0540-past-exam-figure-erd-generator-report]]
+- [[ISS-0535-past-exam-restored-rounds]] (open, #1079): 기출 복원 회차 — 52~62회 11회차 550문항(다시 쓴 문항) 공개, PR #1124·릴리스 #1125. 남은 일 45~51회·학습 모드(#1084)·단답형(#1085)·그림 머메이드 — 단답형은 4지선다 변환으로 취소(DEC-0340), 그림은 생성기 SVG 로 반영(ISS-0540)
 - [[ISS-0534-intro-site-past-exam-preview-study-guides]] (resolved, #1088): 소개 사이트 `sqld/past/` 회차마다 5문항 공개·공부 글 3편·가채점 강조 시험일 + 7일. 완료 리포트 [[ISS-0534-intro-site-past-exam-preview-study-guides-report]]
 - [[ISS-0526-question-internal-tags]] (resolved, #1117): 문제 내부 관리 태그, PR #1120, 릴리스 #1121 서버만 배포, 운영 213건 백필. 완료 리포트 [[ISS-0526-question-internal-tags-report]]
 - [[ISS-0527-sqld-round63-batch07-internal-tags]] (resolved, #1122): 63회 신유형 batch07 37건 태그 포함 등록(1건 verify 실패 미등록), 537 > 574. 완료 리포트 [[ISS-0527-sqld-round63-batch07-internal-tags-report]]
