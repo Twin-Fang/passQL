@@ -4,9 +4,9 @@ id: DEC-0295
 created: 2026-11-12
 reviewed: null
 topics: [store-release]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0326
 related: ["[[ISS-0508-search-visibility-site-domain-aso]]", "[[ISS-0310-sqld-seo-intro-site-revamp]]"]
 ---
 

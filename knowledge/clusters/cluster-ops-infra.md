@@ -2,7 +2,7 @@
 type: cluster
 topic: ops-infra
 created: 2026-10-29
-members: 70
+members: 72
 status: active
 related: []
 ---
@@ -91,4 +91,6 @@ related: []
 - [[ISS-0487-synology-secret-upload-ssh-handshake-flaky]] (resolved, GitHub #950) — 시놀로지 시크릿 업로드가 NAS SSH 무차별 대입 급증으로 handshake 간헐 실패, 최대 3회 재시도
 
 ## 관련 교훈
+- [[LSN-0006-ops-lookup-output-not-truncated]] — 운영 조회 출력은 판단 키가 보일 때까지 자르지 않음, 잘려서 없으면 '못 봄' (#1083)
+- [[LSN-0005-question-export-500-limit-split-before-dedupe]] — 등록 전 중복·건수 집계도 내보내기 500건 상한, 토픽·난이도로 나눠 합계 대조 (#1079)
 - [[LSN-0003-question-export-500-limit-backup-by-topic]] — 문제 내보내기 1회 500건 한도, 전체 백업은 토픽별로 (#1074)

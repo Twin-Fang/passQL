@@ -2,7 +2,7 @@
 type: cluster
 topic: progress-stats
 created: 2026-10-29
-members: 53
+members: 56
 status: active
 related: []
 ---
@@ -39,6 +39,9 @@ related: []
 - [[DEC-0206-topic-accuracy-list-with-octagon-chart]] → DEC-0274
 
 ## 관련 이슈
+- [[ISS-0532-expected-pass-rate-mock-exam]] (resolved, #1086): 예상 합격률(최근 채점 모의고사 최대 5회, 과락 위험 = 과락선 + 4점 이하). 완료 리포트 [[ISS-0531-ox-quiz-expected-pass-lock-screen-ox-report]]
+- [[ISS-0529-hardest-questions-top30]] (resolved, #1080): 전체 사용자 오답률 TOP 30(회원별 첫 제출, 20명 이상, 1시간 캐시). 완료 리포트 [[ISS-0528-review-bundle-wrong-note-bookmark-hardest-report]]
+- [[ISS-0528-wrong-note-subject-filter-retry-set]] (resolved, #1081): 오답노트 과목 필터·많이 틀린 순·정리된 오답 숨기기·오답 10문제 다시 풀기, 복습 묶음 PR #1108·릴리스 #1112. 완료 리포트(#1080·#1082 공유) [[ISS-0528-review-bundle-wrong-note-bookmark-hardest-report]]
 - [[ISS-0511-qa-1112-ui-polish-eight]] (resolved, #1041, PR #1042): 11/12 QA UI 개선 8건 — 환영 시트·알림 안내·모의고사 순위·크레딧 아이콘·PK FK·난이도 별·카운트업·과락 칸
 - [[ISS-0477-stats-radar-default-study-pattern]] (resolved, GitHub #909): 통계 화면 개편: 육각형 그래프 기본, 차트와 학습 통계 추가
 - [[ISS-0460-ai-analysis-forecast-concept-links]] (resolved, GitHub #862) — 통계 AI 분석 보강: 과목별 예상 점수, 개념 바로 가기, 빈 데이터 안내, 세션 코멘트 개편
@@ -71,5 +74,5 @@ related: []
 - [[ISS-0365-profile-bar-shows-total-questions]] (resolved, GitHub #609) — 내 프로필 카테고리별 막대가 푼 문제가 아닌 전체 문제 수를 보여줌
 - [[ISS-0393-active-user-count-analysis]] (resolved, GitHub #645) — 실사용자 수 확인 (관리자 화면·서버 로그) — 분석
 - [[ISS-0428-app-profile-tab-redesign]] (resolved, GitHub #749) — 앱 내 프로필 탭 UI/UX 개편 (정보 위계 재구성, passQL PASS 탑승권)
-- [[ISS-0521-sqld-exam-guide-and-yearly-stats]] (open, #1077·#1076): SQLD 알아보기(시험 소개, 연도별 응시자·합격률) — 서버 API·소개 사이트 sqld/stats/ 운영 반영, 앱 화면은 브랜치 대기(앱 출시 때 병합)
+- [[ISS-0521-sqld-exam-guide-and-yearly-stats]] (resolved, #1077·#1076): SQLD 알아보기(시험 소개, 연도별 응시자·합격률) — 서버 API·소개 사이트 sqld/stats/, 앱 PR #1102·릴리스 #1104 출시(iOS 1.132.0 재제출). 완료 리포트 [[ISS-0521-sqld-exam-guide-and-yearly-stats-report]]
 - [[ISS-0525-pass-fail-margin-score-gain-topics]] (resolved, #1111) — 과락·합격선 여유 문항 수 안내, 점수 올리기 좋은 영역 +N점
