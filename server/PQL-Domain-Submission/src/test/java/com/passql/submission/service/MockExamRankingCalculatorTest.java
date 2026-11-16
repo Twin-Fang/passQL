@@ -11,7 +11,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 모의고사 회차 순위 (#1041): 응시자 10명 미만 null, 동점 같은 순위, 재응시는 첫 응시만 분포에
+ * 모의고사 회차 순위 (#1041, #1126): 응시자 10명 미만 null, 동점 같은 순위, 재응시는 첫 응시만 분포에, 빈 답안 순위 없음
  */
 class MockExamRankingCalculatorTest {
 
@@ -22,7 +22,7 @@ class MockExamRankingCalculatorTest {
         // 다른 회원 8명 + 나 = 9명
         List<MockExamRoundScoreProjection> submittedScores = otherMemberScores(8, 50);
 
-        assertThat(MockExamRankingCalculator.rank(submittedScores, MY_MEMBER_UUID, 70)).isNull();
+        assertThat(MockExamRankingCalculator.rank(submittedScores, MY_MEMBER_UUID, 70, true)).isNull();
     }
 
     @Test
@@ -33,7 +33,7 @@ class MockExamRankingCalculatorTest {
         submittedScores.addAll(otherMemberScores(3, 70));
         submittedScores.addAll(otherMemberScores(6, 50));
 
-        MockExamRanking ranking = MockExamRankingCalculator.rank(submittedScores, MY_MEMBER_UUID, 70);
+        MockExamRanking ranking = MockExamRankingCalculator.rank(submittedScores, MY_MEMBER_UUID, 70, true);
 
         // 나보다 높은 2명 > 3위, 3 * 100 / 12 = 25
         assertThat(ranking).isEqualTo(new MockExamRanking(3, 12, 25));
@@ -47,9 +47,18 @@ class MockExamRankingCalculatorTest {
         // 내 첫 응시 30점은 분포에서 빼고 지금 점수 60점으로 위치 계산
         submittedScores.add(0, new MockExamRoundScoreProjection(MY_MEMBER_UUID, 30));
 
-        MockExamRanking ranking = MockExamRankingCalculator.rank(submittedScores, MY_MEMBER_UUID, 60);
+        MockExamRanking ranking = MockExamRankingCalculator.rank(submittedScores, MY_MEMBER_UUID, 60, true);
 
         assertThat(ranking).isEqualTo(new MockExamRanking(1, 10, 10));
+    }
+
+    @Test
+    void 내_응시가_빈_답안이면_응시자가_많아도_순위_없음() {
+        // 다른 회원 19명 (#1126 운영 회차: 0점 빈 답안이 3명 다음 4위·상위 20% 로 보이던 경우)
+        List<MockExamRoundScoreProjection> submittedScores = new ArrayList<>(otherMemberScores(3, 10));
+        submittedScores.addAll(otherMemberScores(16, 0));
+
+        assertThat(MockExamRankingCalculator.rank(submittedScores, MY_MEMBER_UUID, 0, false)).isNull();
     }
 
     private static List<MockExamRoundScoreProjection> otherMemberScores(int memberCount, int totalScore) {

@@ -1,12 +1,13 @@
 import 'package:flutter/cupertino.dart';
 
+import '../../../core/exam_answer/exam_answer_display_rule.dart';
 import '../../../core/exam_answer/exam_grading_rule.dart';
 import '../../../data/models/exam_answer/exam_answer_round_response.dart';
 import '../../design/design.dart';
 import 'exam_answer_concept_links.dart';
 import 'exam_answer_status_styles.dart';
 
-/// 가답안 행 1개: 번호 > 개념 한 줄·상태(의미색 글자)·합의율·내 답 > 정답 > 펼침 화살표, 누르면 보기별 득표·메모·태그·학습 링크
+/// 가답안 행 1개: 번호 > 개념 한 줄·상태(의미색 글자)·합의율(응답 적으면 응답 수)·내 답 > 정답 > 펼침 화살표, 누르면 보기별 득표·메모·태그·학습 링크
 class ExamAnswerKeyRow extends StatelessWidget {
   const ExamAnswerKeyRow({
     super.key,
@@ -27,7 +28,7 @@ class ExamAnswerKeyRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final status = item.answerStatus;
-    final agreementPercent = (item.agreementRate.clamp(0, 1) * 100).round();
+    final voteSummary = _voteSummaryOf(item);
     final answerText = _answerTextOf(item);
     final conceptTitle = item.conceptTitle?.trim() ?? '';
     final myAnswerPart = _myAnswerPartOf(colors);
@@ -36,7 +37,7 @@ class ExamAnswerKeyRow extends StatelessWidget {
       children: [
         PassqlSemanticButton(
           label:
-              '${item.questionNo}번 가답안 $answerText, ${status.label}, 합의율 $agreementPercent%${myAnswerPart == null ? '' : ', ${myAnswerPart.text}'}',
+              '${item.questionNo}번 가답안 $answerText, ${status.label}${voteSummary == null ? '' : ', $voteSummary'}${myAnswerPart == null ? '' : ', ${myAnswerPart.text}'}',
           isSelected: isExpanded,
           onTap: onToggle,
           child: PassqlPressable(
@@ -83,8 +84,8 @@ class ExamAnswerKeyRow extends StatelessWidget {
                                       color: status.textColorOf(colors),
                                     ),
                               ),
-                              if (item.voteCount > 0)
-                                TextSpan(text: ' | 합의 $agreementPercent%'),
+                              if (voteSummary != null)
+                                TextSpan(text: ' | $voteSummary'),
                               if (myAnswerPart != null) ...[
                                 const TextSpan(text: ' | '),
                                 TextSpan(
@@ -158,6 +159,15 @@ class ExamAnswerKeyRow extends StatelessWidget {
         : (text: '내 답 $answer번', color: colors.wrongText);
   }
 
+  /// 득표 한 줄: 응답 5명 이상 `합의 80%`, 미만 `응답 2명`, 응답 없으면 null
+  static String? _voteSummaryOf(ExamAnswerItemResponse item) {
+    if (item.voteCount <= 0) return null;
+    if (!ExamAnswerDisplayRule.canShowAgreementRate(item.voteCount)) {
+      return '응답 ${item.voteCount}명';
+    }
+    return '합의 ${(item.agreementRate.clamp(0, 1) * 100).round()}%';
+  }
+
   // 펼침 화살표 회전 (반 바퀴)
   static const double _expandedChevronTurns = 0.5;
 
@@ -170,7 +180,7 @@ class ExamAnswerKeyRow extends StatelessWidget {
   }
 }
 
-/// 펼친 내용: 보기별 득표 4줄 > 메모 > 태그 > 개념 학습·문제 풀기 링크
+/// 펼친 내용: 보기별 득표 4줄 > 메모(회색 한 줄) > 태그 > 개념 학습·문제 풀기 링크
 class _ExpandedDetail extends StatelessWidget {
   const _ExpandedDetail({required this.item});
 
@@ -208,17 +218,13 @@ class _ExpandedDetail extends StatelessWidget {
               color: colors.secondaryLabel,
             ),
           ),
+          // 운영 메모: 상자·아이콘 없이 보조 글자 (카드 안 카드 금지, DEC-0321)
           if (note != null && note.trim().isNotEmpty) ...[
-            const SizedBox(height: PassqlSpacing.sm),
-            PassqlCallout(
-              kind: PassqlCalloutKind.warning,
-              icon: CupertinoIcons.exclamationmark_bubble_fill,
-              label: '메모',
-              child: Text(
-                note.trim(),
-                style: PassqlTypography.subheadline.copyWith(
-                  color: colors.label,
-                ),
+            const SizedBox(height: PassqlSpacing.xs),
+            Text(
+              note.trim(),
+              style: PassqlTypography.footnote.copyWith(
+                color: colors.secondaryLabel,
               ),
             ),
           ],

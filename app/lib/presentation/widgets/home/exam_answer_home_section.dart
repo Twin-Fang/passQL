@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/exam_answer/exam_answer_display_rule.dart';
 import '../../../core/utils/number_format.dart';
 import '../../../data/models/exam_answer/exam_answer_enums.dart';
 import '../../../data/models/exam_answer/exam_answer_round_response.dart';
@@ -20,7 +21,10 @@ class ExamAnswerHomeSection extends StatelessWidget {
     final isOfficial = roundResponse.status == ExamAnswerRoundStatus.official;
     final participantCount = roundResponse.participantCount;
     return PassqlSection(
-      title: '${roundResponse.displayTitle} 가답안',
+      title: ExamAnswerDisplayRule.titleWithSuffix(
+        roundResponse.displayTitle,
+        '가답안',
+      ),
       child: PassqlListRow(
         title: isOfficial ? '공식 정답으로 채점하기' : '가채점하고 합격 예측',
         // 한 줄 설명: 회차 상태 | 참여자 수 (행 오른쪽엔 화살표만, Design 5.1)

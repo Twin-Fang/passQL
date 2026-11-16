@@ -163,6 +163,39 @@
                 </div>
             </div>
         </section>
+
+        <!-- 답안지 목록 (최근 100장, 테스트 제출 삭제) -->
+        <section class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4 gap-3">
+                <h3 class="card-title text-base">
+                    <i data-lucide="file-text" class="size-5"></i>답안지
+                    <span class="text-xs font-normal text-base-content/50"
+                          th:text="'최근 ' + ${#lists.size(sheetRows)} + '장 / 전체 ' + ${selectedRound.participantCount} + '장, 삭제하면 득표에서 바로 빠져요'">최근</span>
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="table table-xs w-full">
+                        <thead>
+                        <tr><th>제출 시각</th><th>경로</th><th>토큰 해시</th><th>답 50자 (0 모름)</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${#lists.isEmpty(sheetRows)}">
+                            <td colspan="5" class="text-center py-6 text-base-content/50">제출된 답안지가 없습니다.</td>
+                        </tr>
+                        <tr th:each="sheet : ${sheetRows}">
+                            <td class="whitespace-nowrap" th:text="${#temporals.format(sheet.submittedAt, 'yyyy-MM-dd HH:mm:ss')}">2026-11-16 09:00:00</td>
+                            <td th:text="${sheet.source}">APP</td>
+                            <td class="font-mono" th:text="${sheet.clientTokenHashPrefix}">a1b2c3</td>
+                            <td class="font-mono tracking-wider" th:text="${sheet.answers}">1342...</td>
+                            <td class="text-right">
+                                <button type="button" class="btn btn-xs btn-ghost text-error" data-requires-write
+                                        th:data-sheet-uuid="${sheet.sheetUuid}" th:data-sheet-label="${sheet.clientTokenHashPrefix}">삭제</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
     </th:block>
 </div>
 </th:block>

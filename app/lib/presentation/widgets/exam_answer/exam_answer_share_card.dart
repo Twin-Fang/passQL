@@ -1,11 +1,13 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show Theme;
 
+import '../../../core/exam_answer/exam_answer_display_rule.dart';
 import '../../../core/exam_answer/exam_answer_score_report.dart';
 import '../../design/design.dart';
 import 'exam_answer_status_styles.dart';
 
 /// 공유 이미지 카드 (이미지로 저장되는 면): 로고 > 회차 가채점 > 판정 > 점수(공개 선택) > 구분선 > 사이트 주소
-/// 바탕은 라이트 흰 면, 다크 앱 배경. 그라데이션·칩·장식 아이콘 없음
+/// 다크 모드여도 라이트 테마 고정(흰 바탕·라이트 로고, #1126). 그라데이션·칩·장식 아이콘 없음
 class ExamAnswerShareCard extends StatelessWidget {
   const ExamAnswerShareCard({
     super.key,
@@ -28,13 +30,21 @@ class ExamAnswerShareCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 공유 이미지는 받는 쪽 화면과 무관하게 흰 바탕 (미리보기 = 저장 이미지)
+    return Theme(
+      data: PassqlTheme.light,
+      child: Builder(builder: _buildLightCard),
+    );
+  }
+
+  Widget _buildLightCard(BuildContext context) {
     final colors = context.passqlColors;
     final passStatus = report.passStatus;
     return SizedBox(
       width: PassqlSize.examAnswerShareCardWidth,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: context.isDark ? colors.background : colors.card,
+          color: colors.card,
           borderRadius: BorderRadius.circular(PassqlRadius.lg),
           border: Border.all(
             color: colors.separator,
@@ -50,7 +60,7 @@ class ExamAnswerShareCard extends StatelessWidget {
               const PassqlLogo(height: PassqlSize.footerLogoHeight),
               const SizedBox(height: PassqlSpacing.lg),
               Text(
-                '$roundTitle 가채점',
+                ExamAnswerDisplayRule.titleWithSuffix(roundTitle, '가채점'),
                 style: PassqlTypography.subheadline.copyWith(
                   color: colors.secondaryLabel,
                 ),

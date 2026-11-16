@@ -182,14 +182,20 @@ public class MockExamAttemptService {
             throw new CustomException(ErrorCode.MOCK_EXAM_NOT_SUBMITTED);
         }
         MockExamPaper paper = paperLoader.load(attempt.getMockExamRoundUuid());
-        return MockExamResultAssembler.assemble(attempt, paper, findAnswerByItemUuid(attemptUuid), calculateRanking(attempt));
+        Map<UUID, MockExamAnswer> answerByItemUuid = findAnswerByItemUuid(attemptUuid);
+        return MockExamResultAssembler.assemble(attempt, paper, answerByItemUuid,
+            calculateRanking(attempt, hasAnsweredAnyQuestion(answerByItemUuid)));
     }
 
     /** 회차 순위: 같은 회차 제출 응시 1회 조회 > 회원별 첫 응시 분포에 지금 점수 놓기 */
-    private MockExamRanking calculateRanking(MockExamAttempt attempt) {
+    private MockExamRanking calculateRanking(MockExamAttempt attempt, boolean isCurrentAttemptAnswered) {
         return MockExamRankingCalculator.rank(
             attemptRepository.findSubmittedScoresByRoundInSubmitOrder(attempt.getMockExamRoundUuid()),
-            attempt.getMemberUuid(), attempt.getTotalScore());
+            attempt.getMemberUuid(), attempt.getTotalScore(), isCurrentAttemptAnswered);
+    }
+
+    private static boolean hasAnsweredAnyQuestion(Map<UUID, MockExamAnswer> answerByItemUuid) {
+        return answerByItemUuid.values().stream().anyMatch(answer -> answer.getSelectedChoiceKey() != null);
     }
 
     /** 회원의 마감 지난 풀이 중 응시 채점 (목록 진입 때, 진행 중 1개라 많아야 1건) */

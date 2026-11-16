@@ -17,6 +17,9 @@ public interface ExamAnswerSheetRepository extends JpaRepository<ExamAnswerSheet
 
     long countByExamAnswerRoundUuid(UUID examAnswerRoundUuid);
 
+    /** 관리자 답안지 목록: 최근 제출(재제출 포함)순 100장 */
+    List<ExamAnswerSheet> findTop100ByExamAnswerRoundUuidOrderByUpdatedAtDesc(UUID examAnswerRoundUuid);
+
     /** 회차 전체 답안 문자열 (득표·점수 분포 집계용) */
     @Query("select s.answers from ExamAnswerSheet s where s.examAnswerRoundUuid = :roundUuid")
     List<String> findAllAnswersByRoundUuid(@Param("roundUuid") UUID roundUuid);

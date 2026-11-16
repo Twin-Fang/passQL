@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+import '../../../core/exam_answer/exam_answer_display_rule.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../core/utils/number_format.dart';
 import '../../../core/utils/relative_time.dart';
@@ -29,7 +30,10 @@ class ExamAnswerRoundSummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${roundResponse.displayTitle} 가답안',
+          ExamAnswerDisplayRule.titleWithSuffix(
+            roundResponse.displayTitle,
+            '가답안',
+          ),
           style: PassqlTypography.title2.copyWith(color: colors.label),
         ),
         const SizedBox(height: PassqlSpacing.xxs),

@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 
+import '../../../core/exam_answer/exam_answer_display_rule.dart';
 import '../../../core/exam_answer/exam_answer_score_report.dart';
 import '../../../core/exam_answer/exam_answer_share_link.dart';
 import '../../../core/logging/app_logger.dart';
@@ -97,7 +98,7 @@ class _ShareSheetBodyState extends State<_ShareSheetBody> {
       widget.certType,
       widget.roundNumber,
     );
-    return '${widget.roundTitle} 가채점 결과: ${report.passStatus.label}$scoreText\n'
+    return '${ExamAnswerDisplayRule.titleWithSuffix(widget.roundTitle, '가채점')} 결과: ${report.passStatus.label}$scoreText\n'
         '나도 가채점해 보기 $link';
   }
 
