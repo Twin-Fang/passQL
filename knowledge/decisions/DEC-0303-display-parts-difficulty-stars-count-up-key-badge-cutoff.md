@@ -4,9 +4,9 @@ id: DEC-0303
 created: 2026-11-13
 reviewed: null
 topics: [design-system, practice]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0342
 related: ["[[ISS-0511-qa-1112-ui-polish-eight]]", "[[ISS-0511-qa-1112-ui-polish-eight-report]]", "[[DEC-0292-stem-table-match-by-name-short-code-caption]]", "[[DEC-0264-mock-exam-fixed-rounds-server-judged]]"]
 ---
 

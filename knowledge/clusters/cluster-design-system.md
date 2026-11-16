@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 178
+members: 179
 status: active
 related: []
 ---
@@ -17,7 +17,7 @@ related: []
 
 ## 활성 결정
 - [[DEC-0338-app-figure-white-paper-tap-to-zoom]] — 앱 그림은 지문 카드 아래 흰 종이(검정 선, 라이트·다크 공통) + 눌러서 크게 보기(시안 C), `QuestionFigure` 한 부품·토큰, 머메이드 앱 렌더링 안 함 (#1132)
-- [[DEC-0303-display-parts-difficulty-stars-count-up-key-badge-cutoff]] — 난이도 별 `PassqlDifficultyStars`, 숫자 `PassqlCountUp`, PK·FK 색 배지, 과락은 과목별 기준 칸 (#1041)
+- [[DEC-0342-app-difficulty-text-label-three-levels]] — 난이도는 별 대신 글자 3단계(쉬움 1~2, 보통 3, 어려움 4~5) 회색 글자, 풀이 머리·홈 추천·프로필 통일 + DEC-0303의 카운트업·PK FK 배지·과락 기준 칸 유지 (#1145)
 - [[DEC-0299-gem-3d-via-perspective-single-pro-gem]] — 젬 3D는 3D 모델 대신 원근 회전 부품 Passql3dTilt, PRO 에셋은 무한 젬 1종 (#1014)
 - [[DEC-0292-stem-table-match-by-name-short-code-caption]] — 스키마 표는 이름이 같은 지문 표 자리에만, 코드 제목은 짧은 이름표 주석만 (#1015, DEC-0278 대체)
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -75,6 +75,7 @@ related: []
 - [[DEC-0332-exam-answer-share-image-always-light]] — 가답안·가채점 화면은 DEC-0321 원칙(목록 행·의미색 글자·채운 버튼 하나) 그대로, 공유 이미지는 다크 모드여도 항상 흰 바탕·라이트 로고 (#1126, DEC-0321 대체)
 
 ## 대체된 결정 (역사)
+- [[DEC-0303-display-parts-difficulty-stars-count-up-key-badge-cutoff]] → [[DEC-0342-app-difficulty-text-label-three-levels]] — 난이도 별 부품 > 글자 3단계 (#1145)
 - [[DEC-0321-exam-answer-screen-list-rows-no-chip-gradient]] → [[DEC-0332-exam-answer-share-image-always-light]] — 공유 이미지 "다크면 앱 배경" > 항상 흰 바탕 (#1126)
 - [[DEC-0278-stem-blocks-single-table-shape]] → DEC-0292
 - [[DEC-0284-pass-sheet-plain-copy-small-discount-badge]] → DEC-0286

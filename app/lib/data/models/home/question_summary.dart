@@ -4,7 +4,7 @@ part 'question_summary.freezed.dart';
 part 'question_summary.g.dart';
 
 /// 오늘의 문제 / 추천 문제 / 문제 목록 리스트에서 사용하는 축약 문제 모델.
-/// difficulty: 1(쉬움), 2(보통), 3(어려움)
+/// difficulty: 1~5 (표시는 toDifficultyLabel > 쉬움, 보통, 어려움)
 @freezed
 class QuestionSummary with _$QuestionSummary {
   const factory QuestionSummary({

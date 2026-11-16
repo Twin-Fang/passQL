@@ -2,7 +2,7 @@
 type: cluster
 topic: progress-stats
 created: 2026-10-29
-members: 61
+members: 62
 status: active
 related: []
 ---
@@ -16,6 +16,7 @@ related: []
 (2026-11-07, 자동 생성) 활성 결정 12개, 열린 이슈 1개. 영역별 정답률은 레이더 그래프 위, 목록 아래(토글 없음)이고 학습 패턴(최근 4주 학습, 공부하는 시간)은 무료, 정답률 상세(난이도별, 오답 정리)는 프로, 판정은 서버 계산기: [[DEC-0274-stats-radar-above-list-study-pattern-free]] (#909, DEC-0206 대체, main 머지, 배포 전). 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 과목별 예상 점수·과락 판정 — [[DEC-0260-exam-forecast-score-thresholds]] (#862, 릴리스 #888). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-13) 모의고사 결과 순위(상위 N%)는 [[DEC-0301-mock-exam-ranking-first-attempt-top-percent]]. (2026-11-16) SQLD 시험 소개·연도별 응시자·합격률 통계는 서버 JSON 단일 원본 공개 API — [[DEC-0318-exam-guide-single-source-public-api]], 회차별 합격률은 확인된 전언만 비공식 표시 — [[DEC-0319-round-pass-rate-unofficial-only]] (#1077, 서버·소개 사이트 배포, 앱 대기). (2026-11-16) 예상 점수 설명을 과락·합격선 여유 문항 수로 — [[DEC-0323-pass-fail-margin-count-single-source]], 점수 올리기 좋은 영역 +N점 — [[DEC-0322-score-gain-topics-exam-weighted]] (#1111, 릴리스 #1115). (2026-11-16) 가답안 공유 이미지는 다크 모드여도 흰 바탕 — [[DEC-0332-exam-answer-share-image-always-light]](DEC-0321 대체); 모의고사 순위는 빈 답안 제외 — [[DEC-0333-mock-exam-ranking-excludes-empty-attempts]] (#1126, 릴리스 #1130). (2026-11-16) AI 분석 한 줄 요약의 과락 판정은 예상 점수와 같은 원본 — [[DEC-0334-ai-analysis-fail-risk-single-source]], 분석 캐시 키에 형식 버전 v3 — [[DEC-0335-stats-analysis-cache-key-schema-version]] (#1136, 릴리스 #1138).
 
 ## 활성 결정
+- [[DEC-0342-app-difficulty-text-label-three-levels]] — 난이도는 별 대신 글자 3단계(쉬움 1~2, 보통 3, 어려움 4~5) 회색 글자, 풀이 머리·홈 추천·프로필 통일 + DEC-0303의 카운트업·PK FK 배지·과락 기준 칸 유지 (#1145)
 - [[DEC-0301-mock-exam-ranking-first-attempt-top-percent]] — 모의고사 결과에 같은 회차 "상위 N%" 한 줄, 회원별 첫 응시 기준·응시자 10명 미만 숨김·무료 공개 (#1041)
 - [[DEC-0333-mock-exam-ranking-excludes-empty-attempts]] — 모의고사 순위에서 빈 답안(한 문항도 안 고른 제출)은 응시자로 세지 않고, 내 응시가 빈 답안이면 순위 숨김 (#1126, DEC-0301 보완)
 - [[DEC-0024-progress-metric-definitions]] — 학습 진도 지표 정의 — 푼 문제는 distinct, 정답률은 문제별 마지막 시도, 스트릭은 하루 그레이스
