@@ -10,16 +10,22 @@ import 'stem_text.dart';
 
 // 챕터 풀이(ChapterPage)와 단건 풀이(QuestionDetailPage)가 함께 쓰는 문제 화면 조각.
 
-/// 난이도 별 + 실행 모드 뱃지 + (최신 경향이면) 최신 경향 뱃지 + (있으면) 소주제 제목.
+/// 회색 메타 한 줄(난이도 N | 문제 유형 | 최신 경향) + (있으면) 소주제 제목.
+/// 별점·칩 없이 보조 글자 한 줄 (DEC-0116, #1136)
 class QuestionHeader extends StatelessWidget {
   final QuestionDetail question;
   const QuestionHeader({super.key, required this.question});
 
+  /// 메타 한 줄: "난이도 3 | 개념 문제 | 최신 경향" (최신 경향 반영 문제만 끝 항목, #523)
+  static String metaLineOf(QuestionDetail question) => [
+    '난이도 ${toClampedQuestionDifficulty(question.difficulty)}',
+    question.executionMode == 'EXECUTABLE' ? '실행 결과 문제' : '개념 문제',
+    if (question.isLatestTrend) '최신 경향',
+  ].join(' | ');
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final difficulty = toClampedQuestionDifficulty(question.difficulty);
-    final isExecutable = question.executionMode == 'EXECUTABLE';
     final title = question.subtopicName;
 
     return Padding(
@@ -32,29 +38,11 @@ class QuestionHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              PassqlDifficultyStars(
-                difficulty: difficulty,
-                size: PassqlIconSize.sm,
-              ),
-              const SizedBox(width: PassqlSpacing.xs),
-              PassqlBadge(
-                // 눌러서 실행하는 버튼으로 보이지 않게 재생 아이콘 없이 유형만 표시
-                text: isExecutable ? '실행 결과 문제' : '개념 문제',
-                kind: isExecutable
-                    ? PassqlBadgeKind.topic
-                    : PassqlBadgeKind.neutral,
-                icon: isExecutable
-                    ? CupertinoIcons.table
-                    : CupertinoIcons.book_fill,
-              ),
-              // 최신 출제 경향 반영 문제 (#523)
-              if (question.isLatestTrend) ...[
-                const SizedBox(width: PassqlSpacing.xs),
-                const PassqlLatestTrendBadge(),
-              ],
-            ],
+          Text(
+            metaLineOf(question),
+            style: PassqlTypography.footnote.copyWith(
+              color: colors.secondaryLabel,
+            ),
           ),
           if (title != null && title.isNotEmpty) ...[
             const SizedBox(height: PassqlSpacing.xs),

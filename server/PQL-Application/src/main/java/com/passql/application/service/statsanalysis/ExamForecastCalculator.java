@@ -7,8 +7,10 @@ import com.passql.submission.constant.MockExamSubject;
 import com.passql.submission.service.MockExamRule;
 import com.passql.submission.service.SqldScoreMargin;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 /**
  * SQLD 예상 점수 (#862): 과목별 예상 정답률 > 1과목 10·2과목 40문항 예상 맞힐 수 > 100점 환산 > 판정·여유 문구(#1111) (근거 부족이면 "N문제 더" 안내)
@@ -32,16 +34,43 @@ public final class ExamForecastCalculator {
     private ExamForecastCalculator() {
     }
 
-    /** 예상 점수 (근거 부족이면 empty) */
+    /** 예상 점수 (두 과목 중 하나라도 근거 부족이면 empty) */
     public static Optional<AiExamForecast> forecast(List<TopicLearningStat> topicStats) {
-        List<TopicLearningStat> subjectOneTopics = topicStats.stream().filter(TopicLearningStat::isSubjectOne).toList();
-        List<TopicLearningStat> subjectTwoTopics = topicStats.stream().filter(stat -> !stat.isSubjectOne()).toList();
-        if (remainingSubjectOneCount(subjectOneTopics) > 0 || remainingSubjectTwoCount(subjectTwoTopics) > 0) {
+        OptionalInt subjectOneExpected = expectedCorrectCountOf(MockExamSubject.SUBJECT_ONE, topicStats);
+        OptionalInt subjectTwoExpected = expectedCorrectCountOf(MockExamSubject.SUBJECT_TWO, topicStats);
+        if (subjectOneExpected.isEmpty() || subjectTwoExpected.isEmpty()) {
             return Optional.empty();
         }
-        int subjectOneExpected = toExpectedCount(pooledRate(subjectOneTopics), SUBJECT_ONE_QUESTION_COUNT);
-        int subjectTwoExpected = toExpectedCount(subjectTwoRate(subjectTwoTopics), SUBJECT_TWO_QUESTION_COUNT);
-        return Optional.of(toForecast(subjectOneExpected, subjectTwoExpected));
+        return Optional.of(toForecast(subjectOneExpected.getAsInt(), subjectTwoExpected.getAsInt()));
+    }
+
+    /**
+     * 과목 예상 맞힐 수 (그 과목 근거 부족이면 empty)
+     * 1과목 = 풀이 수 가중 정답률, 2과목 = 토픽 같은 비중 평균 (subjectTwoRate)
+     */
+    public static OptionalInt expectedCorrectCountOf(MockExamSubject subject, List<TopicLearningStat> topicStats) {
+        boolean isSubjectOne = subject == MockExamSubject.SUBJECT_ONE;
+        List<TopicLearningStat> subjectTopics = topicStats.stream()
+                .filter(stat -> stat.isSubjectOne() == isSubjectOne)
+                .toList();
+        int remainingCount = isSubjectOne ? remainingSubjectOneCount(subjectTopics) : remainingSubjectTwoCount(subjectTopics);
+        if (remainingCount > 0) {
+            return OptionalInt.empty();
+        }
+        double expectedRate = isSubjectOne ? pooledRate(subjectTopics) : subjectTwoRate(subjectTopics);
+        return OptionalInt.of(toExpectedCount(expectedRate, subject.getQuestionCount()));
+    }
+
+    /**
+     * 과락 위험 과목 (과목별 예상 맞힐 수 < 과락 면하는 수, SqldScoreMargin 기준)
+     * 근거 부족 과목은 판정하지 않음. AI 분석 한 줄 요약·예상 점수가 함께 쓰는 과락 판정 원본 (#1136)
+     */
+    public static List<MockExamSubject> failRiskSubjectsOf(List<TopicLearningStat> topicStats) {
+        return Arrays.stream(MockExamSubject.values())
+                .filter(subject -> expectedCorrectCountOf(subject, topicStats)
+                        .stream()
+                        .anyMatch(expectedCount -> SqldScoreMargin.failMarginCountOf(subject, expectedCount) < 0))
+                .toList();
     }
 
     /** 근거 부족 안내: "1과목 2문제·2과목 8문제 더 풀면 예상 점수를 알려 드려요" (예상 가능하면 null) */

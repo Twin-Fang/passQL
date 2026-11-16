@@ -180,7 +180,7 @@ class ExamAnswerKeyRow extends StatelessWidget {
   }
 }
 
-/// 펼친 내용: 보기별 득표 4줄 > 메모(회색 한 줄) > 태그 > 개념 학습·문제 풀기 링크
+/// 펼친 내용: 보기별 득표 4줄(응답 없으면 안내 한 줄) > 메모(회색 한 줄) > 태그 > 개념 학습·문제 풀기 링크
 class _ExpandedDetail extends StatelessWidget {
   const _ExpandedDetail({required this.item});
 
@@ -194,6 +194,7 @@ class _ExpandedDetail extends StatelessWidget {
       for (var choice = 1; choice <= ExamGradingRule.choiceCount; choice++)
         item.votesOf(choice),
     ].fold<int>(0, (sum, count) => sum + count);
+    final hasVotes = totalVotes > 0;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         PassqlSpacing.md + PassqlSize.examAnswerNumberColumn,
@@ -204,16 +205,22 @@ class _ExpandedDetail extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (var choice = 1; choice <= ExamGradingRule.choiceCount; choice++)
-            _TallyLine(
-              choice: choice,
-              count: item.votesOf(choice),
-              totalVotes: totalVotes,
-              isAnswer: item.acceptedAnswers.contains(choice),
-              fillColor: item.answerStatus.fillColorOf(colors),
-            ),
+          // 응답 0명이면 빈 막대 대신 회색 한 줄만 (#1136)
+          if (hasVotes)
+            for (
+              var choice = 1;
+              choice <= ExamGradingRule.choiceCount;
+              choice++
+            )
+              _TallyLine(
+                choice: choice,
+                count: item.votesOf(choice),
+                totalVotes: totalVotes,
+                isAnswer: item.acceptedAnswers.contains(choice),
+                fillColor: item.answerStatus.fillColorOf(colors),
+              ),
           Text(
-            '응답 ${item.voteCount}명',
+            hasVotes ? '응답 ${item.voteCount}명' : '아직 응답이 없어요',
             style: PassqlTypography.caption.copyWith(
               color: colors.secondaryLabel,
             ),

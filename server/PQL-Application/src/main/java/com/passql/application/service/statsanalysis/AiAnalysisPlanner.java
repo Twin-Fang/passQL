@@ -4,6 +4,7 @@ import com.passql.ai.constant.AiFindingKind;
 import com.passql.ai.dto.AiAnalysisFinding;
 import com.passql.ai.dto.AiAnalysisStrength;
 import com.passql.ai.dto.AiStatsAnalysis;
+import com.passql.submission.constant.MockExamSubject;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -35,6 +36,10 @@ public final class AiAnalysisPlanner {
     // 판정 기간 표기 (StatsAnalysisDataLoader 의 90일 누적과 같은 값)
     static final String PERIOD_LABEL = "최근 " + StatsAnalysisDataLoader.ANALYSIS_STATS_RECENT_DAYS + "일 기준";
 
+    // 한 줄 요약 과목 표기
+    static final String SUBJECT_ONE_SHORT_NAME = "1과목";
+    static final String SUBJECT_TWO_SHORT_NAME = "2과목";
+
     static final String HEADLINE_NO_HISTORY = "아직 풀이 기록이 없어요";
     static final String HEADLINE_NOT_ENOUGH_DATA = "아직 진단할 풀이가 부족해요";
 
@@ -57,7 +62,7 @@ public final class AiAnalysisPlanner {
                 ? AiAnalysisNextStepPlanner.selectUntouchedTopic(topicStats)
                 : Optional.empty();
         AiStatsAnalysis analysis = new AiStatsAnalysis(
-                examPrefix + toHeadlineBody(focusTopics, input.recentSolvedCount()),
+                examPrefix + toHeadlineBody(topicStats, focusTopics, input.recentSolvedCount()),
                 focusTopics.stream().map(stat -> toFinding(stat, input.conceptTopicUuids())).toList(),
                 toTrendText(input.twoWeekCounts()),
                 selectStrength(topicStats).orElse(null),
@@ -116,7 +121,7 @@ public final class AiAnalysisPlanner {
      */
     static List<TopicLearningStat> selectFocusTopics(List<TopicLearningStat> topicStats, Integer daysUntilExam) {
         List<TopicLearningStat> candidates = new ArrayList<>();
-        // 1과목: 과락 위험
+        // 1과목: 10문항이라 한 문제 비중이 커 먼저 (과락 여부 판정은 ExamForecastCalculator)
         topicStats.stream()
                 .filter(stat -> stat.isSubjectOne() && judge(stat) != TopicJudgement.STABLE)
                 .forEach(candidates::add);
@@ -166,28 +171,40 @@ public final class AiAnalysisPlanner {
         return (daysUntilExam == 0 ? "D-DAY" : "D-" + daysUntilExam) + " · ";
     }
 
-    /** 한 줄 요약 본문: 7일 쉼 > 1과목 > 약점 > 불안정 > 판단 이름 > 모두 안정 순으로 첫 해당 */
-    static String toHeadlineBody(List<TopicLearningStat> focusTopics, long recentSolvedCount) {
+    /**
+     * 한 줄 요약 본문: 7일 쉼 > 과락 위험 과목 > 모두 안정 > 첫 집중 토픽(약점·불안정·판단 이름) 순으로 첫 해당
+     * 과락 여부는 예상 점수와 같은 원본(ExamForecastCalculator > SqldScoreMargin)만 따름 (#1136)
+     */
+    static String toHeadlineBody(List<TopicLearningStat> topicStats, List<TopicLearningStat> focusTopics,
+                                 long recentSolvedCount) {
         if (recentSolvedCount == 0) {
             return "최근 7일 풀이가 없어요";
+        }
+        List<MockExamSubject> failRiskSubjects = ExamForecastCalculator.failRiskSubjectsOf(topicStats);
+        if (!failRiskSubjects.isEmpty()) {
+            return toFailRiskHeadlineBody(failRiskSubjects, topicStats);
         }
         if (focusTopics.isEmpty()) {
             return "모든 토픽이 안정권이에요";
         }
         TopicLearningStat firstFocus = focusTopics.get(0);
-        // 1과목: 5문제 미만은 정답률을 믿지 않아 풀이 수로만 말함
-        if (firstFocus.isSubjectOne()) {
-            if (judge(firstFocus) == TopicJudgement.UNTRIED) {
-                return "1과목 아직 " + firstFocus.solvedCount() + "문제, 과락 위험이 커요";
-            }
-            return "1과목 정답률 " + firstFocus.correctRatePercent() + "%, 과락 위험이 커요";
-        }
-        String shortName = toShortTopicName(firstFocus.displayName());
+        String shortName = firstFocus.isSubjectOne() ? SUBJECT_ONE_SHORT_NAME : toShortTopicName(firstFocus.displayName());
         return switch (judge(firstFocus)) {
             case WEAK -> shortName + " 정답률 " + firstFocus.correctRatePercent() + "%가 가장 급해요";
             case SHAKY -> shortName + " " + firstFocus.correctRatePercent() + "%, 조금만 더 올려요";
             case UNTRIED, STABLE -> shortName + " 아직 " + firstFocus.solvedCount() + "문제, 판단하기 일러요";
         };
+    }
+
+    /** 과락 위험 요약: "2과목 예상 14/40, 과락 위험이 커요" / "두 과목 모두 과락 위험이 커요" */
+    private static String toFailRiskHeadlineBody(List<MockExamSubject> failRiskSubjects, List<TopicLearningStat> topicStats) {
+        if (failRiskSubjects.size() > 1) {
+            return "두 과목 모두 과락 위험이 커요";
+        }
+        MockExamSubject subject = failRiskSubjects.get(0);
+        int expectedCount = ExamForecastCalculator.expectedCorrectCountOf(subject, topicStats).orElse(0);
+        String subjectName = subject == MockExamSubject.SUBJECT_ONE ? SUBJECT_ONE_SHORT_NAME : SUBJECT_TWO_SHORT_NAME;
+        return subjectName + " 예상 " + expectedCount + "/" + subject.getQuestionCount() + ", 과락 위험이 커요";
     }
 
     /** 근거 문구: "20문제 중 9문제 정답 (45%)" / "아직 풀이 0문제" */

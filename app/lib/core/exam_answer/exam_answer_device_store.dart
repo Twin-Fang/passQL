@@ -4,8 +4,9 @@ import 'package:uuid/uuid.dart';
 import '../storage/device_preferences.dart';
 import '../storage/storage_keys.dart';
 
-/// 가채점 기기 저장 (#1075): 기기 토큰(보안 저장소, 기기당 답안지 1장), 회차별 OMR 임시 답안(일반 저장소)
-/// 로그인 여부와 무관하게 같은 토큰 > 로그아웃·다른 계정이어도 이 기기 답안지를 이어 씀
+/// 가채점 기기 저장 (#1075): 답안지 토큰(보안 저장소, 주인당 답안지 1장), 회차별 OMR 임시 답안(일반 저장소)
+/// 주인 2종 (#1136): 로그인 회원 > 회원 uuid 별 키, 비로그인 > 기기 손님 키. 계정이 바뀌면 다른 계정 답이 보이지 않음
+/// 주인 구분 전 옛 키(기기 공용 토큰·임시 답안)는 다른 사람 답일 수 있어 읽지 않음
 class ExamAnswerDeviceStore {
   ExamAnswerDeviceStore([FlutterSecureStorage? secureStorage])
     : _secureStorage = secureStorage ?? const FlutterSecureStorage();
@@ -17,16 +18,19 @@ class ExamAnswerDeviceStore {
     accessibility: KeychainAccessibility.first_unlock,
   );
 
-  String? _cachedClientToken;
+  // 주인 키 > 토큰 (이번 실행 동안 재조회 없이)
+  final Map<String, String> _clientTokenByOwnerKey = {};
 
-  /// 기기 토큰 조회 (없으면 UUID 생성·저장, 보안 저장소 실패 시 이번 실행 동안만 쓰는 값)
-  Future<String> readOrCreateClientToken() async {
-    final cachedToken = _cachedClientToken;
+  /// 주인 토큰 조회 (없으면 UUID 생성·저장, 보안 저장소 실패 시 이번 실행 동안만 쓰는 값)
+  Future<String> readOrCreateClientToken(String? memberUuid) async {
+    final ownerKey = ownerKeyOf(memberUuid);
+    final cachedToken = _clientTokenByOwnerKey[ownerKey];
     if (cachedToken != null) return cachedToken;
+    final tokenKey = '${StorageKeys.examAnswerClientTokenPrefix}$ownerKey';
     String? storedToken;
     try {
       storedToken = await _secureStorage.read(
-        key: StorageKeys.examAnswerClientToken,
+        key: tokenKey,
         iOptions: _iosOptions,
       );
     } catch (_) {
@@ -36,7 +40,7 @@ class ExamAnswerDeviceStore {
     if (storedToken == null) {
       try {
         await _secureStorage.write(
-          key: StorageKeys.examAnswerClientToken,
+          key: tokenKey,
           value: clientToken,
           iOptions: _iosOptions,
         );
@@ -44,23 +48,37 @@ class ExamAnswerDeviceStore {
         // 저장 실패 > 이번 실행 동안 메모리 값만 사용
       }
     }
-    return _cachedClientToken = clientToken;
+    return _clientTokenByOwnerKey[ownerKey] = clientToken;
   }
 
   /// 회차 임시 답안 (없으면 null)
-  Future<String?> readDraftAnswers(String certType, int roundNumber) =>
-      DevicePreferences.readString(_draftKeyOf(certType, roundNumber));
+  Future<String?> readDraftAnswers(
+    String? memberUuid,
+    String certType,
+    int roundNumber,
+  ) => DevicePreferences.readString(
+    draftKeyOf(memberUuid, certType, roundNumber),
+  );
 
   Future<void> saveDraftAnswers(
+    String? memberUuid,
     String certType,
     int roundNumber,
     String answers,
   ) => DevicePreferences.writeString(
-    _draftKeyOf(certType, roundNumber),
+    draftKeyOf(memberUuid, certType, roundNumber),
     answers,
   );
 
-  // 임시 답안 키: exam_answer_draft_SQLD_63
-  static String _draftKeyOf(String certType, int roundNumber) =>
-      '${StorageKeys.examAnswerDraftPrefix}${certType}_$roundNumber';
+  /// 임시 답안 키: exam_answer_owner_draft_member_{uuid}_SQLD_63 / exam_answer_owner_draft_guest_SQLD_63
+  static String draftKeyOf(
+    String? memberUuid,
+    String certType,
+    int roundNumber,
+  ) =>
+      '${StorageKeys.examAnswerOwnerDraftPrefix}${ownerKeyOf(memberUuid)}_${certType}_$roundNumber';
+
+  /// 주인 키: 로그인 member_{회원 uuid}, 비로그인 guest
+  static String ownerKeyOf(String? memberUuid) =>
+      memberUuid == null || memberUuid.isEmpty ? 'guest' : 'member_$memberUuid';
 }

@@ -89,13 +89,13 @@ class AiAnalysisPlannerTest {
         // 판단 가능한 토픽(5문제 이상)이 하나는 있어야 진단 (없으면 데이터 부족 안내)
         TopicLearningStat stableSelect = topic("SELECT 기본", 20, 0.9);
         assertThat(plan(List.of(subjectOne(6, 0.5)), ACTIVE_WEEKS, 7, 0).headline())
-                .isEqualTo("D-7 · 1과목 정답률 50%, 과락 위험이 커요");
+                .isEqualTo("D-7 · 1과목 정답률 50%가 가장 급해요");
         assertThat(plan(List.of(subjectOne(0, 0), stableSelect), NO_RECENT_WEEK, null, 0).headline())
                 .isEqualTo("최근 7일 풀이가 없어요");
         assertThat(plan(List.of(subjectOne(0, 0), stableSelect), ACTIVE_WEEKS, 40, 0).headline())
-                .isEqualTo("1과목 아직 0문제, 과락 위험이 커요");
+                .isEqualTo("1과목 아직 0문제, 판단하기 일러요");
         assertThat(plan(List.of(subjectOne(3, 0.33), stableSelect), ACTIVE_WEEKS, null, 0).headline())
-                .isEqualTo("1과목 아직 3문제, 과락 위험이 커요");
+                .isEqualTo("1과목 아직 3문제, 판단하기 일러요");
         assertThat(plan(List.of(subjectOne(20, 0.9), topic("조인 (JOIN)", 20, 0.45)), ACTIVE_WEEKS, null, 0).headline())
                 .isEqualTo("조인 정답률 45%가 가장 급해요");
         assertThat(plan(List.of(subjectOne(20, 0.9), topic("서브쿼리", 10, 0.7)), ACTIVE_WEEKS, null, 0).headline())
@@ -104,6 +104,20 @@ class AiAnalysisPlannerTest {
                 .isEqualTo("조인 아직 3문제, 판단하기 일러요");
         assertThat(plan(List.of(subjectOne(20, 0.9)), ACTIVE_WEEKS, null, 0).headline())
                 .isEqualTo("모든 토픽이 안정권이에요");
+    }
+
+    @Test
+    void 한_줄_요약의_과락_판정은_예상_점수와_같은_과목을_가리킨다() {
+        // 1과목 57% > 예상 6/10 (과락 아님), 2과목 35% > 예상 14/40 (과락) (#1136 재검수 사례)
+        AiStatsAnalysis analysis = plan(List.of(
+                subjectOne(23, 0.57), topic("조인 (JOIN)", 20, 0.35), topic("서브쿼리", 20, 0.35)), ACTIVE_WEEKS, null, 0);
+
+        assertThat(analysis.headline()).isEqualTo("2과목 예상 14/40, 과락 위험이 커요");
+        assertThat(analysis.forecast().isSubjectOneFailRisk()).isFalse();
+        assertThat(analysis.forecast().isSubjectTwoFailRisk()).isTrue();
+        // 2과목 근거 부족이어도 1과목만으로 과락 판정
+        assertThat(plan(List.of(subjectOne(10, 0.3)), ACTIVE_WEEKS, null, 0).headline())
+                .isEqualTo("1과목 예상 3/10, 과락 위험이 커요");
     }
 
     @Test

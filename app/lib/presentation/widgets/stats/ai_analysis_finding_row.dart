@@ -6,44 +6,36 @@ import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../question/markdown_lite_text.dart';
 
-/// 약한 토픽 한 줄 (#861, #862): 판정 칩 + 토픽 이름 + (선택) 개념 보기 › > 숫자 근거 > (선택) AI 오답 패턴
-/// 개념 보기는 서버가 열 수 있는 단원을 알려 줄 때만 (같은 토픽의 개념 학습 단원)
+/// 약한 토픽 한 줄 (#861, #862): 토픽 이름 + (선택) 개념 보기 › > 판정 의미색 글자 | 숫자 근거 > (선택) AI 오답 패턴
+/// 판정은 칩 없이 글자색만 (DEC-0116, #1136). 개념 보기는 서버가 열 수 있는 단원을 알려 줄 때만
 class AiAnalysisFindingRow extends StatelessWidget {
   const AiAnalysisFindingRow({super.key, required this.finding});
 
   final AiAnalysisFinding finding;
 
-  /// 판정 > 칩 (문구, 의미, 아이콘). 모르는 판정은 칩 없음
-  static (String text, PassqlBadgeKind kind, IconData? icon)? chipOf(
+  /// 판정 > (문구, 글자색): 약점 빨강, 불안정 주황, 판단 이름 회색. 모르는 판정은 표시 없음
+  static (String text, Color color)? verdictOf(
     AiFindingKind kind,
+    PassqlColors colors,
   ) => switch (kind) {
-    AiFindingKind.weak => ('약점', PassqlBadgeKind.important, null),
-    // warning 기본 아이콘(불꽃)은 연속 학습 전용 > 불안정은 삼각 경고
-    AiFindingKind.shaky => (
-      '불안정',
-      PassqlBadgeKind.warning,
-      CupertinoIcons.exclamationmark_triangle_fill,
-    ),
-    AiFindingKind.untried => ('판단 이름', PassqlBadgeKind.neutral, null),
+    AiFindingKind.weak => ('약점', colors.wrongText),
+    AiFindingKind.shaky => ('불안정', colors.warningText),
+    AiFindingKind.untried => ('판단 이름', colors.secondaryLabel),
     AiFindingKind.unknown => null,
   };
 
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
-    final chip = chipOf(finding.kind);
+    final verdict = verdictOf(finding.kind, colors);
     final insight = finding.insight;
     final conceptTopicUuid = finding.conceptTopicUuid;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 판정 칩 + 토픽 이름
+        // 토픽 이름 + 개념 보기
         Row(
           children: [
-            if (chip != null) ...[
-              PassqlBadge(text: chip.$1, kind: chip.$2, icon: chip.$3),
-              const SizedBox(width: PassqlSpacing.xs),
-            ],
             Expanded(
               child: Text(
                 finding.topicName,
@@ -63,11 +55,25 @@ class AiAnalysisFindingRow extends StatelessWidget {
               ),
           ],
         ),
-        // 숫자 근거 (예: 6문제 중 3문제 정답 (50%))
-        if (finding.evidence.isNotEmpty) ...[
+        // 판정 글자 | 숫자 근거 (예: 약점 | 6문제 중 3문제 정답 (50%))
+        if (verdict != null || finding.evidence.isNotEmpty) ...[
           const SizedBox(height: PassqlSpacing.xxs),
-          Text(
-            finding.evidence,
+          Text.rich(
+            TextSpan(
+              children: [
+                if (verdict != null)
+                  TextSpan(
+                    text: verdict.$1,
+                    style: PassqlTypography.footnoteSemibold.copyWith(
+                      color: verdict.$2,
+                    ),
+                  ),
+                if (verdict != null && finding.evidence.isNotEmpty)
+                  const TextSpan(text: ' | '),
+                if (finding.evidence.isNotEmpty)
+                  TextSpan(text: finding.evidence),
+              ],
+            ),
             style: PassqlTypography.footnote.copyWith(
               color: colors.secondaryLabel,
             ),
