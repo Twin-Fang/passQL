@@ -7,7 +7,7 @@ abstract final class PushDataKeys {
   static const String questionUuid = 'questionUuid';
 }
 
-/// 알림 탭 시 이동 화면 허용 목록 6종 (서버 PushLinkTarget 이름과 1:1)
+/// 알림 탭 시 이동 화면 허용 목록 7종 (서버 PushLinkTarget 이름과 1:1)
 enum PushLinkTarget {
   home('HOME'),
   dailySet('DAILY_SET'),
@@ -15,7 +15,9 @@ enum PushLinkTarget {
   questionDetail('QUESTION_DETAIL'),
   stats('STATS'),
   // 시험 일정 화면 (#991)
-  examSchedule('EXAM_SCHEDULE');
+  examSchedule('EXAM_SCHEDULE'),
+  // 모의고사 회차 목록 (FINAL 공개 알림, #1084)
+  mockExam('MOCK_EXAM');
 
   const PushLinkTarget(this.serverValue);
 

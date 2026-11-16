@@ -7,6 +7,7 @@ import '../presentation/flows/bookmark_flow.dart';
 import '../presentation/flows/daily_set_flow.dart';
 import '../presentation/flows/daily_set_retry_flow.dart';
 import '../presentation/flows/hardest_flow.dart';
+import '../presentation/flows/mock_exam_study_flow.dart';
 import '../presentation/flows/question_flow.dart';
 import '../presentation/flows/concept_related_flow.dart';
 import '../presentation/flows/random_practice_flow.dart';
@@ -35,6 +36,7 @@ import '../presentation/pages/mock_exam/mock_exam_guide_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_result_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_review_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_round_list_page.dart';
+import '../presentation/pages/study_guide/study_guide_page.dart';
 import '../presentation/pages/mock_exam/mock_exam_solving_page.dart';
 import '../presentation/pages/login/login_page.dart';
 import '../presentation/pages/onboarding/onboarding_celebration_page.dart';
@@ -399,8 +401,7 @@ abstract final class AppRouter {
         builder: (_, state) => ChapterPage(
           flow: DailySetFlow(
             isOnboarding:
-                state.uri.queryParameters[AppRoutes
-                    .dailySetOnboardingQuery] ==
+                state.uri.queryParameters[AppRoutes.dailySetOnboardingQuery] ==
                 'true',
           ),
         ),
@@ -494,7 +495,17 @@ abstract final class AppRouter {
       GoRoute(
         path: AppRoutes.mockExams,
         parentNavigatorKey: _rootKey,
-        builder: (_, _) => const MockExamRoundListPage(),
+        builder: (_, state) => MockExamRoundListPage(
+          isPastExamTabInitiallySelected:
+              state.uri.queryParameters[AppRoutes.mockExamTabQuery] ==
+              AppRoutes.mockExamPastTabQueryValue,
+        ),
+      ),
+      // 풀스크린: 학습 가이드 (#1078)
+      GoRoute(
+        path: AppRoutes.studyGuide,
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const StudyGuidePage(),
       ),
       GoRoute(
         path: AppRoutes.mockExamGuidePattern,
@@ -502,6 +513,18 @@ abstract final class AppRouter {
         builder: (_, state) => MockExamGuidePage(
           roundUuid:
               state.pathParameters[AppRoutes.mockExamRoundUuidParameter]!,
+        ),
+      ),
+      // 모의고사 학습 모드 (#1084): extra 회차 제목 (없으면 기본 이름)
+      GoRoute(
+        path: AppRoutes.mockExamStudyPattern,
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => ChapterPage(
+          flow: MockExamStudyFlow(
+            roundUuid:
+                state.pathParameters[AppRoutes.mockExamRoundUuidParameter]!,
+            roundTitle: state.extra is String ? state.extra! as String : '모의고사',
+          ),
         ),
       ),
       GoRoute(

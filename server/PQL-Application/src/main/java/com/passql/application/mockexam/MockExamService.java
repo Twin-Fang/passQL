@@ -8,6 +8,7 @@ import com.passql.submission.dto.mockexam.MockExamAnswerSaveResponse;
 import com.passql.submission.dto.mockexam.MockExamHistoryResponse;
 import com.passql.submission.dto.mockexam.MockExamResultResponse;
 import com.passql.submission.dto.mockexam.MockExamRoundListResponse;
+import com.passql.submission.dto.mockexam.MockExamStudySetResponse;
 import com.passql.submission.dto.mockexam.MockExamSheetResponse;
 import com.passql.submission.dto.mockexam.MockExamSubmitRequest;
 import com.passql.submission.service.MockExamAttemptService;
@@ -31,6 +32,11 @@ public class MockExamService {
 
     public MockExamRoundListResponse getRounds(UUID memberUuid) {
         return roundQueryService.getRoundList(memberUuid, canUseAllRounds(memberUuid));
+    }
+
+    /** 학습 모드 문항 (#1084): 시험 번호 순서 문제 uuid */
+    public MockExamStudySetResponse getStudySet(UUID memberUuid, UUID roundUuid) {
+        return roundQueryService.getStudySet(memberUuid, roundUuid, canUseAllRounds(memberUuid));
     }
 
     /** 시작 또는 이어 풀기 > 시험지 */

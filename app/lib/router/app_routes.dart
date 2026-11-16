@@ -267,6 +267,17 @@ abstract final class AppRoutes {
   /// 회차 목록. 홈 모의고사 구간·문제 탭 모의고사 행에서 진입
   static const String mockExams = '/mock-exams';
 
+  /// 회차 목록 처음 탭 쿼리 (#1078): past = 기출 복원 탭 (없으면 모의고사 탭)
+  static const String mockExamTabQuery = 'tab';
+  static const String mockExamPastTabQueryValue = 'past';
+
+  /// 회차 목록 기출 복원 탭으로 열기. 학습 가이드 1·2단계에서 진입
+  static const String mockExamsPastTab =
+      '$mockExams?$mockExamTabQuery=$mockExamPastTabQueryValue';
+
+  /// 학습 가이드 (#1078): 단계별 추천 순서와 바로가기. 홈·문제 탭·프로필에서 진입
+  static const String studyGuide = '/study-guide';
+
   /// 라우터 정의용 시험 안내 경로 패턴: /mock-exams/rounds/:roundUuid
   static const String mockExamGuidePattern =
       '$mockExams/rounds/:$mockExamRoundUuidParameter';
@@ -274,6 +285,13 @@ abstract final class AppRoutes {
   /// 시험 안내 (시작 확인). 회차 목록에서 진입
   static String mockExamGuide(String roundUuid) =>
       '$mockExams/rounds/$roundUuid';
+
+  /// 라우터 정의용 학습 모드 경로 패턴: /mock-exams/rounds/:roundUuid/study (#1084)
+  static const String mockExamStudyPattern = '$mockExamGuidePattern/study';
+
+  /// 학습 모드 풀이 (extra: 회차 제목). 시험 안내에서 진입
+  static String mockExamStudy(String roundUuid) =>
+      '${mockExamGuide(roundUuid)}/study';
 
   /// 라우터 정의용 풀이 경로 패턴: /mock-exams/attempts/:attemptUuid
   static const String mockExamAttemptPattern =

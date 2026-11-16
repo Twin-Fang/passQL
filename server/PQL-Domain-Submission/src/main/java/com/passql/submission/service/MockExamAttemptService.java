@@ -75,7 +75,9 @@ public class MockExamAttemptService {
     @Transactional
     public UUID startOrResume(UUID memberUuid, UUID roundUuid, boolean isPro) {
         MockExamRound round = paperLoader.getRound(roundUuid);
-        if (round.getStatus() != MockExamRoundStatus.PUBLISHED) {
+        // 미공개, 아직 안 열린 FINAL (시험일 3일 전부터, #1084) > 없는 회차
+        if (round.getStatus() != MockExamRoundStatus.PUBLISHED
+            || !MockExamFinalRoundSchedule.isOpen(round, LocalDateTime.now(clock).toLocalDate())) {
             throw new CustomException(ErrorCode.MOCK_EXAM_ROUND_NOT_FOUND);
         }
         MockExamAttempt inProgressAttempt = findInProgressAttempt(memberUuid);

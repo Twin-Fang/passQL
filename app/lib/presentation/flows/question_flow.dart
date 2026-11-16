@@ -43,6 +43,10 @@ abstract class QuestionFlow {
   Future<ChapterStart> loadStart(WidgetRef ref) async =>
       ChapterStart(questionUuids: await loadQuestionUuids(ref));
 
+  /// 문제 하나 제출할 때마다 (진도 저장이 필요한 흐름만 덮어씀, #1084)
+  /// [correctness] = 지금까지 푼 문제의 정답 여부 (이어 풀기로 시작한 앞 문제 포함)
+  Future<void> onQuestionAnswered(WidgetRef ref, List<bool> correctness) async {}
+
   /// 마지막 문제 제출 후 처리. [sessionUuid] 는 이번 풀이의 세션 식별자다.
   Future<void> onCompleted(
     BuildContext context,

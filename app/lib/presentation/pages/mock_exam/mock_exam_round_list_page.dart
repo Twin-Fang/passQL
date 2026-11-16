@@ -20,11 +20,17 @@ import '../../widgets/mock_exam/mock_exam_trend_section.dart';
 enum _RoundListTab { mock, pastExam }
 
 /// 모의고사 회차 목록 (#866): 세그먼트(모의고사·기출 복원, #1079) > 풀이 중 이어 풀기 > 탭 본문
-/// 모의고사 탭: 예상 합격률 한 줄 > 시험 형식 > 회차(최고 점수·체험·잠금) > 점수 추이, 기출 탭: 연도별 회차
+/// 모의고사 탭: 예상 합격률 한 줄 > 시험 형식 > FINAL(시험 3일 전 공개, #1084) > 회차(최고 점수·체험·잠금) > 점수 추이, 기출 탭: 연도별 회차
 /// 시작 가능 여부·막힌 이유는 서버 판정 그대로
 /// 들어올 때마다 서버 최신 기록으로 다시 받음 (홈·문제 탭이 목록을 붙잡고 있어 앱 밖 응시가 남지 않게, #1035)
 class MockExamRoundListPage extends ConsumerStatefulWidget {
-  const MockExamRoundListPage({super.key});
+  const MockExamRoundListPage({
+    super.key,
+    this.isPastExamTabInitiallySelected = false,
+  });
+
+  /// 처음부터 기출 복원 탭 (학습 가이드 1·2단계 진입, #1078)
+  final bool isPastExamTabInitiallySelected;
 
   @override
   ConsumerState<MockExamRoundListPage> createState() =>
@@ -32,7 +38,9 @@ class MockExamRoundListPage extends ConsumerStatefulWidget {
 }
 
 class _MockExamRoundListPageState extends ConsumerState<MockExamRoundListPage> {
-  _RoundListTab _selectedTab = _RoundListTab.mock;
+  late _RoundListTab _selectedTab = widget.isPastExamTabInitiallySelected
+      ? _RoundListTab.pastExam
+      : _RoundListTab.mock;
 
   @override
   void initState() {
@@ -115,7 +123,7 @@ class _MockExamRoundListPageState extends ConsumerState<MockExamRoundListPage> {
   }
 }
 
-/// 모의고사 탭: 예상 합격률 한 줄 > 시험 형식 > 모의고사 회차 > 점수 추이
+/// 모의고사 탭: 예상 합격률 한 줄 > 시험 형식 > FINAL 회차 > 모의고사 회차 > 점수 추이
 class _MockRoundTab extends StatelessWidget {
   const _MockRoundTab({super.key, required this.roundList});
 
@@ -123,8 +131,17 @@ class _MockRoundTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final finalRounds = roundList.rounds
+        .where((round) => round.roundType == MockExamRoundType.finalRound)
+        .toList()
+        .reversed
+        .toList();
     final mockRounds = roundList.rounds
-        .where((round) => round.roundType != MockExamRoundType.pastExam)
+        .where(
+          (round) =>
+              round.roundType != MockExamRoundType.pastExam &&
+              round.roundType != MockExamRoundType.finalRound,
+        )
         .toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -132,6 +149,28 @@ class _MockRoundTab extends StatelessWidget {
         // 예상 합격률 한 줄 (#1086)
         const ExpectedPassLine(),
         MockExamRuleRows(rule: roundList.examRule),
+        const SizedBox(height: PassqlSpacing.xl),
+        // FINAL: 열린 회차 (최근 시험 대비부터), 없으면 공개 시점 안내 한 줄
+        if (finalRounds.isEmpty)
+          const PassqlCallout(
+            kind: PassqlCalloutKind.accent,
+            icon: CupertinoIcons.flag,
+            label: 'FINAL',
+            child: Text('시험 3일 전에 고난도 FINAL 회차가 열려요. 열리면 알림으로 알려 드릴게요.'),
+          )
+        else
+          PassqlGroupedSection(
+            header: 'FINAL',
+            separatorIndent: MockExamRoundRow.separatorIndent,
+            children: [
+              for (final round in finalRounds)
+                MockExamRoundRow(
+                  round: round,
+                  rule: roundList.examRule,
+                  inProgressAttempt: roundList.inProgressAttempt,
+                ),
+            ],
+          ),
         const SizedBox(height: PassqlSpacing.xl),
         if (mockRounds.isEmpty)
           PassqlStatusView.empty(

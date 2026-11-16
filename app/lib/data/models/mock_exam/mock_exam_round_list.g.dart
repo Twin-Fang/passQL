@@ -131,6 +131,8 @@ _$MockExamRoundSummaryImpl _$$MockExamRoundSummaryImplFromJson(
     json['startBlockReason'],
     unknownValue: MockExamStartBlockReason.unknown,
   ),
+  canStudy: json['canStudy'] as bool? ?? false,
+  averageDifficulty: (json['averageDifficulty'] as num?)?.toDouble(),
   submittedAttemptCount: (json['submittedAttemptCount'] as num).toInt(),
   bestScore: (json['bestScore'] as num?)?.toInt(),
   bestAttemptIsPassed: json['bestAttemptIsPassed'] as bool?,
@@ -160,6 +162,8 @@ Map<String, dynamic> _$$MockExamRoundSummaryImplToJson(
   'canStart': instance.canStart,
   'startBlockReason':
       _$MockExamStartBlockReasonEnumMap[instance.startBlockReason],
+  'canStudy': instance.canStudy,
+  'averageDifficulty': instance.averageDifficulty,
   'submittedAttemptCount': instance.submittedAttemptCount,
   'bestScore': instance.bestScore,
   'bestAttemptIsPassed': instance.bestAttemptIsPassed,
@@ -171,6 +175,7 @@ Map<String, dynamic> _$$MockExamRoundSummaryImplToJson(
 const _$MockExamRoundTypeEnumMap = {
   MockExamRoundType.mock: 'MOCK',
   MockExamRoundType.pastExam: 'PAST_EXAM',
+  MockExamRoundType.finalRound: 'FINAL',
   MockExamRoundType.unknown: 'unknown',
 };
 

@@ -7,6 +7,7 @@ import com.passql.submission.dto.mockexam.MockExamAnswerSaveResponse;
 import com.passql.submission.dto.mockexam.MockExamHistoryResponse;
 import com.passql.submission.dto.mockexam.MockExamResultResponse;
 import com.passql.submission.dto.mockexam.MockExamRoundListResponse;
+import com.passql.submission.dto.mockexam.MockExamStudySetResponse;
 import com.passql.submission.dto.mockexam.MockExamSheetResponse;
 import com.passql.submission.dto.mockexam.MockExamSubmitRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,6 +27,14 @@ public interface MockExamControllerDocs {
   @Operation(summary = "회차 목록",
       description = "시험 형식(examRule), 풀이 중 응시(이어 풀기), 공개 회차별 시작 가능 여부·막힌 이유·최고 점수·마지막 응시. 마감 지난 내 응시는 먼저 채점.")
   ResponseEntity<MockExamRoundListResponse> getRounds(LoginMember loginMember);
+
+  @ApiLogs({
+      @ApiLog(date = "2026.11.16", author = Author.SUHSAECHAN, issueNumber = 1084, description = "모의고사 학습 모드 문항 API 추가"),
+  })
+  @Operation(summary = "학습 모드 문항",
+      description = "회차 50문항의 문제 uuid (시험 번호 순서). 응시 기록을 만들지 않고, 풀이는 문제 상세·제출 기존 경로. "
+          + "PRO 또는 무료 체험·무료 기출 회차만 (아니면 PRO_REQUIRED), 미공개·아직 안 열린 FINAL 은 MOCK_EXAM_ROUND_NOT_FOUND.")
+  ResponseEntity<MockExamStudySetResponse> getStudySet(LoginMember loginMember, UUID roundUuid);
 
   @ApiLogs({
       @ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 866, description = "모의고사 시작·이어 풀기 API 추가"),

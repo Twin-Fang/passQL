@@ -7,6 +7,7 @@ import com.passql.submission.dto.mockexam.AdminMockExamComposeResult;
 import com.passql.submission.dto.mockexam.AdminMockExamEligibleCount;
 import com.passql.submission.dto.mockexam.AdminMockExamItemReplaceRequest;
 import com.passql.submission.dto.mockexam.AdminMockExamItemStat;
+import com.passql.submission.dto.mockexam.AdminMockExamFinalRoundCreateRequest;
 import com.passql.submission.dto.mockexam.AdminMockExamPastRoundCreateRequest;
 import com.passql.submission.dto.mockexam.AdminMockExamPublishCheck;
 import com.passql.submission.dto.mockexam.AdminMockExamRoundDetail;
@@ -18,6 +19,7 @@ import kr.suhsaechan.suhapilog.annotation.ApiLogs;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,6 +40,11 @@ public interface AdminMockExamApiControllerDocs {
         + "보기는 문제의 관리자 고정 세트 우선(없으면 최신 출제 가능 세트, 경고). 공개는 기존 공개 API")
     ResponseEntity<AdminMockExamComposeResult> createPastRound(AdminMockExamPastRoundCreateRequest request);
 
+    @ApiLogs({@ApiLog(date = "2026.11.16", author = Author.SUHSAECHAN, issueNumber = 1084, description = "FINAL 회차 생성 API 추가")})
+    @Operation(summary = "FINAL 회차 생성 (초안)", description = "examDate(대상 시험일)·title·questionUuids 50개(순서 = 시험 번호, 1~10번 1과목). "
+        + "회차 번호는 FINAL 순번 자동. 공개 뒤 시험일 3일 전부터 회원 목록에 보이고, 공개 시 여는 날 09:00 전체 푸시 예약(90일 이내만)")
+    ResponseEntity<AdminMockExamComposeResult> createFinalRound(AdminMockExamFinalRoundCreateRequest request);
+
     @ApiLogs({@ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 866, description = "모의고사 회차 상세 API 추가")})
     @Operation(summary = "회차 상세", description = "50문항 표(토픽·난이도·지문 앞부분·세트 출처·지금 출제 가능 여부), 공개 검사, 응시 수")
     ResponseEntity<AdminMockExamRoundDetail> getRoundDetail(UUID roundUuid);
@@ -52,8 +59,8 @@ public interface AdminMockExamApiControllerDocs {
     ResponseEntity<AdminMockExamPublishCheck> checkPublish(UUID roundUuid);
 
     @ApiLogs({@ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 866, description = "모의고사 회차 공개 API 추가")})
-    @Operation(summary = "공개", description = "공개 검사 통과 필수(실패 400 MOCK_EXAM_PUBLISH_CHECK_FAILED). 공개 뒤 문항 고정")
-    ResponseEntity<Void> publish(UUID roundUuid);
+    @Operation(summary = "공개", description = "공개 검사 통과 필수(실패 400 MOCK_EXAM_PUBLISH_CHECK_FAILED). 공개 뒤 문항 고정. FINAL 은 여는 날 공개 알림 예약(#1084)")
+    ResponseEntity<Void> publish(UUID roundUuid, Principal principal);
 
     @ApiLogs({@ApiLog(date = "2026.11.07", author = Author.SUHSAECHAN, issueNumber = 866, description = "모의고사 회차 보관 API 추가")})
     @Operation(summary = "보관", description = "사용자 목록에서만 뺌. 응시 기록·결과 유지")

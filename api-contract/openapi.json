@@ -2890,7 +2890,7 @@
           },
           "roundType" : {
             "description" : "회차 종류 (MOCK 모의고사, PAST_EXAM 기출 복원, #1079)",
-            "enum" : [ "MOCK", "PAST_EXAM" ],
+            "enum" : [ "MOCK", "PAST_EXAM", "FINAL" ],
             "type" : "string"
           },
           "roundUuid" : {
@@ -3020,6 +3020,26 @@
           }
         },
         "required" : [ "attemptUuid", "questions", "remainingSeconds", "roundNumber", "roundUuid", "status", "title" ],
+        "type" : "object"
+      },
+      "MockExamStudySetResponse" : {
+        "properties" : {
+          "questionUuids" : {
+            "items" : {
+              "format" : "uuid",
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "roundUuid" : {
+            "format" : "uuid",
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "questionUuids", "roundUuid", "title" ],
         "type" : "object"
       },
       "MockExamSubmitRequest" : {
@@ -3945,6 +3965,11 @@
       },
       "RoundSummary" : {
         "properties" : {
+          "averageDifficulty" : {
+            "description" : "문항 평균 난이도 1~5 (#1084)",
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
           "bestAttemptFailReason" : {
             "description" : "최고 점수 응시(동점이면 최근)의 불합격 이유",
             "enum" : [ "NONE", "SUBJECT_FAIL", "TOTAL_SCORE_BELOW" ],
@@ -3961,8 +3986,12 @@
           "canStart" : {
             "type" : "boolean"
           },
+          "canStudy" : {
+            "description" : "학습 모드 가능 (PRO 또는 무료 체험·무료 기출 회차, #1084)",
+            "type" : "boolean"
+          },
           "examDate" : {
-            "description" : "실제 시험일 (PAST_EXAM 만)",
+            "description" : "실제 시험일 (PAST_EXAM), 대상 시험일 (FINAL)",
             "format" : "date",
             "type" : [ "string", "null" ]
           },
@@ -3991,8 +4020,8 @@
             "type" : "integer"
           },
           "roundType" : {
-            "description" : "회차 종류 (MOCK 모의고사, PAST_EXAM 기출 복원, #1079)",
-            "enum" : [ "MOCK", "PAST_EXAM" ],
+            "description" : "회차 종류 (MOCK 모의고사, PAST_EXAM 기출 복원 #1079, FINAL 시험 직전 회차 #1084)",
+            "enum" : [ "MOCK", "PAST_EXAM", "FINAL" ],
             "type" : "string"
           },
           "roundUuid" : {
@@ -4011,7 +4040,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "bestAttemptFailReason", "bestAttemptIsPassed", "bestScore", "canStart", "examDate", "examRoundNumber", "isFreePastExamRound", "isFreeTrialRound", "lastAttempt", "roundNumber", "roundType", "roundUuid", "startBlockReason", "submittedAttemptCount", "title" ],
+        "required" : [ "averageDifficulty", "bestAttemptFailReason", "bestAttemptIsPassed", "bestScore", "canStart", "canStudy", "examDate", "examRoundNumber", "isFreePastExamRound", "isFreeTrialRound", "lastAttempt", "roundNumber", "roundType", "roundUuid", "startBlockReason", "submittedAttemptCount", "title" ],
         "type" : "object"
       },
       "SheetQuestion" : {
@@ -6965,6 +6994,35 @@
           }
         },
         "summary" : "시작 또는 이어 풀기",
+        "tags" : [ "MockExam" ]
+      }
+    },
+    "/api/mock-exams/rounds/{roundUuid}/study-questions" : {
+      "get" : {
+        "description" : "회차 50문항의 문제 uuid (시험 번호 순서). 응시 기록을 만들지 않고, 풀이는 문제 상세·제출 기존 경로. PRO 또는 무료 체험·무료 기출 회차만 (아니면 PRO_REQUIRED), 미공개·아직 안 열린 FINAL 은 MOCK_EXAM_ROUND_NOT_FOUND.",
+        "operationId" : "getStudySet",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "roundUuid",
+          "required" : true,
+          "schema" : {
+            "format" : "uuid",
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MockExamStudySetResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "summary" : "학습 모드 문항",
         "tags" : [ "MockExam" ]
       }
     },

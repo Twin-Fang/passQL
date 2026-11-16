@@ -11,6 +11,7 @@ import '../../design/design.dart';
 import '../../providers/concept_providers.dart';
 import '../../providers/plan_providers.dart';
 import '../../providers/pro_ui_providers.dart';
+import '../../widgets/study_guide/study_guide_entry_row.dart';
 import '../../widgets/ads/ad_native_slot.dart';
 import '../../widgets/exam_trend/concept_ranking_tab_view.dart';
 import '../../widgets/exam_trend/latest_trend_tab_view.dart';
@@ -275,6 +276,8 @@ class _RandomPracticeSection extends ConsumerWidget {
           header: '풀기 방식',
           children: [
             // 크레딧 0 부제·화살표 판정은 홈 행과 같음
+            // 학습 가이드 (#1078)
+            const StudyGuideEntryRow(),
             const RandomPracticeRow(),
             if (hasMockExamRow) const MockExamEntryRow(),
             // 오답률 TOP 은 무료도 목록 공개 (#1080)
@@ -297,6 +300,7 @@ class _CommonShortcutSection extends ConsumerWidget {
     final isOxQuizVisible = ref.watch(isConceptLearningAvailableProvider);
     return PassqlGroupedSection(
       children: [
+        const StudyGuideEntryRow(),
         const MockExamEntryRow(),
         const WrongNotesShortcutRow(),
         const HardestQuestionsEntryRow(),

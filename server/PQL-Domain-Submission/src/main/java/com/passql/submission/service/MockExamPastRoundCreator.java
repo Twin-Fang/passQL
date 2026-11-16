@@ -11,6 +11,7 @@ import com.passql.submission.constant.MockExamRoundStatus;
 import com.passql.submission.constant.MockExamRoundType;
 import com.passql.submission.constant.MockExamSubject;
 import com.passql.submission.dto.mockexam.AdminMockExamComposeResult;
+import com.passql.submission.dto.mockexam.AdminMockExamFinalRoundCreateRequest;
 import com.passql.submission.dto.mockexam.AdminMockExamPastRoundCreateRequest;
 import com.passql.submission.entity.MockExamRound;
 import com.passql.submission.entity.MockExamRoundItem;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +33,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 기출 복원 회차 생성 (#1079): 문제별 출제 세트·과목 조회 > 구성 검증(MockExamPastRoundRule) > 초안 회차·50문항 저장
+ * 문항 순서 고정 회차 생성 2종: 기출 복원(#1079), FINAL(#1084)
+ * 문제별 출제 세트·과목 조회 > 구성 검증(MockExamPastRoundRule) > 초안 회차·50문항 저장
  * 공개·공개 검사는 모의고사와 같은 경로 (MockExamRoundAdminService)
  */
 @Slf4j
@@ -49,9 +52,27 @@ public class MockExamPastRoundCreator {
     private final TopicRepository topicRepository;
     private final MockExamEligibleSetFinder eligibleSetFinder;
 
+    /** 기출 복원 회차: 실제 시험 회차 번호 중복이면 409 */
     @Transactional
     public AdminMockExamComposeResult create(AdminMockExamPastRoundCreateRequest request) {
-        List<UUID> questionUuids = request.questionUuids();
+        boolean isExamRoundNumberTaken = roundRepository.existsByRoundTypeAndRoundNumber(
+            MockExamRoundType.PAST_EXAM, request.examRoundNumber());
+        return createFixedRound(MockExamRoundType.PAST_EXAM, request.examRoundNumber(), isExamRoundNumberTaken,
+            request.examDate(), request.title(), request.questionUuids());
+    }
+
+    /** FINAL 회차: 회차 번호 = FINAL 최대 번호 + 1 */
+    @Transactional
+    public AdminMockExamComposeResult createFinal(AdminMockExamFinalRoundCreateRequest request) {
+        int nextFinalRoundNumber = roundRepository.findMaxRoundNumberByRoundType(MockExamRoundType.FINAL) + 1;
+        return createFixedRound(MockExamRoundType.FINAL, nextFinalRoundNumber, false,
+            request.examDate(), request.title(), request.questionUuids());
+    }
+
+    /** 구성 검증 > 초안 회차·50문항 저장 (문항 순서 = 시험 번호) */
+    private AdminMockExamComposeResult createFixedRound(MockExamRoundType roundType, int roundNumber,
+                                                        boolean isRoundNumberTaken, LocalDate examDate,
+                                                        String title, List<UUID> questionUuids) {
         Map<UUID, QuestionChoiceSet> preferredSetByQuestion = eligibleSetFinder.findPreferredSetByQuestionAmong(
             questionUuids.stream().filter(Objects::nonNull).distinct().toList());
         Map<UUID, Question> questionByUuid = questionRepository.findAllById(preferredSetByQuestion.keySet()).stream()
@@ -59,21 +80,20 @@ public class MockExamPastRoundCreator {
         Map<UUID, MockExamSubject> subjectByEligibleQuestionUuid = toSubjectByQuestion(questionByUuid.values());
 
         // 구성 검증 (회차 번호 중복이면 409, 그 외 400)
-        boolean isExamRoundNumberTaken = roundRepository.existsByRoundTypeAndRoundNumber(
-            MockExamRoundType.PAST_EXAM, request.examRoundNumber());
-        List<String> errors = MockExamPastRoundRule.findCompositionErrors(request.examRoundNumber(),
-            isExamRoundNumberTaken, questionUuids, subjectByEligibleQuestionUuid);
+        List<String> errors = MockExamPastRoundRule.findCompositionErrors(roundNumber,
+            isRoundNumberTaken, questionUuids, subjectByEligibleQuestionUuid);
         if (!errors.isEmpty()) {
-            log.info("[mock exam admin] past round rejected : examRound={}, errors={}", request.examRoundNumber(), errors.size());
-            throw new CustomException(isExamRoundNumberTaken ? ErrorCode.MOCK_EXAM_ROUND_NUMBER_DUPLICATED
+            log.info("[mock exam admin] fixed round rejected : type={}, round={}, errors={}", roundType, roundNumber,
+                errors.size());
+            throw new CustomException(isRoundNumberTaken ? ErrorCode.MOCK_EXAM_ROUND_NUMBER_DUPLICATED
                 : ErrorCode.INVALID_INPUT_VALUE, String.join(ERROR_DELIMITER, errors));
         }
 
         MockExamRound round = roundRepository.save(MockExamRound.builder()
-            .roundNumber(request.examRoundNumber())
-            .roundType(MockExamRoundType.PAST_EXAM)
-            .examDate(request.examDate())
-            .title(request.title().trim())
+            .roundNumber(roundNumber)
+            .roundType(roundType)
+            .examDate(examDate)
+            .title(title.trim())
             .status(MockExamRoundStatus.DRAFT)
             .build());
         List<MockExamRoundItem> items = new ArrayList<>();
@@ -96,8 +116,8 @@ public class MockExamPastRoundCreator {
                 .build());
         }
         roundItemRepository.saveAll(items);
-        log.info("[mock exam admin] past round created : examRound={}, items={}, warnings={}", request.examRoundNumber(),
-            items.size(), warnings.size());
+        log.info("[mock exam admin] fixed round created : type={}, round={}, items={}, warnings={}", roundType,
+            roundNumber, items.size(), warnings.size());
         return new AdminMockExamComposeResult(round.getMockExamRoundUuid(), items.size(), warnings);
     }
 
