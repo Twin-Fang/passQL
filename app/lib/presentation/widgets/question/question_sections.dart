@@ -5,6 +5,7 @@ import '../../../data/models/question/question_schema_table.dart';
 import '../../../data/models/question/sse_event.dart';
 import '../../providers/question_providers.dart';
 import '../../design/design.dart';
+import 'question_figure.dart';
 import 'stem_text.dart';
 
 // 챕터 풀이(ChapterPage)와 단건 풀이(QuestionDetailPage)가 함께 쓰는 문제 화면 조각.
@@ -68,14 +69,19 @@ class QuestionHeader extends StatelessWidget {
   }
 }
 
-/// 문제 지문 카드 (스키마 표도 카드 안 표 자리에, #903)
+/// 문제 지문 카드 (스키마 표도 카드 안 표 자리에, #903), 그림 있으면 지문 아래 (#1132)
+/// 풀이·모의고사·잠금화면 공통
 class QuestionStem extends StatelessWidget {
   final String stem;
   final List<QuestionSchemaTable> schemaTables;
+
+  /// 지문 아래 그림 SVG (없으면 null)
+  final String? figureSvg;
   const QuestionStem({
     super.key,
     required this.stem,
     this.schemaTables = const [],
+    this.figureSvg,
   });
 
   @override
@@ -86,7 +92,16 @@ class QuestionStem extends StatelessWidget {
         vertical: PassqlSpacing.xs,
       ),
       child: PassqlCard(
-        child: StemText(stem, schemaTables: schemaTables),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            StemText(stem, schemaTables: schemaTables),
+            if (figureSvg case final figure? when figure.isNotEmpty) ...[
+              const SizedBox(height: PassqlSpacing.md),
+              QuestionFigure(figureSvg: figure),
+            ],
+          ],
+        ),
       ),
     );
   }

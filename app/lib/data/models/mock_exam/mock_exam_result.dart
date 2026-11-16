@@ -131,6 +131,8 @@ class MockExamQuestionReview with _$MockExamQuestionReview {
     required String questionUuid,
     String? topicName,
     required String stem,
+    // 지문 아래 그림 SVG (ERD 등, 없으면 null, #1132)
+    String? figureSvg,
     String? schemaDisplay,
     @Default([]) List<QuestionSchemaTable> schemaTables,
     @Default([]) List<MockExamChoice> choices,

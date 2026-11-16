@@ -107,6 +107,7 @@ public class QuestionDetailService {
                 question.getExecutionMode(),
                 question.getChoiceSetPolicy(),
                 question.getStem(),
+                question.getFigureSvg(),
                 question.getSchemaDisplay(),
                 question.getSchemaDdl(),
                 question.getSchemaSampleData(),

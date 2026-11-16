@@ -19,6 +19,7 @@ public record QuestionDetail(
     @Schema(nullable = true) ExecutionMode executionMode,
     ChoiceSetPolicy choiceSetPolicy,
     String stem,
+    @Schema(nullable = true, description = "지문 아래 그림 SVG (ERD 등, 없으면 null, #1132)") String figureSvg,
     @Schema(nullable = true) String schemaDisplay,
     @Schema(nullable = true) String schemaDdl,
     @Schema(nullable = true) String schemaSampleData,
@@ -38,14 +39,14 @@ public record QuestionDetail(
     /** 오늘의 세트 무료 체험 표시만 바꾼 사본 (판정은 응용 계층, #992) */
     public QuestionDetail withDailySetFreeTrial(boolean isDailySetFreeTrial) {
         return new QuestionDetail(questionUuid, topicName, subtopicName, difficulty, executionMode, choiceSetPolicy, stem,
-            schemaDisplay, schemaDdl, schemaSampleData, schemaIntent, schemaTables, answerSql, hint, choiceSets,
+            figureSvg, schemaDisplay, schemaDdl, schemaSampleData, schemaIntent, schemaTables, answerSql, hint, choiceSets,
             isLatestTrend, isDailySetFreeTrial, isBookmarked);
     }
 
     /** 즐겨찾기 표시만 바꾼 사본 (즐겨찾기는 제출 도메인, #1082) */
     public QuestionDetail withBookmarked(boolean isBookmarked) {
         return new QuestionDetail(questionUuid, topicName, subtopicName, difficulty, executionMode, choiceSetPolicy, stem,
-            schemaDisplay, schemaDdl, schemaSampleData, schemaIntent, schemaTables, answerSql, hint, choiceSets,
+            figureSvg, schemaDisplay, schemaDdl, schemaSampleData, schemaIntent, schemaTables, answerSql, hint, choiceSets,
             isLatestTrend, isDailySetFreeTrial, isBookmarked);
     }
 

@@ -5,6 +5,7 @@
 import re
 from collections import Counter
 
+from .question_figure import lint_question_figure
 from .constants import (
     ANSWER_POSITION_MINIMUM_SAMPLE,
     ANSWER_POSITION_SHARE_LIMIT,
@@ -52,6 +53,7 @@ def lint_question(question):
     _check_table_matches_data(question, add)
     lint_table_references(question, add)
     _check_order_dependent_expect(question, add)
+    findings += lint_question_figure(question)
     if is_current_schema(question) and 0 < len(get_concepts(question)) < RECOMMENDED_MINIMUM_CONCEPT_COUNT:
         add(SEVERITY_INFO, "trend.concept-combination", "2026 경향: 개념 2~3개 결합 권장 (concepts 1개)")
     return findings

@@ -37,6 +37,8 @@ class MockExamSheetQuestion with _$MockExamSheetQuestion {
     required MockExamSubject subject,
     String? topicName,
     required String stem,
+    // 지문 아래 그림 SVG (ERD 등, 없으면 null, #1132)
+    String? figureSvg,
     String? schemaDisplay,
     @Default([]) List<QuestionSchemaTable> schemaTables,
     @Default([]) List<MockExamChoice> choices,

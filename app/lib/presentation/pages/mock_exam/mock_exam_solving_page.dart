@@ -307,6 +307,7 @@ class _SolvingBody extends StatelessWidget {
                     topicName: question.topicName,
                     stem: question.stem,
                     schemaTables: question.schemaTables,
+                    figureSvg: question.figureSvg,
                     choices: question.choices,
                     isFlagged: answer.isFlagged,
                     choiceStateOf: (choice) =>

@@ -12,6 +12,7 @@ import com.passql.question.constant.ExecutionMode;
 import com.passql.question.dto.*;
 import com.passql.question.dto.AdminQuestionSearchCondition;
 import com.passql.question.entity.Question;
+import com.passql.question.service.QuestionFigureService;
 import com.passql.question.service.AdminQuestionQualityService;
 import com.passql.question.service.QuestionGenerateService;
 import com.passql.question.service.QuestionInternalTagService;
@@ -55,6 +56,7 @@ public class AdminQuestionController {
     private final AdminQuestionQualityService adminQuestionQualityService;
     private final AdminQuestionBulkUpdateService adminQuestionBulkUpdateService;
     private final QuestionInternalTagService questionInternalTagService;
+    private final QuestionFigureService questionFigureService;
 
     @GetMapping
     @AdminPage(menu = AdminMenu.QUESTIONS)
@@ -186,6 +188,18 @@ public class AdminQuestionController {
     public ResponseEntity<Void> deactivate(@PathVariable UUID uuid) {
         adminQuestionDeleteService.deactivateQuestion(uuid);
         return ResponseEntity.ok().build();
+    }
+
+    /** 문제 그림 저장·지움 (JSON body: { "figureSvg": "<svg ...>" }, 빈 값이면 지움, #1132) */
+    @PutMapping("/{uuid}/figure")
+    @ResponseBody
+    public ResponseEntity<Void> updateFigure(@PathVariable UUID uuid, @RequestBody QuestionFigureUpdateRequest request) {
+        questionFigureService.updateFigure(uuid, request.figureSvg());
+        return ResponseEntity.ok().build();
+    }
+
+    /** 문제 그림 요청 (figureSvg null·빈 값 = 그림 지움) */
+    public record QuestionFigureUpdateRequest(String figureSvg) {
     }
 
     /** 최신 경향 지정 후보 (CURATED_ONLY + 고정 OK 세트 보유 활성 문제, schemaIntent 로 양산 원본 대조, #523) */

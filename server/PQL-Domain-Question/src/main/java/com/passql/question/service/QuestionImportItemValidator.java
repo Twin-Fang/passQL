@@ -45,6 +45,13 @@ public class QuestionImportItemValidator {
                     item.executionMode(), "FAIL", null, null, "내부 태그 규칙 위반: " + tagResult.rejectReason(), importAction);
         }
 
+        // 그림 검증 (SVG 모양·크기·금지 요소, #1132)
+        String figureRejectReason = QuestionFigureSvgRule.findRejectReason(item.figureSvg());
+        if (figureRejectReason != null) {
+            return new ImportItemResult(index, stemPreview, item.topicCode(), item.difficulty(),
+                    item.executionMode(), "FAIL", null, null, "그림 규칙 위반: " + figureRejectReason, importAction);
+        }
+
         // 고정 보기 검증 (CURATED_ONLY 필수, #511)
         ChoiceSetPolicy policy = RequestEnumParser.parseOrNull(ChoiceSetPolicy.class, item.choiceSetPolicy());
         ExecutionMode requestedMode = RequestEnumParser.parseOrNull(ExecutionMode.class, item.executionMode());

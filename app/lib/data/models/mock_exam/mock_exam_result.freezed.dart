@@ -1904,7 +1904,9 @@ mixin _$MockExamQuestionReview {
   MockExamSubject get subject => throw _privateConstructorUsedError;
   String get questionUuid => throw _privateConstructorUsedError;
   String? get topicName => throw _privateConstructorUsedError;
-  String get stem => throw _privateConstructorUsedError;
+  String get stem =>
+      throw _privateConstructorUsedError; // 지문 아래 그림 SVG (ERD 등, 없으면 null, #1132)
+  String? get figureSvg => throw _privateConstructorUsedError;
   String? get schemaDisplay => throw _privateConstructorUsedError;
   List<QuestionSchemaTable> get schemaTables =>
       throw _privateConstructorUsedError;
@@ -1937,6 +1939,7 @@ abstract class $MockExamQuestionReviewCopyWith<$Res> {
     String questionUuid,
     String? topicName,
     String stem,
+    String? figureSvg,
     String? schemaDisplay,
     List<QuestionSchemaTable> schemaTables,
     List<MockExamChoice> choices,
@@ -1970,6 +1973,7 @@ class _$MockExamQuestionReviewCopyWithImpl<
     Object? questionUuid = null,
     Object? topicName = freezed,
     Object? stem = null,
+    Object? figureSvg = freezed,
     Object? schemaDisplay = freezed,
     Object? schemaTables = null,
     Object? choices = null,
@@ -2000,6 +2004,10 @@ class _$MockExamQuestionReviewCopyWithImpl<
                 ? _value.stem
                 : stem // ignore: cast_nullable_to_non_nullable
                       as String,
+            figureSvg: freezed == figureSvg
+                ? _value.figureSvg
+                : figureSvg // ignore: cast_nullable_to_non_nullable
+                      as String?,
             schemaDisplay: freezed == schemaDisplay
                 ? _value.schemaDisplay
                 : schemaDisplay // ignore: cast_nullable_to_non_nullable
@@ -2049,6 +2057,7 @@ abstract class _$$MockExamQuestionReviewImplCopyWith<$Res>
     String questionUuid,
     String? topicName,
     String stem,
+    String? figureSvg,
     String? schemaDisplay,
     List<QuestionSchemaTable> schemaTables,
     List<MockExamChoice> choices,
@@ -2079,6 +2088,7 @@ class __$$MockExamQuestionReviewImplCopyWithImpl<$Res>
     Object? questionUuid = null,
     Object? topicName = freezed,
     Object? stem = null,
+    Object? figureSvg = freezed,
     Object? schemaDisplay = freezed,
     Object? schemaTables = null,
     Object? choices = null,
@@ -2109,6 +2119,10 @@ class __$$MockExamQuestionReviewImplCopyWithImpl<$Res>
             ? _value.stem
             : stem // ignore: cast_nullable_to_non_nullable
                   as String,
+        figureSvg: freezed == figureSvg
+            ? _value.figureSvg
+            : figureSvg // ignore: cast_nullable_to_non_nullable
+                  as String?,
         schemaDisplay: freezed == schemaDisplay
             ? _value.schemaDisplay
             : schemaDisplay // ignore: cast_nullable_to_non_nullable
@@ -2151,6 +2165,7 @@ class _$MockExamQuestionReviewImpl implements _MockExamQuestionReview {
     required this.questionUuid,
     this.topicName,
     required this.stem,
+    this.figureSvg,
     this.schemaDisplay,
     final List<QuestionSchemaTable> schemaTables = const [],
     final List<MockExamChoice> choices = const [],
@@ -2175,6 +2190,9 @@ class _$MockExamQuestionReviewImpl implements _MockExamQuestionReview {
   final String? topicName;
   @override
   final String stem;
+  // 지문 아래 그림 SVG (ERD 등, 없으면 null, #1132)
+  @override
+  final String? figureSvg;
   @override
   final String? schemaDisplay;
   final List<QuestionSchemaTable> _schemaTables;
@@ -2206,7 +2224,7 @@ class _$MockExamQuestionReviewImpl implements _MockExamQuestionReview {
 
   @override
   String toString() {
-    return 'MockExamQuestionReview(questionNumber: $questionNumber, subject: $subject, questionUuid: $questionUuid, topicName: $topicName, stem: $stem, schemaDisplay: $schemaDisplay, schemaTables: $schemaTables, choices: $choices, selectedChoiceKey: $selectedChoiceKey, correctChoiceKey: $correctChoiceKey, isCorrect: $isCorrect, explanationSummary: $explanationSummary)';
+    return 'MockExamQuestionReview(questionNumber: $questionNumber, subject: $subject, questionUuid: $questionUuid, topicName: $topicName, stem: $stem, figureSvg: $figureSvg, schemaDisplay: $schemaDisplay, schemaTables: $schemaTables, choices: $choices, selectedChoiceKey: $selectedChoiceKey, correctChoiceKey: $correctChoiceKey, isCorrect: $isCorrect, explanationSummary: $explanationSummary)';
   }
 
   @override
@@ -2222,6 +2240,8 @@ class _$MockExamQuestionReviewImpl implements _MockExamQuestionReview {
             (identical(other.topicName, topicName) ||
                 other.topicName == topicName) &&
             (identical(other.stem, stem) || other.stem == stem) &&
+            (identical(other.figureSvg, figureSvg) ||
+                other.figureSvg == figureSvg) &&
             (identical(other.schemaDisplay, schemaDisplay) ||
                 other.schemaDisplay == schemaDisplay) &&
             const DeepCollectionEquality().equals(
@@ -2248,6 +2268,7 @@ class _$MockExamQuestionReviewImpl implements _MockExamQuestionReview {
     questionUuid,
     topicName,
     stem,
+    figureSvg,
     schemaDisplay,
     const DeepCollectionEquality().hash(_schemaTables),
     const DeepCollectionEquality().hash(_choices),
@@ -2283,6 +2304,7 @@ abstract class _MockExamQuestionReview implements MockExamQuestionReview {
     required final String questionUuid,
     final String? topicName,
     required final String stem,
+    final String? figureSvg,
     final String? schemaDisplay,
     final List<QuestionSchemaTable> schemaTables,
     final List<MockExamChoice> choices,
@@ -2305,7 +2327,9 @@ abstract class _MockExamQuestionReview implements MockExamQuestionReview {
   @override
   String? get topicName;
   @override
-  String get stem;
+  String get stem; // 지문 아래 그림 SVG (ERD 등, 없으면 null, #1132)
+  @override
+  String? get figureSvg;
   @override
   String? get schemaDisplay;
   @override

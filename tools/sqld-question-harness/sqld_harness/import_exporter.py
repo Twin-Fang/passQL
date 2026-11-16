@@ -4,6 +4,7 @@
 """
 from .constants import CHOICE_KEYS
 from .internal_tags import build_internal_tags
+from .question_figure import build_figure_svg
 from .question_schema import get_choices, get_concepts, get_schema_version, get_trend
 
 # 운영 샌드박스는 PostgreSQL > Oracle 기준 검증 문제는 실행 대상 아님 (서버 ExecutionMode)
@@ -21,7 +22,7 @@ def render_stem(question):
 
 
 def to_import_item(question):
-    """문제 YAML > 가져오기 JSON 항목 1건 (v1 필드·순서 + 끝에 internalTags)"""
+    """문제 YAML > 가져오기 JSON 항목 1건 (v1 필드·순서 + 끝에 internalTags, figureSvg #1132)"""
     choices = [
         {
             "choiceKey": CHOICE_KEYS[index],
@@ -46,6 +47,7 @@ def to_import_item(question):
         "answerSql": question.get("answerSql"),
         "choices": choices,
         "internalTags": build_internal_tags(question),
+        "figureSvg": build_figure_svg(question),
     }
 
 
