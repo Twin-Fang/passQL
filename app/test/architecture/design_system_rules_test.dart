@@ -5,7 +5,7 @@ import 'source_scan.dart';
 /// 디자인 시스템 우회 금지 규칙: 화면 코드(pages·widgets·flows)는 토큰과 공통 컴포넌트만 쓴다.
 /// 원본: lib/presentation/design (tokens, components). 새 예외는 [_allowedUsages] 에 이유와 함께 추가
 
-/// 금지 패턴 12종 > 대신 쓸 공통 지점
+/// 금지 패턴 13종 > 대신 쓸 공통 지점
 final _bannedPatterns = <String, (RegExp, String)>{
   'Color(0x': (RegExp(r'Color\(0x'), 'PassqlColors 토큰 (context.passqlColors)'),
   'Colors.white/black': (
@@ -41,6 +41,10 @@ final _bannedPatterns = <String, (RegExp, String)>{
   '투명도 숫자 리터럴': (
     RegExp(r'(withValues\(\s*alpha:|withOpacity\()\s*[0-9.]'),
     'PassqlOpacity 투명도 토큰',
+  ),
+  '난이도 숫자·별 직접 표기': (
+    RegExp(r'''['"]난이도 \$|[★☆]'''),
+    'toDifficultyLabel (쉬움, 보통, 어려움, #1145)',
   ),
   '라우트 문자열 리터럴': (
     RegExp(r'''\.(go|push|pushReplacement|replace)\s*(<[^>]*>)?\(\s*['"]/'''),

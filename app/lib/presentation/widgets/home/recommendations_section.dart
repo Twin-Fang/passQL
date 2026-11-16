@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import '../../../core/utils/question_difficulty.dart';
 import '../../../data/models/home/question_summary.dart';
 import '../../design/design.dart';
 import '../question/stem_text.dart';
@@ -81,6 +82,7 @@ class _QuestionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
+    final difficultyLabel = toDifficultyLabel(question.difficulty);
     return PassqlPressable(
       onTap: onTap,
       child: Column(
@@ -103,8 +105,16 @@ class _QuestionRow extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: PassqlSpacing.xxs),
-          PassqlDifficultyStars(difficulty: question.difficulty),
+          // 난이도: 풀이 머리와 같은 회색 글자 (#1145, 없으면 생략)
+          if (difficultyLabel != null) ...[
+            const SizedBox(height: PassqlSpacing.xxs),
+            Text(
+              difficultyLabel,
+              style: PassqlTypography.footnote.copyWith(
+                color: colors.secondaryLabel,
+              ),
+            ),
+          ],
         ],
       ),
     );

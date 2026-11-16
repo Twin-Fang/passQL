@@ -296,3 +296,6 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-16 16:09 | W8 | lesson 생성 1건(관리자 403 조회 전용 > 세션 만료·CSRF 먼저 확인, 볼트에 기존 교훈 없음) | LSN-0007
 - 2026-11-16 16:09 | W2 | 활성 결정·관련 이슈·관련 교훈·현재 상태 요약 줄 추가, ISS-0535 줄 남은 일 갱신, members 실제 수로 갱신(W10 수정, W11 크기·요약 날짜 경고와 ISS-0535 source 없음 W8 은 보고만) | cluster-question-bank, cluster-practice, cluster-admin, cluster-design-system, cluster-notification, cluster-billing, cluster-security
 - 2026-11-16 16:40 | W4 | 사용자 확인 반영: DEC-0337 그림 문항 지문 기준 확정(그림 있으면 그림으로, 없으면 글로), DEC-0341 FINAL 알림 구매 권유 문구 제거(공개 소식만, PRO 안내는 앱에서) | DEC-0337 DEC-0341
+- 2026-11-16 18:42 | W4 | 충돌 검사: 난이도 글자 3단계 <-> DEC-0303(난이도 별 부품) 충돌, 사용자 추천안 승인으로 신규로 대체(DEC-0303 status·superseded_by만 변경, 카운트업·PK FK·과락 칸은 DEC-0342에 유지) | DEC-0342 DEC-0303
+- 2026-11-16 18:42 | W4 | 결정 생성(앱 난이도 글자 3단계 쉬움·보통·어려움, #1145), ISS-0539 리포트 "사용자 확인 대기" 해소 사실 추가 | DEC-0342 ISS-0539
+- 2026-11-16 18:42 | W2 | DEC-0342 활성 결정 줄 추가·DEC-0303 역사로 이동, members +1 (W11 크기·요약 날짜 경고는 보고만) | cluster-design-system, cluster-practice, cluster-progress-stats

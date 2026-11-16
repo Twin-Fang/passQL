@@ -10,15 +10,15 @@ import 'stem_text.dart';
 
 // 챕터 풀이(ChapterPage)와 단건 풀이(QuestionDetailPage)가 함께 쓰는 문제 화면 조각.
 
-/// 회색 메타 한 줄(난이도 N | 문제 유형 | 최신 경향) + (있으면) 소주제 제목.
-/// 별점·칩 없이 보조 글자 한 줄 (DEC-0116, #1136)
+/// 회색 메타 한 줄(난이도 단계 | 문제 유형 | 최신 경향) + (있으면) 소주제 제목.
+/// 별점·칩 없이 보조 글자 한 줄 (DEC-0116, #1136, #1145)
 class QuestionHeader extends StatelessWidget {
   final QuestionDetail question;
   const QuestionHeader({super.key, required this.question});
 
-  /// 메타 한 줄: "난이도 3 | 개념 문제 | 최신 경향" (최신 경향 반영 문제만 끝 항목, #523)
+  /// 메타 한 줄: "보통 | 개념 문제 | 최신 경향" (난이도 없으면 생략, 최신 경향 반영 문제만 끝 항목, #523)
   static String metaLineOf(QuestionDetail question) => [
-    '난이도 ${toClampedQuestionDifficulty(question.difficulty)}',
+    ?toDifficultyLabel(question.difficulty),
     question.executionMode == 'EXECUTABLE' ? '실행 결과 문제' : '개념 문제',
     if (question.isLatestTrend) '최신 경향',
   ].join(' | ');

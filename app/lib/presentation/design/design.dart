@@ -43,7 +43,6 @@ export 'components/passql_page_slide_switcher.dart';
 export 'components/passql_count_badge.dart';
 export 'components/passql_count_up.dart';
 export 'components/passql_credit_icon.dart';
-export 'components/passql_difficulty_stars.dart';
 export 'components/passql_notification_bell_button.dart';
 export 'components/passql_plan_chip.dart';
 export 'components/passql_pop_in.dart';
