@@ -295,3 +295,4 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-16 16:09 | W4 | decision 생성 5건, 대체 없음: DEC-0337 DEC-0328 과 조건부 공존(「관계를 지문에 글로」와 그림 문항 지문 정리 차이는 사용자 확인 필요, DEC-0328 미변경); DEC-0338 DEC-0332·0116 충돌 없음; DEC-0339 이전 결정 없음; DEC-0340 DEC-0328 충돌 없음; DEC-0341 DEC-0330 보완(대상 유지 확인으로 확인 필요 항목 일부 해소, 광고성 해당 여부는 DEC-0131·0132 기준 여전히 확인 필요) | DEC-0337, DEC-0338, DEC-0339, DEC-0340, DEC-0341
 - 2026-11-16 16:09 | W8 | lesson 생성 1건(관리자 403 조회 전용 > 세션 만료·CSRF 먼저 확인, 볼트에 기존 교훈 없음) | LSN-0007
 - 2026-11-16 16:09 | W2 | 활성 결정·관련 이슈·관련 교훈·현재 상태 요약 줄 추가, ISS-0535 줄 남은 일 갱신, members 실제 수로 갱신(W10 수정, W11 크기·요약 날짜 경고와 ISS-0535 source 없음 W8 은 보고만) | cluster-question-bank, cluster-practice, cluster-admin, cluster-design-system, cluster-notification, cluster-billing, cluster-security
+- 2026-11-16 16:40 | W4 | 사용자 확인 반영: DEC-0337 그림 문항 지문 기준 확정(그림 있으면 그림으로, 없으면 글로), DEC-0341 FINAL 알림 구매 권유 문구 제거(공개 소식만, PRO 안내는 앱에서) | DEC-0337 DEC-0341

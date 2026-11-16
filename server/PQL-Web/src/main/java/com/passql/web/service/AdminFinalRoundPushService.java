@@ -31,8 +31,9 @@ public class AdminFinalRoundPushService {
     // 예약 시각이 지금 + 2분 이내면 즉시 발송 (예약 최소 간격 회피)
     private static final int IMMEDIATE_SEND_THRESHOLD_MINUTES = 2;
     private static final String PUSH_TITLE = "FINAL 모의고사가 열렸어요";
-    // 전체 회원 대상, FINAL 은 PRO 전용이라 본문에서 PRO 로 응시 권유
-    private static final String PUSH_BODY = "시험 직전 고난도 50문항으로 마지막 점검을 해 보세요. PRO로 바로 응시할 수 있어요.";
+    // 전체 회원 대상 서비스 안내 (구매 권유 문구를 넣으면 광고성 정보가 되어 (광고) 표기·수신 동의가 필요)
+    // PRO 안내는 알림을 눌러 들어온 뒤 앱에서 (무료 회원이 FINAL 회차를 누르면 이용권 안내)
+    private static final String PUSH_BODY = "시험 직전 고난도 50문항으로 마지막 점검을 해 보세요.";
 
     private final MemberNotificationService memberNotificationService;
 
