@@ -181,6 +181,9 @@ public class QuestionService {
                                UUID topicUuid, UUID subtopicUuid) {
         Question q = questionRepository.findById(questionUuid)
                 .orElseThrow(() -> new CustomException(ErrorCode.QUESTION_NOT_FOUND));
+        // 관리자 편집 폼(textarea)은 줄바꿈을 CRLF 로 보냄 > 가져오기 원본과 같은 LF 로 저장
+        stem = toLineFeedOnly(stem);
+        hint = toLineFeedOnly(hint);
         // 문항 형식 규칙 (#905): 저장본에 없던 위반 사유가 새로 생기면 거부
         QuestionFormatGate.requireNoNewReasons(
                 QuestionFormatInput.withoutChoices(q.getStem(), q.getHint(), q.getSchemaDdl(), q.getSchemaSampleData(),
@@ -209,4 +212,9 @@ public class QuestionService {
         q.setChoiceSetPolicy(policy);
     }
 
+
+    /** 줄바꿈 CRLF·CR > LF (null 그대로) */
+    private static String toLineFeedOnly(String text) {
+        return text == null ? null : text.replace("\r\n", "\n").replace('\r', '\n');
+    }
 }
