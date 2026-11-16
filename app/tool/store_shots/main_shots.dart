@@ -580,7 +580,26 @@ Object? _respond(RequestOptions o) {
       'comment': 'JOIN 과 서브쿼리 영역의 정답률이 좋아요. 윈도우 함수를 조금만 더 연습하면 합격권이에요!',
       'generatedAt': '2026-10-07T09:00:00',
       'analysis': {
-        'headline': 'D-7 · 1과목 정답률 50%, 과락 위험이 커요',
+        // 서버 판정 원본과 같은 문구 (#1136): 과락은 예상 점수의 과락 과목과 같음
+        'headline': '2과목 예상 14/40, 과락 위험이 커요',
+        'periodLabel': '최근 90일 기준',
+        'forecast': {
+          'expectedScore': 40,
+          'subjectOneExpectedCount': 6,
+          'subjectOneQuestionCount': 10,
+          'isSubjectOneFailRisk': false,
+          'subjectTwoExpectedCount': 14,
+          'subjectTwoQuestionCount': 40,
+          'isSubjectTwoFailRisk': true,
+          'verdict': 'SUBJECT_FAIL_RISK',
+          'verdictLabel': '과락 위험',
+          'summary': '1과목 예상 6/10 · 2과목 예상 14/40',
+          'detail': '2과목 과락을 넘으려면 2문제 더 맞혀야 해요',
+        },
+        'scoreGainTopics': [
+          {'topicUuid': _topics[0][0], 'topicName': _topics[0][2], 'correctRatePercent': 57, 'targetCorrectRatePercent': 75, 'examQuestionCount': 10, 'expectedGainScore': 3.6},
+          {'topicUuid': _topics[7][0], 'topicName': _topics[7][2], 'correctRatePercent': 45, 'targetCorrectRatePercent': 75, 'examQuestionCount': 5, 'expectedGainScore': 3.0},
+        ],
         'findings': [
           {
             'topicUuid': _topics[0][0],

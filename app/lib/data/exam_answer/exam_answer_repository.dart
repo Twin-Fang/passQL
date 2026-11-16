@@ -20,7 +20,7 @@ class ExamAnswerMySheet {
   final ExamAnswerScoreReport report;
 }
 
-/// 가답안·가채점 저장소 (#1075): 공개 API + 기기 토큰·임시 답안
+/// 가답안·가채점 저장소 (#1075): 공개 API + 주인(회원 uuid, 비로그인 null)별 토큰·임시 답안 (#1136)
 /// 채점은 서버 결과 우선, 서버에 닿지 못하면(네트워크·5xx) 가답안으로 기기에서 계산
 class ExamAnswerRepository {
   ExamAnswerRepository(this._examAnswerApi, this._deviceStore);
@@ -42,11 +42,12 @@ class ExamAnswerRepository {
     }
   }
 
-  /// 이 기기 답안지 (제출 전이면 null, 결과가 없으면 가답안으로 계산)
+  /// 이 주인(회원·손님) 답안지 (제출 전이면 null, 결과가 없으면 가답안으로 계산)
   Future<ExamAnswerMySheet?> fetchMySheet(
-    ExamAnswerRoundResponse roundResponse,
-  ) async {
-    final clientToken = await _deviceStore.readOrCreateClientToken();
+    ExamAnswerRoundResponse roundResponse, {
+    required String? memberUuid,
+  }) async {
+    final clientToken = await _deviceStore.readOrCreateClientToken(memberUuid);
     try {
       final sheet = await _examAnswerApi.getSheet(
         roundResponse.certType,
@@ -69,9 +70,10 @@ class ExamAnswerRepository {
   /// 답안 제출 > 채점 (서버에 닿지 못하면 기기 계산, 입력 오류 등 4xx 는 그대로 던짐)
   Future<ExamAnswerMySheet> submitSheet(
     ExamAnswerRoundResponse roundResponse,
-    String answers,
-  ) async {
-    final clientToken = await _deviceStore.readOrCreateClientToken();
+    String answers, {
+    required String? memberUuid,
+  }) async {
+    final clientToken = await _deviceStore.readOrCreateClientToken(memberUuid);
     try {
       final sheet = await _examAnswerApi.submitSheet(
         roundResponse.certType,
@@ -99,14 +101,19 @@ class ExamAnswerRepository {
     }
   }
 
-  Future<String?> readDraftAnswers(String certType, int roundNumber) =>
-      _deviceStore.readDraftAnswers(certType, roundNumber);
+  Future<String?> readDraftAnswers(
+    String certType,
+    int roundNumber, {
+    required String? memberUuid,
+  }) => _deviceStore.readDraftAnswers(memberUuid, certType, roundNumber);
 
   Future<void> saveDraftAnswers(
     String certType,
     int roundNumber,
-    String answers,
-  ) => _deviceStore.saveDraftAnswers(certType, roundNumber, answers);
+    String answers, {
+    required String? memberUuid,
+  }) =>
+      _deviceStore.saveDraftAnswers(memberUuid, certType, roundNumber, answers);
 
   /// 가답안 문항 + 회차 채점 규칙(서버 우선) > 오프라인 결과
   static ExamAnswerScoreReport gradeLocally(
@@ -127,7 +134,7 @@ class ExamAnswerRepository {
       error.isNetwork || (error.statusCode ?? 0) >= 500;
 }
 
-/// 가채점 저장소 (기기 토큰 저장소는 앱 수명 동안 1개 > 토큰 캐시 공유)
+/// 가채점 저장소 (기기 저장소는 앱 수명 동안 1개 > 주인별 토큰 캐시 공유)
 final examAnswerRepositoryProvider = Provider<ExamAnswerRepository>(
   (ref) => ExamAnswerRepository(
     ref.watch(examAnswerApiProvider),

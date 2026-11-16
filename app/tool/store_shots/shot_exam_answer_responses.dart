@@ -37,7 +37,8 @@ Map<String, dynamic> _itemOf(int questionNo) {
       : 'LEADING';
   // 득표: 갈림은 두 보기가 비슷, 미확정은 고르게, 나머지는 한 보기 우세
   final tally = List<int>.filled(4, 0);
-  final voteCount = 412 - questionNo * 3;
+  // 2번: 응답 0명 문항 (펼침 안내 한 줄 확인용, #1136)
+  final voteCount = questionNo == 2 ? 0 : 412 - questionNo * 3;
   if (status == 'DISPUTED') {
     tally[answer - 1] = (voteCount * 0.46).round();
     tally[answer % 4] = (voteCount * 0.41).round();
@@ -48,6 +49,7 @@ Map<String, dynamic> _itemOf(int questionNo) {
   } else {
     tally[answer - 1] = (voteCount * (0.7 + (questionNo % 5) * 0.05)).round();
   }
+  if (voteCount == 0) tally.fillRange(0, 4, 0);
   final remaining = voteCount - tally.fold<int>(0, (sum, count) => sum + count);
   tally[(answer + 1) % 4] += remaining;
   return {
@@ -61,7 +63,7 @@ Map<String, dynamic> _itemOf(int questionNo) {
     'alternativeAnswers': questionNo == 41 ? [answer % 4 + 1] : <int>[],
     'tally': {for (var index = 0; index < 4; index++) '${index + 1}': tally[index]},
     'voteCount': voteCount,
-    'agreementRate': status == 'UNKNOWN' ? 0.25 : tally[answer - 1] / voteCount,
+    'agreementRate': voteCount == 0 ? 0.0 : status == 'UNKNOWN' ? 0.25 : tally[answer - 1] / voteCount,
     'note': status == 'DISPUTED' ? '보기 $answer번과 ${answer % 4 + 1}번 해석이 갈려요. 공식 발표를 기다려 주세요.' : null,
   };
 }

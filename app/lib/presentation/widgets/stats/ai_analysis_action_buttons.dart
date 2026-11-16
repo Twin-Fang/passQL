@@ -12,6 +12,7 @@ import '../../providers/topic_providers.dart';
 /// 통계 AI 분석 바로 풀기 버튼 (#861, #862): 토픽 문제 풀기 > 챕터 흐름, 오답 다시 풀기 > 오답 노트,
 /// 랜덤 풀기 > 랜덤 풀기 풀이, 최신 경향 풀기 > 문제 탭 최신 경향 보기
 /// 이동할 곳을 모르는 버튼(모르는 종류·토픽 목록에 없는 토픽)은 숨김, 남은 버튼이 없으면 자리 없음
+/// 모양: 둘째부터 목록 행(강조색 글자 ›) > 첫 처방 채운 버튼 하나
 class AiAnalysisActionButtons extends ConsumerWidget {
   const AiAnalysisActionButtons({super.key, required this.actions});
 
@@ -30,23 +31,38 @@ class AiAnalysisActionButtons extends ConsumerWidget {
     ];
     if (pressableActions.isEmpty) return const SizedBox.shrink();
 
+    // 첫 처방만 채운 버튼, 나머지는 강조색 글자 목록 행 (버튼 쌓기 대신, DEC-0116 #1136)
+    final primaryAction = pressableActions.first;
+    final secondaryActions = pressableActions.skip(1).toList();
+    final colors = context.passqlColors;
     return Padding(
       padding: const EdgeInsets.only(top: PassqlSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (var index = 0; index < pressableActions.length; index++) ...[
-            if (index > 0) const SizedBox(height: PassqlSpacing.xs),
-            PassqlButton(
-              label: pressableActions[index].$1,
-              onPressed: pressableActions[index].$2,
-              // 첫 버튼(가장 급한 처방)만 채움, 나머지는 옅은 강조
-              variant: index == 0
-                  ? PassqlButtonVariant.filled
-                  : PassqlButtonVariant.tinted,
-              size: PassqlButtonSize.regular,
+          for (final secondaryAction in secondaryActions) ...[
+            Container(height: PassqlSize.hairline, color: colors.separator),
+            PassqlListRow(
+              title: secondaryAction.$1,
+              titleContent: Text(
+                secondaryAction.$1,
+                style: PassqlTypography.body.copyWith(color: colors.accentText),
+              ),
+              hasChevron: true,
+              hasHorizontalPadding: false,
+              onTap: secondaryAction.$2,
             ),
           ],
+          if (secondaryActions.isNotEmpty) ...[
+            Container(height: PassqlSize.hairline, color: colors.separator),
+            const SizedBox(height: PassqlSpacing.md),
+          ],
+          PassqlButton(
+            label: primaryAction.$1,
+            onPressed: primaryAction.$2,
+            variant: PassqlButtonVariant.filled,
+            size: PassqlButtonSize.regular,
+          ),
         ],
       ),
     );

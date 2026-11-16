@@ -71,8 +71,9 @@ abstract final class StorageKeys {
   static const String lockScreenEverEnabled = 'lock_screen_ever_enabled';
   // 잠금화면이 뜬 횟수 (int, 잠금 엔진만 읽고 씀, 문제 3번 > OX 복습 1번 차례 판정, #1110)
   static const String lockScreenShownCount = 'lock_screen_shown_count';
-  // 가채점 OMR 임시 답안 키 접두사 (#1075): {접두사}{시험}_{회차} > 50자 ('1'~'4' 보기, '0' 모름, '.' 미입력)
-  static const String examAnswerDraftPrefix = 'exam_answer_draft_';
+  // 가채점 OMR 임시 답안 키 접두사 (#1136): {접두사}{주인}_{시험}_{회차} > 50자 ('1'~'4' 보기, '0' 모름, '.' 미입력)
+  // 주인: member_{회원 uuid} / guest. 주인 구분 전 옛 키(exam_answer_draft_)는 읽지 않음
+  static const String examAnswerOwnerDraftPrefix = 'exam_answer_owner_draft_';
   // 모의고사 학습 모드 진도 키 접두사 (#1084): {접두사}{회차 uuid} > 앞에서부터 푼 문항 정답 여부 ('1' 정답, '0' 오답)
   static const String mockExamStudyProgressPrefix = 'mock_exam_study_progress_';
   // 학습 모드로 50문항을 끝낸 회차 uuid 목록 (쉼표 구분, 학습 가이드 진행 계산, #1084)
@@ -88,6 +89,7 @@ abstract final class StorageKeys {
   // 로그인 제공자 서버 값 (GOOGLE, APPLE, KAKAO, NAVER, GITHUB)
   static const String sessionAuthProvider = 'auth_provider';
 
-  // 가채점 기기 토큰 UUID (#1075, 세션과 무관해 로그아웃해도 유지 > 재제출이 같은 답안지를 갱신)
-  static const String examAnswerClientToken = 'exam_answer_client_token';
+  // 가채점 답안지 토큰 UUID 키 접두사 (#1136): {접두사}{주인} (member_{회원 uuid} / guest)
+  // 주인별로 유지 > 같은 주인 재제출은 같은 답안지 갱신. 옛 기기 공용 키(exam_answer_client_token)는 읽지 않음
+  static const String examAnswerClientTokenPrefix = 'exam_answer_client_token_';
 }

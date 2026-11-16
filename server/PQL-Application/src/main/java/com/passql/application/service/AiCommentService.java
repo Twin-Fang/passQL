@@ -33,6 +33,9 @@ public class AiCommentService {
     private static final long STATS_CACHE_TTL_HOURS = 24;
     /** 통계 화면 갱신 단위 (최근 풀이 수 10문제마다 새 코멘트, #699) */
     static final int STATS_REFRESH_SOLVED_COUNT = 10;
+    // 통계 분석 응답 형식 버전: 필드·판정 규칙이 바뀌면 올려 예전 캐시를 읽지 않게
+    // v3: 점수 올리기 좋은 영역(scoreGainTopics, #1111) + 한 줄 요약 과락 판정 통일 (#1136)
+    static final String STATS_ANALYSIS_SCHEMA_VERSION = "v3";
     // 캐시 키 날짜 형식 (yyyy-MM-dd)
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     /** 통계 화면 최근 활동 기간 (일) */
@@ -114,10 +117,11 @@ public class AiCommentService {
     }
 
     /**
-     * 통계 코멘트 갱신 구간: 날짜 + 최근 풀이 수 10문제 단위
-     * 예: 23문제 > "2026-10-27:guide-2" (예상 점수·다음 할 일 없는 #861 캐시 "analysis-" 와 겹치지 않게, #862)
+     * 통계 코멘트 갱신 구간: 날짜 + 분석 형식 버전 + 최근 풀이 수 10문제 단위
+     * 예: 23문제 > "2026-10-27:guide-v3-2" (예전 형식 캐시 "analysis-"(#861)·"guide-N"(#862) 와 겹치지 않게)
      */
     static String toStatsRefreshBucket(LocalDate today, long recentCount) {
-        return today.format(DATE_FORMAT) + ":guide-" + (recentCount / STATS_REFRESH_SOLVED_COUNT);
+        return today.format(DATE_FORMAT) + ":guide-" + STATS_ANALYSIS_SCHEMA_VERSION + "-"
+                + (recentCount / STATS_REFRESH_SOLVED_COUNT);
     }
 }
