@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 176
+members: 177
 status: active
 related: []
 ---
@@ -185,3 +185,4 @@ related: []
 - [[ISS-0420-questions-tab-trend-section-layout]] (resolved, GitHub #726) — 문제 탭 경향 화면 구간 개편 (앱)
 - [[ISS-0428-app-profile-tab-redesign]] (resolved, GitHub #749) — 앱 내 프로필 탭 UI/UX 개편 (정보 위계 재구성, passQL PASS 탑승권)
 - [[ISS-0524-exam-answer-screen-no-card-chip-gradient]] (resolved, #1109) — 가답안·가채점 화면(앱·소개 사이트) 칩·그라데이션·카드 중첩을 목록 행·의미색 글자로 정리
+- [[ISS-0539-pro-recheck-fail-risk-headline-exam-answer-owner]] (resolved, #1136) — 프로 계정 재검수 결함 5건: AI 분석 과락 판정 불일치, 가채점 계정 분리, 점수 올리기 영역 캐시, 응답 0명·AI 분석·풀이 머리 정리. 완료 리포트 [[ISS-0539-pro-recheck-fail-risk-headline-exam-answer-owner-report]]
