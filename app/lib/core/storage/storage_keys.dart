@@ -1,4 +1,4 @@
-/// 기기 저장 키 원본 34개: 일반 저장소(DevicePreferences) 28개 + 보안 저장소(TokenStore 5개·가채점 기기 토큰 1개) 6개
+/// 기기 저장 키 원본 37개: 일반 저장소(DevicePreferences) 31개 + 보안 저장소(TokenStore 5개·가채점 기기 토큰 1개) 6개
 /// 값은 기존 설치의 저장 데이터를 읽는 키 > 문자열 값을 바꾸지 않음
 abstract final class StorageKeys {
   // ─── 일반 저장소 (SharedPreferences, 앱 삭제 시 함께 지워짐) ───
@@ -73,6 +73,11 @@ abstract final class StorageKeys {
   static const String lockScreenShownCount = 'lock_screen_shown_count';
   // 가채점 OMR 임시 답안 키 접두사 (#1075): {접두사}{시험}_{회차} > 50자 ('1'~'4' 보기, '0' 모름, '.' 미입력)
   static const String examAnswerDraftPrefix = 'exam_answer_draft_';
+  // 모의고사 학습 모드 진도 키 접두사 (#1084): {접두사}{회차 uuid} > 앞에서부터 푼 문항 정답 여부 ('1' 정답, '0' 오답)
+  static const String mockExamStudyProgressPrefix = 'mock_exam_study_progress_';
+  // 학습 모드로 50문항을 끝낸 회차 uuid 목록 (쉼표 구분, 학습 가이드 진행 계산, #1084)
+  static const String mockExamStudyCompletedRoundUuids =
+      'mock_exam_study_completed_round_uuids';
 
   // ─── 보안 저장소 (Keychain/Keystore, 인증 세션) ───
 

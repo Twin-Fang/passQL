@@ -21,6 +21,7 @@ import '../../widgets/pro/pro_offer_sheet.dart';
 /// 풀이 중 회차면 남은 시간·답한 문항 안내 > 확인 없이 이어 풀기 (#902)
 /// 무료 체험 회차면 "체험 1회", 무료 기출 회차면 "무료" 안내. 기출 복원 회차는 맨 아래 면책 한 줄 (#1079)
 /// 시작 판정은 서버 (거부되면 이용권 안내·문구)
+/// 모드 2개 (#1084): 실전 모드(시작하기), 학습 모드(바로 정답·해설, 학습 가능 회차가 아니면 이용권 안내)
 class MockExamGuidePage extends ConsumerStatefulWidget {
   const MockExamGuidePage({super.key, required this.roundUuid});
 
@@ -66,6 +67,15 @@ class _MockExamGuidePageState extends ConsumerState<MockExamGuidePage> {
         showAppToast(context, exception.message);
       }
     }
+  }
+
+  /// 학습 모드: 학습 가능 회차면 풀이로, 아니면 이용권 안내
+  void _openStudyMode(MockExamRoundSummary round) {
+    if (!round.canStudy) {
+      showProOfferSheet(context, ref);
+      return;
+    }
+    context.push(AppRoutes.mockExamStudy(round.roundUuid), extra: round.title);
   }
 
   @override
@@ -142,6 +152,16 @@ class _MockExamGuidePageState extends ConsumerState<MockExamGuidePage> {
                             ),
                           ),
                         ],
+                        // 모드 안내 (#1084)
+                        const SizedBox(height: PassqlSpacing.lg),
+                        const PassqlCallout(
+                          kind: PassqlCalloutKind.accent,
+                          icon: CupertinoIcons.book,
+                          label: '학습 모드',
+                          child: Text(
+                            '시간 제한 없이 한 문제씩 풀고 바로 정답과 해설, 실행 결과를 확인해요. 푼 곳까지 기억해 두고 점수 기록에는 넣지 않아요.',
+                          ),
+                        ),
                         if (round?.roundType == MockExamRoundType.pastExam) ...[
                           const SizedBox(height: PassqlSpacing.lg),
                           const MockExamPastExamNotice(),
@@ -151,8 +171,15 @@ class _MockExamGuidePageState extends ConsumerState<MockExamGuidePage> {
                   ),
                   PassqlBottomActionBar(
                     actions: [
+                      // 풀이 중 응시가 없을 때만 학습 모드 (실전 이어 풀기 우선)
+                      if (round != null && !isResuming)
+                        PassqlButton(
+                          label: '학습 모드',
+                          variant: PassqlButtonVariant.tinted,
+                          onPressed: () => _openStudyMode(round),
+                        ),
                       PassqlButton(
-                        label: isResuming ? '이어서 풀기' : '시작하기',
+                        label: isResuming ? '이어서 풀기' : '실전 시작',
                         isLoading: _isStarting,
                         onPressed: () => _startOrResume(
                           durationMinutes: roundList.examRule.durationMinutes,

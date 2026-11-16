@@ -4,6 +4,7 @@ import 'package:retrofit/retrofit.dart';
 import '../models/mock_exam/mock_exam_result.dart';
 import '../models/mock_exam/mock_exam_round_list.dart';
 import '../models/mock_exam/mock_exam_sheet.dart';
+import '../models/mock_exam/mock_exam_study_set.dart';
 
 part 'mock_exam_api.g.dart';
 
@@ -15,6 +16,12 @@ abstract class MockExamApiClient {
   /// 회차 목록 (시험 형식·풀이 중 응시·회차별 시작 가능 여부)
   @GET('/mock-exams/rounds')
   Future<MockExamRoundListResponse> getRounds();
+
+  /// 학습 모드 문항 (#1084): 시험 번호 순서 문제 uuid (응시 기록 없음)
+  @GET('/mock-exams/rounds/{roundUuid}/study-questions')
+  Future<MockExamStudySetResponse> getStudySet(
+    @Path('roundUuid') String roundUuid,
+  );
 
   /// 시작 또는 같은 회차 이어 풀기 > 시험지
   @POST('/mock-exams/rounds/{roundUuid}/attempts')

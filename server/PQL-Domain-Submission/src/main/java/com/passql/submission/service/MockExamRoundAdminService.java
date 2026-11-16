@@ -10,6 +10,7 @@ import com.passql.submission.constant.MockExamAttemptStatus;
 import com.passql.submission.constant.MockExamRoundStatus;
 import com.passql.submission.constant.MockExamSubject;
 import com.passql.submission.dto.mockexam.AdminMockExamPublishCheck;
+import com.passql.submission.dto.mockexam.AdminMockExamPublishResult;
 import com.passql.submission.dto.mockexam.AdminMockExamRoundDetail;
 import com.passql.submission.dto.mockexam.AdminMockExamRoundRow;
 import com.passql.submission.entity.MockExamAttempt;
@@ -132,10 +133,10 @@ public class MockExamRoundAdminService {
 
     /** 공개: 초안·보관 회차, 공개 검사 통과 필수 */
     @Transactional
-    public void publish(UUID roundUuid) {
+    public AdminMockExamPublishResult publish(UUID roundUuid) {
         MockExamRound round = paperLoader.getRound(roundUuid);
         if (round.getStatus() == MockExamRoundStatus.PUBLISHED) {
-            return;
+            return new AdminMockExamPublishResult(roundUuid, false, round.getRoundType(), round.getExamDate());
         }
         AdminMockExamPublishCheck publishCheck = publishChecker.check(paperLoader.load(round));
         if (!publishCheck.canPublish()) {
@@ -145,7 +146,8 @@ public class MockExamRoundAdminService {
         if (round.getPublishedAt() == null) {
             round.setPublishedAt(LocalDateTime.now());
         }
-        log.info("[mock exam admin] published : round={}", round.getRoundNumber());
+        log.info("[mock exam admin] published : type={}, round={}", round.getRoundType(), round.getRoundNumber());
+        return new AdminMockExamPublishResult(roundUuid, true, round.getRoundType(), round.getExamDate());
     }
 
     /** 보관: 사용자 목록에서만 뺌 (응시 기록·결과 유지, 풀이 중 응시는 그대로 마감까지) */

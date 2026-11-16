@@ -8,6 +8,7 @@ import java.util.UUID;
  * 회차 시작 판정 (순수): 풀이 중 응시 > 등급 > 무료 기출 회차 > 무료 체험 1회
  * 무료 체험 = 모의고사 회차 중 번호가 가장 작은 회차, 모의고사 응시 기록이 하나라도 있으면 소진 (제출 여부·회차 무관)
  * 무료 기출 = 가장 최근 기출 회차, 체험 횟수와 별개로 늘 시작 가능 (#1079)
+ * 학습 모드 = PRO 또는 무료 체험·무료 기출 회차 (체험 소진·풀이 중 응시와 무관, #1084)
  */
 public final class MockExamAccessRule {
 
@@ -33,5 +34,10 @@ public final class MockExamAccessRule {
             return MockExamStartBlockReason.PRO_REQUIRED;
         }
         return hasAnyMockRoundAttempt ? MockExamStartBlockReason.FREE_TRIAL_USED : null;
+    }
+
+    /** 학습 모드 가능 여부 (문항별 크레딧은 문제 상세 기존 규칙) */
+    public static boolean canStudy(boolean isPro, boolean isFreeTrialRound, boolean isFreePastExamRound) {
+        return isPro || isFreeTrialRound || isFreePastExamRound;
     }
 }

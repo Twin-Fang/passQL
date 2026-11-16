@@ -16,6 +16,7 @@ import '../../providers/home_providers.dart';
 import '../../providers/notification_inbox_providers.dart';
 import '../../providers/pro_ui_providers.dart';
 import '../../providers/unread_notification_providers.dart';
+import '../../widgets/study_guide/study_guide_entry_row.dart';
 import '../../widgets/ads/ad_inline_card.dart';
 import '../../widgets/common/app_toast.dart';
 import '../../widgets/community/community_daily_discussion_card.dart';
@@ -258,6 +259,10 @@ class _HomeContent extends ConsumerWidget {
           hasHorizontalPadding: false,
           shouldShowFreeTrialBadge: nextStep != HomeNextStep.mockExamTrial,
         ),
+      ),
+      // 학습 가이드 (#1078): 단계별 추천 순서
+      const PassqlSection(
+        child: StudyGuideEntryRow(hasHorizontalPadding: false),
       ),
     ];
 

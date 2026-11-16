@@ -1117,7 +1117,7 @@ mixin _$MockExamRoundSummary {
   String get roundUuid => throw _privateConstructorUsedError;
   int get roundNumber => throw _privateConstructorUsedError;
   String get title =>
-      throw _privateConstructorUsedError; // 회차 종류·실제 시험 회차·시험일 (기출 복원만, #1079)
+      throw _privateConstructorUsedError; // 회차 종류·실제 시험 회차(기출만, #1079)·시험일(기출 실제 시험일, FINAL 대상 시험일 #1084)
   @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
   MockExamRoundType get roundType => throw _privateConstructorUsedError;
   int? get examRoundNumber => throw _privateConstructorUsedError;
@@ -1128,7 +1128,10 @@ mixin _$MockExamRoundSummary {
   bool get canStart => throw _privateConstructorUsedError;
   @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
   MockExamStartBlockReason? get startBlockReason =>
-      throw _privateConstructorUsedError;
+      throw _privateConstructorUsedError; // 학습 모드 가능 (PRO 또는 무료 체험·무료 기출 회차, #1084)
+  bool get canStudy =>
+      throw _privateConstructorUsedError; // 문항 평균 난이도 1~5 (#1084)
+  double? get averageDifficulty => throw _privateConstructorUsedError;
   int get submittedAttemptCount => throw _privateConstructorUsedError;
   int? get bestScore => throw _privateConstructorUsedError;
 
@@ -1169,6 +1172,8 @@ abstract class $MockExamRoundSummaryCopyWith<$Res> {
     bool canStart,
     @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
     MockExamStartBlockReason? startBlockReason,
+    bool canStudy,
+    double? averageDifficulty,
     int submittedAttemptCount,
     int? bestScore,
     bool? bestAttemptIsPassed,
@@ -1208,6 +1213,8 @@ class _$MockExamRoundSummaryCopyWithImpl<
     Object? isFreePastExamRound = null,
     Object? canStart = null,
     Object? startBlockReason = freezed,
+    Object? canStudy = null,
+    Object? averageDifficulty = freezed,
     Object? submittedAttemptCount = null,
     Object? bestScore = freezed,
     Object? bestAttemptIsPassed = freezed,
@@ -1256,6 +1263,14 @@ class _$MockExamRoundSummaryCopyWithImpl<
                 ? _value.startBlockReason
                 : startBlockReason // ignore: cast_nullable_to_non_nullable
                       as MockExamStartBlockReason?,
+            canStudy: null == canStudy
+                ? _value.canStudy
+                : canStudy // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            averageDifficulty: freezed == averageDifficulty
+                ? _value.averageDifficulty
+                : averageDifficulty // ignore: cast_nullable_to_non_nullable
+                      as double?,
             submittedAttemptCount: null == submittedAttemptCount
                 ? _value.submittedAttemptCount
                 : submittedAttemptCount // ignore: cast_nullable_to_non_nullable
@@ -1318,6 +1333,8 @@ abstract class _$$MockExamRoundSummaryImplCopyWith<$Res>
     bool canStart,
     @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
     MockExamStartBlockReason? startBlockReason,
+    bool canStudy,
+    double? averageDifficulty,
     int submittedAttemptCount,
     int? bestScore,
     bool? bestAttemptIsPassed,
@@ -1354,6 +1371,8 @@ class __$$MockExamRoundSummaryImplCopyWithImpl<$Res>
     Object? isFreePastExamRound = null,
     Object? canStart = null,
     Object? startBlockReason = freezed,
+    Object? canStudy = null,
+    Object? averageDifficulty = freezed,
     Object? submittedAttemptCount = null,
     Object? bestScore = freezed,
     Object? bestAttemptIsPassed = freezed,
@@ -1402,6 +1421,14 @@ class __$$MockExamRoundSummaryImplCopyWithImpl<$Res>
             ? _value.startBlockReason
             : startBlockReason // ignore: cast_nullable_to_non_nullable
                   as MockExamStartBlockReason?,
+        canStudy: null == canStudy
+            ? _value.canStudy
+            : canStudy // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        averageDifficulty: freezed == averageDifficulty
+            ? _value.averageDifficulty
+            : averageDifficulty // ignore: cast_nullable_to_non_nullable
+                  as double?,
         submittedAttemptCount: null == submittedAttemptCount
             ? _value.submittedAttemptCount
             : submittedAttemptCount // ignore: cast_nullable_to_non_nullable
@@ -1443,6 +1470,8 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
     required this.canStart,
     @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
     this.startBlockReason,
+    this.canStudy = false,
+    this.averageDifficulty,
     required this.submittedAttemptCount,
     this.bestScore,
     this.bestAttemptIsPassed,
@@ -1460,7 +1489,7 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
   final int roundNumber;
   @override
   final String title;
-  // 회차 종류·실제 시험 회차·시험일 (기출 복원만, #1079)
+  // 회차 종류·실제 시험 회차(기출만, #1079)·시험일(기출 실제 시험일, FINAL 대상 시험일 #1084)
   @override
   @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
   final MockExamRoundType roundType;
@@ -1479,6 +1508,13 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
   @override
   @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
   final MockExamStartBlockReason? startBlockReason;
+  // 학습 모드 가능 (PRO 또는 무료 체험·무료 기출 회차, #1084)
+  @override
+  @JsonKey()
+  final bool canStudy;
+  // 문항 평균 난이도 1~5 (#1084)
+  @override
+  final double? averageDifficulty;
   @override
   final int submittedAttemptCount;
   @override
@@ -1495,7 +1531,7 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
 
   @override
   String toString() {
-    return 'MockExamRoundSummary(roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, roundType: $roundType, examRoundNumber: $examRoundNumber, examDate: $examDate, isFreeTrialRound: $isFreeTrialRound, isFreePastExamRound: $isFreePastExamRound, canStart: $canStart, startBlockReason: $startBlockReason, submittedAttemptCount: $submittedAttemptCount, bestScore: $bestScore, bestAttemptIsPassed: $bestAttemptIsPassed, bestAttemptFailReason: $bestAttemptFailReason, lastAttempt: $lastAttempt)';
+    return 'MockExamRoundSummary(roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, roundType: $roundType, examRoundNumber: $examRoundNumber, examDate: $examDate, isFreeTrialRound: $isFreeTrialRound, isFreePastExamRound: $isFreePastExamRound, canStart: $canStart, startBlockReason: $startBlockReason, canStudy: $canStudy, averageDifficulty: $averageDifficulty, submittedAttemptCount: $submittedAttemptCount, bestScore: $bestScore, bestAttemptIsPassed: $bestAttemptIsPassed, bestAttemptFailReason: $bestAttemptFailReason, lastAttempt: $lastAttempt)';
   }
 
   @override
@@ -1522,6 +1558,10 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
                 other.canStart == canStart) &&
             (identical(other.startBlockReason, startBlockReason) ||
                 other.startBlockReason == startBlockReason) &&
+            (identical(other.canStudy, canStudy) ||
+                other.canStudy == canStudy) &&
+            (identical(other.averageDifficulty, averageDifficulty) ||
+                other.averageDifficulty == averageDifficulty) &&
             (identical(other.submittedAttemptCount, submittedAttemptCount) ||
                 other.submittedAttemptCount == submittedAttemptCount) &&
             (identical(other.bestScore, bestScore) ||
@@ -1548,6 +1588,8 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
     isFreePastExamRound,
     canStart,
     startBlockReason,
+    canStudy,
+    averageDifficulty,
     submittedAttemptCount,
     bestScore,
     bestAttemptIsPassed,
@@ -1587,6 +1629,8 @@ abstract class _MockExamRoundSummary implements MockExamRoundSummary {
     required final bool canStart,
     @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
     final MockExamStartBlockReason? startBlockReason,
+    final bool canStudy,
+    final double? averageDifficulty,
     required final int submittedAttemptCount,
     final int? bestScore,
     final bool? bestAttemptIsPassed,
@@ -1603,7 +1647,7 @@ abstract class _MockExamRoundSummary implements MockExamRoundSummary {
   @override
   int get roundNumber;
   @override
-  String get title; // 회차 종류·실제 시험 회차·시험일 (기출 복원만, #1079)
+  String get title; // 회차 종류·실제 시험 회차(기출만, #1079)·시험일(기출 실제 시험일, FINAL 대상 시험일 #1084)
   @override
   @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
   MockExamRoundType get roundType;
@@ -1619,7 +1663,11 @@ abstract class _MockExamRoundSummary implements MockExamRoundSummary {
   bool get canStart;
   @override
   @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
-  MockExamStartBlockReason? get startBlockReason;
+  MockExamStartBlockReason? get startBlockReason; // 학습 모드 가능 (PRO 또는 무료 체험·무료 기출 회차, #1084)
+  @override
+  bool get canStudy; // 문항 평균 난이도 1~5 (#1084)
+  @override
+  double? get averageDifficulty;
   @override
   int get submittedAttemptCount;
   @override

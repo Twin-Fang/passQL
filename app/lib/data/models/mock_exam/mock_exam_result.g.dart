@@ -109,6 +109,7 @@ Map<String, dynamic> _$$MockExamResultResponseImplToJson(
 const _$MockExamRoundTypeEnumMap = {
   MockExamRoundType.mock: 'MOCK',
   MockExamRoundType.pastExam: 'PAST_EXAM',
+  MockExamRoundType.finalRound: 'FINAL',
   MockExamRoundType.unknown: 'unknown',
 };
 

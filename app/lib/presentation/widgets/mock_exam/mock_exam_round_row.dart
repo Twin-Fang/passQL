@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/date_format.dart';
+import '../../../core/utils/question_difficulty.dart';
 import '../../../data/models/mock_exam/mock_exam_enums.dart';
 import '../../../data/models/mock_exam/mock_exam_round_list.dart';
 import '../../../router/app_routes.dart';
@@ -142,17 +143,24 @@ class MockExamRoundRow extends ConsumerWidget {
   /// 무료 배지: 무료 기출은 횟수 제한 없음, 무료 체험은 1회
   String get _freeBadgeText => round.isFreePastExamRound ? '무료' : '무료 1회';
 
-  /// 안 푼 회차 둘째 줄: 모의고사 "50문항 | 90분", 기출 "62회 | 2026.08.22 | 50문항"
+  /// 안 푼 회차 둘째 줄: 모의고사 "50문항 | 90분 | 보통", 기출 "62회 | 2026.08.22 | 50문항 | 보통", FINAL "2027.03.13 시험 대비 | 어려움"
+  /// 끝의 난이도는 회차 문항 평균 (#1084, 없으면 생략)
   String get _ruleText {
-    if (round.roundType != MockExamRoundType.pastExam) {
-      return '${rule.questionCount}문항 | ${rule.durationMinutes}분';
-    }
+    final difficultyLabel = toRoundDifficultyLabel(round.averageDifficulty);
     final examDate = DateTime.tryParse(round.examDate ?? '');
-    return [
-      '${round.examRoundNumber ?? round.roundNumber}회',
-      if (examDate != null) formatDottedDate(examDate),
-      '${rule.questionCount}문항',
-    ].join(' | ');
+    final parts = switch (round.roundType) {
+      MockExamRoundType.pastExam => [
+        '${round.examRoundNumber ?? round.roundNumber}회',
+        if (examDate != null) formatDottedDate(examDate),
+        '${rule.questionCount}문항',
+      ],
+      MockExamRoundType.finalRound => [
+        if (examDate != null) '${formatDottedDate(examDate)} 시험 대비',
+        '${rule.questionCount}문항',
+      ],
+      _ => ['${rule.questionCount}문항', '${rule.durationMinutes}분'],
+    };
+    return [...parts, ?difficultyLabel].join(' | ');
   }
 
   /// 상태 > 둘째 줄 (풀이 중 남은 시간 / 마지막 결과·응시 횟수 / 시험 형식)

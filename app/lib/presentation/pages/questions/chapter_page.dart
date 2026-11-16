@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -127,6 +129,13 @@ class _ChapterPageState extends ConsumerState<ChapterPage>
     ref
         .read(chapterProvider(widget.flow.id).notifier)
         .recordSubmission(submitResult, selectedKey);
+    // 흐름별 진도 저장 (실패해도 풀이는 계속)
+    unawaited(
+      widget.flow.onQuestionAnswered(ref, [
+        for (final result in ref.read(chapterProvider(widget.flow.id)).results)
+          result.isCorrect,
+      ]),
+    );
     refetchNextQuestionDetailIfFree(ref, widget.flow.id);
     addSubmissionExplanationEntry(
       ref,
