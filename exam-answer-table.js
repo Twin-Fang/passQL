@@ -8,10 +8,19 @@
     var config = options.config;
     var getState = options.getState;
     var unknownMark = config.rules.unknownAnswerMark;
+    // 합의율 공개 최소 응답 수 (원본 _src/site_answer_key_content.py MINIMUM_AGREEMENT_VOTE_COUNT, #1126)
+    var minimumAgreementVoteCount = config.rules.minimumAgreementVoteCount || 5;
     var isUncertainItem = options.isUncertainItem;
     var countDecidedItems = options.countDecidedItems;
     var setText = options.setText;
     var showToast = options.showToast;
+
+    // 합의 글자: 득표 0 수집 중(운영 가답안만) / 최소 응답 수 미만 "응답 N명"(1명 = 합의 100% 오해 방지) / 이상 "합의 N%"
+    function formatAgreementText(voteCount, agreementPercent) {
+      if (!voteCount) return "응답 모으는 중";
+      if (voteCount < minimumAgreementVoteCount) return "응답 " + voteCount.toLocaleString("ko-KR") + "명";
+      return "합의 " + agreementPercent + "%";
+    }
 
     function renderAnswerKey() {
       var answerKey = getState().answerKey;
@@ -25,8 +34,7 @@
         row.querySelector("[data-status-label]").textContent = config.statusLabels[item.answerStatus] || config.statusLabels.UNKNOWN;
         var agreementPercent = Math.round(item.agreementRate * 100);
         row.querySelector("[data-agree-fill]").style.width = agreementPercent + "%";
-        // 득표 0: 운영 가답안만 있는 상태 > 합의 0% 대신 수집 중 안내
-        row.querySelector("[data-agree-text]").textContent = item.voteCount ? "합의 " + agreementPercent + "%" : "응답 모으는 중";
+        row.querySelector("[data-agree-text]").textContent = formatAgreementText(item.voteCount, agreementPercent);
         row.querySelector("[data-vote-count]").textContent = item.voteCount ? item.voteCount.toLocaleString("ko-KR") + "명 응답" : "passQL 운영 가답안";
         var topCount = Math.max.apply(null, Object.keys(item.tally).map(function (choice) { return item.tally[choice]; }));
         row.querySelectorAll("[data-tally-choice]").forEach(function (tallyRow) {

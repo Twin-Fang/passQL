@@ -235,6 +235,15 @@ def render_tally_rows(item):
     return "".join(rows)
 
 
+def format_agreement_text(vote_count, agreement_percent):
+    """합의 글자: 응답 0 수집 중 / 최소 응답 수 미만 "응답 N명" / 이상 "합의 N%" (exam-answer-table.js 와 같은 규칙)"""
+    if vote_count <= 0:
+        return "응답 모으는 중"
+    if vote_count < answer_content.MINIMUM_AGREEMENT_VOTE_COUNT:
+        return f"응답 {vote_count}명"
+    return f"합의 {agreement_percent}%"
+
+
 def render_answer_row(item):
     """가답안 1행 (접기): 번호 > 정답 > 상태 > 합의율 > 개념 한 줄 > 내 채점 / 펼치면 보기 분포·메모·앱 연결"""
     question_number = item["questionNo"]
@@ -242,6 +251,7 @@ def render_answer_row(item):
     answer = str(item["answer"]) if item.get("answer") else ""
     status_label = answer_content.ANSWER_STATUS_LABELS.get(status, answer_content.ANSWER_STATUS_LABELS["UNKNOWN"])[0]
     agreement_percent = round((item.get("agreementRate") or 0) * 100)
+    agreement_text = format_agreement_text(item.get("voteCount") or 0, agreement_percent)
     concept_title = item.get("conceptTitle") or "출제 개념 정리 중"
     note_html = escape(item.get("note") or "")
     return f"""
@@ -252,7 +262,7 @@ def render_answer_row(item):
           <span class="ak-main">
             <span class="ak-concept" data-concept>{escape(concept_title)}</span>
             <span class="ak-meta"><span class="ak-status" data-status-label>{escape(status_label)}</span>
-              <span class="ak-agree"><span class="ak-agree-track"><span class="ak-agree-fill" data-agree-fill style="width:{agreement_percent}%"></span></span><span data-agree-text>합의 {agreement_percent}%</span></span></span>
+              <span class="ak-agree"><span class="ak-agree-track"><span class="ak-agree-fill" data-agree-fill style="width:{agreement_percent}%"></span></span><span data-agree-text>{agreement_text}</span></span></span>
           </span>
           <span class="ak-mine" data-mine aria-label="내 답"></span>
           {render_symbol("expand_more", "ak-chevron")}

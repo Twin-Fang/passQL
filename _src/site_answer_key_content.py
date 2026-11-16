@@ -28,6 +28,8 @@ LIVE_REFRESH_SECONDS = 60
 # 문항 답 표기: '0' 모름, '1'~'4' 보기 번호
 CHOICE_COUNT = 4
 UNKNOWN_ANSWER_MARK = "0"
+# 합의율을 보이는 최소 응답 수 (미만이면 "응답 N명"만, 1명 = 합의 100% 오해 방지, 앱 ExamAnswerDisplayRule 과 같은 값, #1126)
+MINIMUM_AGREEMENT_VOTE_COUNT = 5
 
 # 가답안 상태 > (표시 이름, 설명) — 상태 색은 style.css --status-* 토큰
 ANSWER_STATUS_LABELS = {
@@ -78,6 +80,7 @@ def build_scoring_rule():
         "passScore": PASS_SCORE,
         "choiceCount": CHOICE_COUNT,
         "unknownAnswerMark": UNKNOWN_ANSWER_MARK,
+        "minimumAgreementVoteCount": MINIMUM_AGREEMENT_VOTE_COUNT,
         "uncertainStatuses": UNCERTAIN_ANSWER_STATUSES,
         "subjects": subjects,
     }
