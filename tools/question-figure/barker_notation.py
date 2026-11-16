@@ -2,6 +2,9 @@
 관계 끝 표기 4종: "1" 필수 하나, "1?" 선택 하나, "N" 필수 여럿, "N?" 선택 여럿
 """
 
+# 속성 줄 앞 네모
+ATTRIBUTE_BULLET = "□"
+BARKER_ATTRIBUTE_PREFIX = ATTRIBUTE_BULLET + " "
 # 둥근 상자 모서리, 식별 바 위치(끝에서 거리), 까마귀발 크기
 ENTITY_CORNER_RADIUS = 12
 IDENTIFYING_BAR_DISTANCE = 22
@@ -22,8 +25,9 @@ def draw_barker_entity(shape, draw_text, line_color, box_fill, stroke_width, pad
              f'fill="{box_fill}" stroke="{line_color}" stroke-width="{stroke_width}"/>',
              draw_text(x + width / 2, y + 18, shape["title"], anchor="middle", weight="bold")]
     text_y = y + 18 + line_height + 4
+    # 속성 줄 앞 네모 (시험지 바커 표기 관례)
     for line in [*shape.get("pk", []), *shape.get("attrs", [])]:
-        parts.append(draw_text(x + padding_x, text_y, line))
+        parts.append(draw_text(x + padding_x, text_y, f"{ATTRIBUTE_BULLET} {line}"))
         text_y += line_height
     return parts
 

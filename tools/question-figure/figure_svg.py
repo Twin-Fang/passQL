@@ -7,15 +7,17 @@
 """
 import argparse
 import json
+import re
 import sys
 from html import escape
 
-from barker_notation import draw_barker_entity, draw_barker_relation, draw_identifying_bar
+from barker_notation import BARKER_ATTRIBUTE_PREFIX, draw_barker_entity, draw_barker_relation, draw_identifying_bar
 from generic_shapes import draw_arrow, draw_subtype_group
 from mermaid_to_spec import convert_mermaid_to_spec
 
-from figure_style import (BOLD_FONT_FAMILY, BOX_FILL, BOX_PADDING_X, CANVAS_MARGIN, DASH_PATTERN, FONT_FAMILY,
-                          FONT_SIZE, GAP_X, GAP_Y, HEADER_FILL, HEADER_HEIGHT, LINE_COLOR, LINE_HEIGHT,
+from figure_style import (DEPENDENT_ENTITY_CORNER_RADIUS, ENTITY_BOX_PADDING_Y, ENTITY_NAME_GAP, ENTITY_NAME_HEIGHT,
+                          LABEL_OFFSET, BOLD_FONT_FAMILY, BOX_FILL, BOX_PADDING_X, CANVAS_MARGIN, DASH_PATTERN, FONT_FAMILY,
+                          FONT_SIZE, GAP_X, GAP_Y, HEADER_HEIGHT, LINE_COLOR, LINE_HEIGHT,
                           MIN_BOX_WIDTH, STROKE_WIDTH, TEXT_COLOR, TITLE_FONT_SIZE)
 
 # IE 기호 위치: 엔터티 쪽부터 최대 기호, 그 바깥 최소 기호 (엔터티에 가까운 기호 = 최대)
@@ -41,15 +43,40 @@ def measure_text_width(text, font_size=FONT_SIZE):
     return sum(font_size if ord(ch) > 0x2E80 else font_size * 0.6 for ch in text)
 
 
+def to_display_title(title, show_english_names):
+    """상자 제목: 시험지처럼 한글 이름만 ("주문 ORDERS" > "주문"), 영문 병기가 필요한 문항만 그대로"""
+    if show_english_names:
+        return title
+    korean_part = re.split(r"\s+[A-Z][A-Z0-9_]*$", title.strip())[0]
+    return korean_part if re.search(r"[가-힣]", korean_part) else title
+
+
+def to_display_attribute(attribute):
+    """속성 표시: 시험지처럼 외래키는 이름에 붙여 "부서번호(FK)" (명세는 "부서번호 (FK)")"""
+    return attribute.replace(" (FK)", "(FK)")
+
+
+def is_dependent_entity(entity):
+    """부모 식별자를 물려받은 의존 엔터티 (주식별자에 외래키) > 시험지처럼 둥근 모서리"""
+    return any(name.endswith("(FK)") for name in entity.get("pk", []))
+
+
 def build_entity_box(entity):
-    """엔터티 > 상자 크기와 줄 목록 (제목, 주식별자 칸, 일반 속성 칸)"""
-    primary_keys = entity.get("pk", [])
-    attributes = entity.get("attrs", [])
+    """IE 엔터티 > 크기: 상자 위 이름 줄 + 상자(주식별자 칸, 구분선, 일반 속성 칸)
+    바커(divider False)는 이름이 상자 안 맨 위"""
+    primary_keys = [to_display_attribute(name) for name in entity.get("pk", [])]
+    attributes = [to_display_attribute(name) for name in entity.get("attrs", [])]
     lines = [entity["title"], *primary_keys, *attributes]
     width = max([MIN_BOX_WIDTH] + [measure_text_width(line) + BOX_PADDING_X * 2 for line in lines])
-    body_line_count = max(1, len(primary_keys)) + max(1, len(attributes)) if entity.get("divider", True) else max(1, len(primary_keys) + len(attributes))
-    height = HEADER_HEIGHT + body_line_count * LINE_HEIGHT + 8
-    return {"kind": "entity", "width": width, "height": height, **entity}
+    if not entity.get("divider", True):
+        # 바커: 속성 줄 앞 네모만큼 넓힘
+        width += measure_text_width(BARKER_ATTRIBUTE_PREFIX)
+        height = HEADER_HEIGHT + max(1, len(primary_keys) + len(attributes)) * LINE_HEIGHT + 8
+        return {"kind": "entity", "width": width, "height": height, "nameHeight": 0, **entity,
+                "pk": primary_keys, "attrs": attributes}
+    box_height = ENTITY_BOX_PADDING_Y * 2 + (max(1, len(primary_keys)) + max(1, len(attributes))) * LINE_HEIGHT
+    return {"kind": "entity", "width": width, "height": ENTITY_NAME_HEIGHT + box_height, "nameHeight": ENTITY_NAME_HEIGHT,
+            **entity, "pk": primary_keys, "attrs": attributes, "isDependent": is_dependent_entity(entity)}
 
 
 def build_plain_box(box):
@@ -148,38 +175,35 @@ def draw_text(x, y, text, anchor="start", weight="normal", font_size=FONT_SIZE):
             f'font-weight="{weight}" fill="{TEXT_COLOR}" text-anchor="{anchor}">{escape(text)}</text>')
 
 
-def draw_label(points, label):
-    """선 가운데 글자 (흰 바탕 상자로 선 위에 또렷하게)"""
+def draw_label(points, label, canvas_width=None):
+    """선 가운데 옆 글자 (시험지처럼 상자 없이): 가로선이면 선 위, 세로선이면 선 오른쪽(그림 오른쪽 절반이면 왼쪽, 잘림 방지)"""
     middle_index = len(points) // 2
     a, b = points[middle_index - 1], points[middle_index]
     mx, my = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
-    width = measure_text_width(label) + 8
-    return [f'<rect x="{mx - width / 2:.1f}" y="{my - 10:.1f}" width="{width:.1f}" height="18" fill="{BOX_FILL}"/>',
-            draw_text(mx, my + 4, label, anchor="middle", weight="bold")]
+    is_horizontal = abs(b[0] - a[0]) >= abs(b[1] - a[1])
+    if is_horizontal:
+        return [draw_text(mx, my - LABEL_OFFSET, label, anchor="middle", weight="bold")]
+    if canvas_width is not None and mx > canvas_width / 2:
+        return [draw_text(mx - LABEL_OFFSET, my + 4, label, anchor="end", weight="bold")]
+    return [draw_text(mx + LABEL_OFFSET, my + 4, label, anchor="start", weight="bold")]
 
 
 def draw_entity(shape):
-    """엔터티 상자: 머리(이름) > 주식별자 칸 > 구분선 > 일반 속성 칸"""
+    """IE 엔터티 (시험지 모양): 상자 위 이름 > 상자(의존 엔터티는 둥근 모서리) > 주식별자 칸 > 구분선 > 일반 속성 칸"""
     x, y, width, height = shape["x"], shape["y"], shape["width"], shape["height"]
-    parts = [f'<rect x="{x:.1f}" y="{y:.1f}" width="{width:.1f}" height="{height:.1f}" rx="3" fill="{BOX_FILL}" '
-             f'stroke="{LINE_COLOR}" stroke-width="{STROKE_WIDTH}"/>',
-             f'<rect x="{x + 0.7:.1f}" y="{y + 0.7:.1f}" width="{width - 1.4:.1f}" height="{HEADER_HEIGHT - 0.7:.1f}" '
-             f'fill="{HEADER_FILL}"/>',
-             f'<line x1="{x:.1f}" y1="{y + HEADER_HEIGHT:.1f}" x2="{x + width:.1f}" y2="{y + HEADER_HEIGHT:.1f}" '
-             f'stroke="{LINE_COLOR}" stroke-width="{STROKE_WIDTH}"/>',
-             draw_text(x + width / 2, y + 18, shape["title"], anchor="middle", weight="bold", font_size=TITLE_FONT_SIZE)]
-    text_y = y + HEADER_HEIGHT + 16
+    corner_radius = DEPENDENT_ENTITY_CORNER_RADIUS if shape.get("isDependent") else 0
+    parts = [draw_text(x, y - ENTITY_NAME_GAP, shape["title"], weight="bold", font_size=TITLE_FONT_SIZE),
+             f'<rect x="{x:.1f}" y="{y:.1f}" width="{width:.1f}" height="{height:.1f}" rx="{corner_radius}" '
+             f'fill="{BOX_FILL}" stroke="{LINE_COLOR}" stroke-width="{STROKE_WIDTH}"/>']
     primary_keys, attributes = shape.get("pk", []), shape.get("attrs", [])
+    text_y = y + ENTITY_BOX_PADDING_Y + 14
     for line in primary_keys:
         parts.append(draw_text(x + BOX_PADDING_X, text_y, line))
         text_y += LINE_HEIGHT
-    if shape.get("divider", True):
-        if not primary_keys:
-            text_y += LINE_HEIGHT
-        divider_y = text_y - 12
-        parts.append(f'<line x1="{x:.1f}" y1="{divider_y:.1f}" x2="{x + width:.1f}" y2="{divider_y:.1f}" '
-                     f'stroke="{LINE_COLOR}" stroke-width="1"/>')
-        text_y += 4
+    divider_y = y + ENTITY_BOX_PADDING_Y + max(1, len(primary_keys)) * LINE_HEIGHT + ENTITY_BOX_PADDING_Y / 2
+    parts.append(f'<line x1="{x:.1f}" y1="{divider_y:.1f}" x2="{x + width:.1f}" y2="{divider_y:.1f}" '
+                 f'stroke="{LINE_COLOR}" stroke-width="1"/>')
+    text_y = divider_y + ENTITY_BOX_PADDING_Y / 2 + 14
     for line in attributes:
         parts.append(draw_text(x + BOX_PADDING_X, text_y, line))
         text_y += LINE_HEIGHT
@@ -199,7 +223,7 @@ def draw_plain_box(shape):
     return parts
 
 
-def draw_relation(relation, shape_by_id, notation):
+def draw_relation(relation, shape_by_id, notation, label_drawer=draw_label):
     """관계선: IE(실선 식별·점선 비식별 > 양 끝 IE 기호) 또는 바커(끝마다 실선·점선 절반, 식별 바) > 가운데 글자"""
     source, target = shape_by_id[relation["from"]], shape_by_id[relation["to"]]
     points = anchor_points(source, target)
@@ -209,7 +233,7 @@ def draw_relation(relation, shape_by_id, notation):
         if relation.get("identifyingAt"):
             parts += draw_identifying_bar(points, relation["identifyingAt"], LINE_COLOR, STROKE_WIDTH)
         if relation.get("label"):
-            parts += draw_label(points, relation["label"])
+            parts += label_drawer(points, relation["label"])
         return parts
     dash = f' stroke-dasharray="{DASH_PATTERN}"' if relation.get("style") == "dashed" else ""
     path = " ".join(f"{'M' if index == 0 else 'L'}{x:.1f},{y:.1f}" for index, (x, y) in enumerate(points))
@@ -217,7 +241,7 @@ def draw_relation(relation, shape_by_id, notation):
     parts += draw_end_symbols(points[0], unit_vector(points[0], points[1]), relation.get("fromEnd", ""))
     parts += draw_end_symbols(points[-1], unit_vector(points[-1], points[-2]), relation.get("toEnd", ""))
     if relation.get("label"):
-        parts += draw_label(points, relation["label"])
+        parts += label_drawer(points, relation["label"])
     return parts
 
 
@@ -227,17 +251,27 @@ def render_figure(spec):
     entities = spec.get("entities", [])
     if notation == "barker":
         entities = [{**entity, "divider": False} for entity in entities]
+    show_english_names = spec.get("showEnglishNames", False)
+    entities = [{**entity, "title": to_display_title(entity["title"], show_english_names)} for entity in entities]
     shapes = [build_entity_box(entity) for entity in entities]
     shapes += [build_plain_box(box) for box in spec.get("boxes", [])]
     shape_by_id = {shape["id"]: shape for shape in shapes}
     if len(shape_by_id) != len(shapes):
         raise ValueError("상자 id 중복")
     canvas_width, canvas_height = place_on_grid(shapes)
+    for shape in shapes:
+        if shape.get("nameHeight"):
+            shape["y"] += shape["nameHeight"]
+            shape["height"] -= shape["nameHeight"]
+    # 라벨은 그림 폭을 알아야 잘리지 않는 쪽에 놓음
+    def label_drawer(points, label):
+        return draw_label(points, label, canvas_width)
+
     parts = []
     for relation in spec.get("relations", []):
-        parts += draw_relation(relation, shape_by_id, notation)
+        parts += draw_relation(relation, shape_by_id, notation, label_drawer)
     for arrow in spec.get("arrows", []):
-        parts += draw_arrow(arrow, shape_by_id, anchor_points, draw_label)
+        parts += draw_arrow(arrow, shape_by_id, anchor_points, label_drawer)
     for group in spec.get("subtypes", []):
         parts += draw_subtype_group(group, shape_by_id)
     for shape in shapes:
