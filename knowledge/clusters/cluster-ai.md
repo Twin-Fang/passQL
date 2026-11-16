@@ -2,7 +2,7 @@
 type: cluster
 topic: ai
 created: 2026-10-29
-members: 122
+members: 123
 status: active
 related: []
 ---
@@ -58,6 +58,7 @@ AI 서버·LLM 호출·선택지 생성·해설·프롬프트·임베딩
 - [[DEC-0267-ai-retry-fallback-by-error-kind]] — LLM 재시도는 연결 실패·429만, 직접 LLM 대체·서킷·선택지 재시도는 `error_kind`로 판정 (#877)
 - [[DEC-0275-choice-mode-chip-applies-before-submit]]: 보기 방식 칩은 제출 전이면 지금 문제부터, 제출 뒤면 다음 풀이부터, 생성 겹침 없음, 오답 노트에서 숨김, 바꾸는 곳은 풀이 칩과 설정 (#907, #913, DEC-0261 대체)
 - [[DEC-0277-no-dash-middle-dot-server-cleaner]]: 문항과 생성 글에 줄표, 가운뎃점 금지(짝은 용어: 분류, 나열은 쉼표), 프롬프트 맨 앞 규칙 + 서버 ForbiddenPunctuationCleaner, 데이터 표는 스키마 한 곳 (#905)
+- [[DEC-0335-stats-analysis-cache-key-schema-version]] — 통계 AI 분석 캐시 키에 형식 버전(현재 v3), 응답 필드·판정 규칙이 바뀌면 버전을 올림 (#1136, DEC-0042 보완)
 
 ## 대체된 결정 (역사)
 - [[DEC-0087-choice-generation-practice-real-mode]] → DEC-0251
