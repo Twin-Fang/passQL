@@ -281,3 +281,7 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-16 10:04 | W6 | 원본 이슈 본문 보존 3건 (ISS-0535 누락분 포함, W8 수정) | _sources/issues/ISS-0535, ISS-0536, ISS-0537
 - 2026-11-16 10:04 | W4 | decision 생성 3건, 대체 없음: DEC-0329 DEC-0264 와 조건부 공존(실전/학습)·DEC-0328 충돌 없음; DEC-0330 DEC-0264 조건부 공존, DEC-0131·0132 마케팅 푸시 해당 여부 확인 필요로 기록; DEC-0331 DEC-0302·0305·0328 충돌 없음 | DEC-0329, DEC-0330, DEC-0331
 - 2026-11-16 10:04 | W2 | 현재 상태 요약·활성 결정·관련 이슈 줄 추가, members 실제 수로 갱신(W10 수정, W11 크기·요약 날짜 경고는 보고만) | cluster-practice, cluster-billing, cluster-notification, cluster-admin, cluster-home
+- 2026-11-16 14:01 | W6 | issue 1건 생성 + completion-report 1건, ISS-0538 resolved + resolution 연결 (#1126 가답안 SQLD 63회 실기 검수 결함, PR #1127, 릴리스 #1130) | ISS-0538, ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking-report
+- 2026-11-16 14:01 | W6 | 원본 이슈 본문 보존 1건 | _sources/issues/ISS-0538
+- 2026-11-16 14:01 | W4 | decision 생성 2건: DEC-0332 가 DEC-0321 대체(공유 이미지 다크면 앱 배경 > 항상 흰 바탕, 사용자 지시), DEC-0321 status superseded·superseded_by 만 변경; DEC-0333 DEC-0301 과 조건부 공존(빈 답안 제외 보완, 대체 없음) | DEC-0332, DEC-0333, DEC-0321
+- 2026-11-16 14:01 | W2 | 활성 결정·대체된 결정·관련 이슈·현재 상태 요약 줄 추가, members 실제 수로 갱신(W10 수정, W11 크기·요약 날짜 경고는 보고만) | cluster-practice, cluster-design-system, cluster-progress-stats, cluster-admin
