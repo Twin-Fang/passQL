@@ -2,7 +2,7 @@
 type: cluster
 topic: admin
 created: 2026-10-29
-members: 117
+members: 119
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 관리자 Thymeleaf 화면과 관리자 API.
 
 ## 현재 상태 요약
-(2026-11-12) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 프롬프트 키는 `PromptKey` 원본에서 목록을 만들고 수정 때 키를 바꿀 수 없다 — [[DEC-0265-prompt-key-enum-single-source]]. 모의고사 회차는 `/admin/mock-exams` 에서 자동 구성·검수·공개한다 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]]. 문제 등록 선택지 정책 목록(`CURATED_ONLY`·`RESULT_MATCH` 포함)과 설정 카테고리는 단일 원본에서 읽는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 관리자 `/admin/question-format`에서 문항 형식 위반을 사유별로 보고 자동 정리를 미리보기한 뒤 선택 적용한다: [[ISS-0474-question-format-rule-forbidden-punctuation]] (#905, 운영 배포). 지문 표 자동 정리 적용은 #903 앱 보급과 최소 버전 상향 뒤: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림). 관리자 전역 검색은 UUID·회원 번호(PQL-)·`@` 이메일·닉네임을 검색어 모양으로 가른다 — [[DEC-0281-admin-search-at-sign-routes-email]]. (2026-11-12) 시험 일정은 공식 페이지 자동 수집으로 바뀌었고 관리자 시험 일정 화면에 수집 상태·지금 수집·실패 경고가 있다 — [[DEC-0293-exam-schedule-rule-based-auto-sync]](DEC-0108 대체). `/admin/subscriptions`는 결제 관리 탭 5개(실수령액·결제 목록·환불 점검·알림 기록·요약) — [[ISS-0509-admin-billing-payout-app-store-refund-check]], 실수령액 가정은 [[DEC-0296-payout-estimate-krw-vat-fee-settings]]. (2026-11-12) 최소·권장 버전과 결제 켜기 준비(스위치, 미리보기 회원, 점검표)는 `/admin/app-operation` 한 곳에서 바꾸고, 일반 설정 표에서 그 키는 읽기 전용이다 — [[DEC-0308-admin-app-operation-single-entry]].
+(2026-11-12) 관리자 화면의 변경 요청은 `layout.html` 공통 fetch 래퍼를 거친다 — [[DEC-0008-admin-csrf-common-fetch-wrapper]]. 프롬프트 키는 `PromptKey` 원본에서 목록을 만들고 수정 때 키를 바꿀 수 없다 — [[DEC-0265-prompt-key-enum-single-source]]. 모의고사 회차는 `/admin/mock-exams` 에서 자동 구성·검수·공개한다 — [[DEC-0264-mock-exam-fixed-rounds-server-judged]]. 문제 등록 선택지 정책 목록(`CURATED_ONLY`·`RESULT_MATCH` 포함)과 설정 카테고리는 단일 원본에서 읽는다 — [[ISS-0467-server-audit-llm-limit-osiv-choice-set-cache]]. 관리자 `/admin/question-format`에서 문항 형식 위반을 사유별로 보고 자동 정리를 미리보기한 뒤 선택 적용한다: [[ISS-0474-question-format-rule-forbidden-punctuation]] (#905, 운영 배포). 지문 표 자동 정리 적용은 #903 앱 보급과 최소 버전 상향 뒤: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림). 관리자 전역 검색은 UUID·회원 번호(PQL-)·`@` 이메일·닉네임을 검색어 모양으로 가른다 — [[DEC-0281-admin-search-at-sign-routes-email]]. (2026-11-12) 시험 일정은 공식 페이지 자동 수집으로 바뀌었고 관리자 시험 일정 화면에 수집 상태·지금 수집·실패 경고가 있다 — [[DEC-0293-exam-schedule-rule-based-auto-sync]](DEC-0108 대체). `/admin/subscriptions`는 결제 관리 탭 5개(실수령액·결제 목록·환불 점검·알림 기록·요약) — [[ISS-0509-admin-billing-payout-app-store-refund-check]], 실수령액 가정은 [[DEC-0296-payout-estimate-krw-vat-fee-settings]]. (2026-11-12) 최소·권장 버전과 결제 켜기 준비(스위치, 미리보기 회원, 점검표)는 `/admin/app-operation` 한 곳에서 바꾸고, 일반 설정 표에서 그 키는 읽기 전용이다 — [[DEC-0308-admin-app-operation-single-entry]]. (2026-11-16) 관리자 `POST /admin/api/mock-exams/final-rounds`로 FINAL 회차 생성, 공개 시 푸시 예약 — [[DEC-0330-final-round-opens-exam-date-minus-3-pro-only]] (#1084).
 
 ## 활성 결정
 - [[DEC-0328-past-exam-rewrite-operation-rules]] — 기출 복원 문항: 지문·보기·정답만 수집, 다시 쓰기 + 5-gram 유사도 0.35 이하 + Oracle 검증, 원본 레포 밖, 가장 최근 1회차 무료, 게시 중단 시 round 태그로 비활성화 (#1079)
@@ -41,6 +41,7 @@ related: []
 - [[DEC-0265-prompt-key-enum-single-source]] — 프롬프트 키는 `PromptKey` enum 단일 원본, 관리자 수정에서 키 변경 불가 (#875)
 - [[DEC-0279-stem-table-data-cleanup-after-min-version]]: 운영 지문 표 자동 정리는 #903 앱이 두 스토어에 나오고 최소 지원 버전을 올린 뒤 적용, 그 전까지 데이터 그대로 (#905, #923)
 - [[DEC-0308-admin-app-operation-single-entry]] — 최소·권장 버전과 결제 켜기 준비는 `/admin/app-operation` 한 곳, 최소 버전 경고는 서버 빌드 버전 비교, 일반 설정 API는 호환 유지 (#961)
+- [[DEC-0330-final-round-opens-exam-date-minus-3-pro-only]] — FINAL 회차는 대상 시험일 3일 전부터 열림, 지난 FINAL 계속 열림, PRO 전용, 공개 시 여는 날 09:00 전체 푸시 예약 (#1084)
 
 ## 대체된 결정 (역사)
 - [[DEC-0316-exam-answer-two-sources-operator-first]] → DEC-0320
@@ -135,6 +136,7 @@ related: []
 - [[ISS-0399-auto-notification-preview-days]] (resolved, GitHub #656) — 자동 알림 관리자 미리보기가 규칙의 일수를 반영하지 않음
 - [[ISS-0410-claude-api-provider-switch]] (resolved, GitHub #688) — Claude API provider 전환 지원 (AI)
 - [[ISS-0411-ai-connections-multi-key-fallback]] (resolved, GitHub #695) — AI 연결 관리 — 다중 API 키, 우선순위, fallback
+- [[ISS-0536-mock-exam-study-mode-final-round]] (resolved, #1084) — 모의고사 학습 모드·FINAL 회차·회차 난이도 표시. 완료 리포트 [[ISS-0536-mock-study-final-study-guide-report]] (PR #1129, 릴리스 #1130)
 
 ## 관련 교훈
 - [[LSN-0005-question-export-500-limit-split-before-dedupe]] — 등록 전 중복·건수 집계도 내보내기 500건 상한, 토픽·난이도로 나눠 합계 대조 (#1079)

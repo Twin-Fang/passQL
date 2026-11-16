@@ -2,7 +2,7 @@
 type: cluster
 topic: home
 created: 2026-10-29
-members: 80
+members: 82
 status: active
 related: []
 ---
@@ -13,7 +13,7 @@ related: []
 홈 화면·추천
 
 ## 현재 상태 요약
-(2026-11-12, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 홈 상단 바는 로고 + 시험 D-day 배지와 크레딧 알약, 오늘의 세트와 랜덤 풀기는 별도 구간 — [[ISS-0489-pass-sheet-home-profile-cleanup]], [[ISS-0490-credit-term-purchase-funnel-events]]. (2026-11-12) 홈 시험 D-day 배지에 지금 단계 한 줄이 붙고 누르면 시험 일정 화면으로 간다 — [[ISS-0506-sqld-exam-schedule-auto-sync]]. (2026-11-13) 홈 첫 진입 환영 시트는 오늘 할 일 3단계 + `오늘의 세트 시작하기` — [[ISS-0511-qa-1112-ui-polish-eight]]. (2026-11-12) 홈 「다음에 할 일」 카드는 광고를 권하지 않고, 크레딧이 0이면 모의고사 무료 1회 카드를 보이거나 숨긴다 — [[DEC-0305-home-next-step-no-ad-card-mock-trial]].
+(2026-11-12, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 홈 상단 바는 로고 + 시험 D-day 배지와 크레딧 알약, 오늘의 세트와 랜덤 풀기는 별도 구간 — [[ISS-0489-pass-sheet-home-profile-cleanup]], [[ISS-0490-credit-term-purchase-funnel-events]]. (2026-11-12) 홈 시험 D-day 배지에 지금 단계 한 줄이 붙고 누르면 시험 일정 화면으로 간다 — [[ISS-0506-sqld-exam-schedule-auto-sync]]. (2026-11-13) 홈 첫 진입 환영 시트는 오늘 할 일 3단계 + `오늘의 세트 시작하기` — [[ISS-0511-qa-1112-ui-polish-eight]]. (2026-11-12) 홈 「다음에 할 일」 카드는 광고를 권하지 않고, 크레딧이 0이면 모의고사 무료 1회 카드를 보이거나 숨긴다 — [[DEC-0305-home-next-step-no-ad-card-mock-trial]]. (2026-11-16) 학습 가이드 화면(입구 홈·문제 탭·프로필) — [[DEC-0331-study-guide-four-stages-progress-counts-study]] (#1078).
 
 ## 활성 결정
 - [[DEC-0327-answer-key-highlight-exam-date-plus-7]] — 가채점 강조(사이트 메뉴·첫 화면 띠, 앱 홈 가답안 카드)는 시험일 + 7일까지만, 회차 페이지는 계속 열람 (#1079·#1088)
@@ -39,6 +39,7 @@ related: []
 - [[DEC-0204-profile-drops-info-shown-elsewhere]] — 앱 프로필 탭은 "내 기록을 보는 곳" — 다른 탭에 이미 있는 정보는 빼고 내 상태 > AI 분석 > 영역별 정답률 > 광고 순으로 둔다
 - [[DEC-0304-first-launch-notification-prompt-after-welcome]] — 알림 권한 안내는 처음 켤 때 홈 환영 안내 「시작하기」 직후(미결정·다시 물어도 될 때만), 안내 시트 거침 (#980, DEC-0149 대체)
 - [[DEC-0305-home-next-step-no-ad-card-mock-trial]] — 홈 「다음에 할 일」 카드는 광고를 권하지 않고, 크레딧 0이면 모의고사 무료 1회 카드 또는 숨김 (#980)
+- [[DEC-0331-study-guide-four-stages-progress-counts-study]] — 학습 가이드: 매일 > 52회 이후 기출 > 이전 기출 > 모의고사 > FINAL·오답률 TOP 30, 진행은 실전 응시 또는 학습 모드 완료 회차 (#1078)
 
 ## 대체된 결정 (역사)
 - [[DEC-0033-readiness-replaces-progress-rate]] → DEC-0078
@@ -100,3 +101,4 @@ related: []
 - [[ISS-0405-home-first-load-skeleton-wait]] (resolved, GitHub #676) — 홈 첫 로딩 대기 시간 단축 — 지난 데이터 먼저 보여 주기
 - [[ISS-0413-app-home-ui-ux-redesign]] (resolved, GitHub #701) — 앱 홈 화면 UI/UX 개편
 - [[ISS-0521-sqld-exam-guide-and-yearly-stats]] (resolved, #1077·#1076): SQLD 알아보기(시험 소개, 연도별 응시자·합격률) — 서버 API·소개 사이트 sqld/stats/, 앱 PR #1102·릴리스 #1104 출시(iOS 1.132.0 재제출). 완료 리포트 [[ISS-0521-sqld-exam-guide-and-yearly-stats-report]]
+- [[ISS-0537-study-guide-stage-route]] (resolved, #1078) — 학습 가이드 단계별 순서·바로가기·소개 사이트 글. 완료 리포트 [[ISS-0536-mock-study-final-study-guide-report]] 공유
