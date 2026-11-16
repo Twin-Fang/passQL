@@ -7,7 +7,7 @@ symptoms: ["기출 복원", "기출 회차", "PAST_EXAM", "round_type", "exam_da
 root_cause: "수험생 공부의 중심인 회차별 기출 복원이 없고 모의고사는 자체 문제 자동 구성뿐이었다(기능 부재)"
 status: open
 resolution: null
-related: ["[[ISS-0534-intro-site-past-exam-preview-study-guides]]", "[[DEC-0328-past-exam-rewrite-operation-rules]]", "[[DEC-0326-site-past-exam-five-question-preview]]", "[[DEC-0327-answer-key-highlight-exam-date-plus-7]]", "[[DEC-0264-mock-exam-fixed-rounds-server-judged]]", "[[DEC-0142-encrypt-sqld-research-materials]]", "[[LSN-0002-harness-lint-misses-server-format-rule]]", "[[LSN-0005-question-export-500-limit-split-before-dedupe]]", "[[LSN-0004-app-change-release-means-ios-review]]"]
+related: ["[[ISS-0534-intro-site-past-exam-preview-study-guides]]", "[[DEC-0328-past-exam-rewrite-operation-rules]]", "[[DEC-0326-site-past-exam-five-question-preview]]", "[[DEC-0327-answer-key-highlight-exam-date-plus-7]]", "[[DEC-0264-mock-exam-fixed-rounds-server-judged]]", "[[DEC-0142-encrypt-sqld-research-materials]]", "[[LSN-0002-harness-lint-misses-server-format-rule]]", "[[LSN-0005-question-export-500-limit-split-before-dedupe]]", "[[LSN-0004-app-change-release-means-ios-review]]", "[[ISS-0536-mock-exam-study-mode-final-round]]"]
 source: "_sources/issues/ISS-0535-past-exam-restored-rounds.md"
 ---
 
@@ -28,6 +28,7 @@ passQL 에는 기출 회차가 없고 모의고사는 자체 문제로만 자동
 - 2026-11-16: 운영 등록 — 1차 가져오기에서 서버 형식 규칙(가운뎃점, SELECT 40자, 한글 주석, 질문 2개, 키 표시 문구)에 걸려 수정 후 재등록([[LSN-0002-harness-lint-misses-server-format-rule]] 재발). 내보내기 API 500개 상한으로 집계가 잘려 52회 20문항이 중복 등록 > 중복분 비활성화([[LSN-0005-question-export-500-limit-split-before-dedupe]]).
 - 2026-11-16: 서버·앱 — `V1_133_3__mock_exam_round_type.sql`(`round_type` MOCK|PAST_EXAM, `exam_date`, 회차 번호 유일 조건을 종류별로, 운영 out-of-order 적용), 관리자 `POST /admin/api/mock-exams/past-rounds`(50문항 시험 번호 순서, 1~10번 1과목 검증, 중복 409), 공개 API `roundType`·`examRoundNumber`·`examDate`·`isFreePastExamRound`, 가장 최근 기출 1개 무료(모의고사 체험과 별개). 앱 [모의고사 | 기출 복원] 세그먼트·연도별 묶음·무료 배지·면책 한 줄, 홈 가답안 카드 시험일 + 7일까지만([[DEC-0327-answer-key-highlight-exam-date-plus-7]]). 서버·앱 한 릴리스라 앱 배포 동반([[LSN-0004-app-change-release-means-ios-review]]).
 - 2026-11-16: **52~62회 11회차(550문항) 공개** — 회차별 50/50, 공개 검사 전 회차 `canPublish: true`, 관리자 목록 PAST_EXAM 11개 PUBLISHED. 소개 사이트 회차마다 5문항 공개([[ISS-0534-intro-site-past-exam-preview-study-guides]]).
+- 2026-11-16: 학습 모드는 #1084로 반영 — 기출 회차도 무료 기출 회차는 무료, 나머지는 PRO가 한 문제씩 학습([[ISS-0536-mock-exam-study-mode-final-round]], [[DEC-0329-mock-study-mode-reuses-question-flow-device-progress]]).
 
 ## 근본 원인
 기능 부재. 남은 일: 45~51회(2024 개정 전 범위), 학습 모드(#1084), 단답형(#1085), 그림 문항 머메이드 렌더링. 해설은 정적으로 넣지 않고 앱 AI 해설이 담당.

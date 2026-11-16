@@ -57,6 +57,7 @@ _$MockExamSheetQuestionImpl _$$MockExamSheetQuestionImplFromJson(
   ),
   topicName: json['topicName'] as String?,
   stem: json['stem'] as String,
+  figureSvg: json['figureSvg'] as String?,
   schemaDisplay: json['schemaDisplay'] as String?,
   schemaTables:
       (json['schemaTables'] as List<dynamic>?)
@@ -79,6 +80,7 @@ Map<String, dynamic> _$$MockExamSheetQuestionImplToJson(
   'subject': _$MockExamSubjectEnumMap[instance.subject]!,
   'topicName': instance.topicName,
   'stem': instance.stem,
+  'figureSvg': instance.figureSvg,
   'schemaDisplay': instance.schemaDisplay,
   'schemaTables': instance.schemaTables,
   'choices': instance.choices,

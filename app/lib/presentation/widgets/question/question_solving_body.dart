@@ -113,6 +113,7 @@ class QuestionSolvingBody extends StatelessWidget {
             QuestionStem(
               stem: question.stem,
               schemaTables: question.schemaTables,
+              figureSvg: question.figureSvg,
             ),
             // 테이블을 해석하지 못해 DDL 원문만 있을 때 원문 상자
             if (_isExecutable && question.schemaTables.isEmpty)

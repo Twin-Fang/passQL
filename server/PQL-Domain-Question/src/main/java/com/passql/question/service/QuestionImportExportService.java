@@ -47,6 +47,7 @@ public class QuestionImportExportService {
     private final OracleSqlCompatibilityConverter oracleSqlCompatibilityConverter;
     private final CuratedChoiceSetWriter curatedChoiceSetWriter;
     private final QuestionInternalTagService questionInternalTagService;
+    private final QuestionFigureService questionFigureService;
 
     // ── Export ────────────────────────────────────────────────────
 
@@ -208,6 +209,14 @@ public class QuestionImportExportService {
                 continue;
             }
 
+            // 그림 규칙 재확인 (#1132)
+            String figureRejectReason = QuestionFigureSvgRule.findRejectReason(item.figureSvg());
+            if (figureRejectReason != null) {
+                log.warn("[import-batch] skipped figure violation : index={}, reason={}", i, figureRejectReason);
+                skipped++;
+                continue;
+            }
+
             UUID savedQuestionUuid;
             if (item.questionUuid() != null && questionRepository.existsById(item.questionUuid())) {
                 questionService.updateQuestion(
@@ -231,6 +240,9 @@ public class QuestionImportExportService {
                 created++;
             }
             replaceInternalTagsIfPresent(savedQuestionUuid, item.internalTags());
+            if (item.figureSvg() != null) {
+                questionFigureService.updateFigure(savedQuestionUuid, item.figureSvg());
+            }
         }
 
         log.info("[import-batch] created={}, updated={}, skipped={}", created, updated, skipped);
@@ -327,7 +339,8 @@ public class QuestionImportExportService {
                 q.getSchemaIntent(),
                 q.getAnswerSql(),
                 q.getChoiceSetPolicy() == ChoiceSetPolicy.CURATED_ONLY ? questionChoiceSetQueryService.findActiveCuratedChoices(q.getQuestionUuid()) : null,
-                internalTagsByQuestionUuid.getOrDefault(q.getQuestionUuid(), List.of())
+                internalTagsByQuestionUuid.getOrDefault(q.getQuestionUuid(), List.of()),
+                q.getFigureSvg()
         )).toList();
     }
 }

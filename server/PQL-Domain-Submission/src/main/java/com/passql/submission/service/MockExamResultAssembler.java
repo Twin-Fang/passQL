@@ -126,6 +126,7 @@ public final class MockExamResultAssembler {
             item.getQuestionUuid(),
             paper.topicNameOf(item),
             question != null ? question.getStem() : "",
+            question != null ? question.getFigureSvg() : null,
             question != null ? question.getSchemaDisplay() : null,
             question != null ? SchemaPreviewParser.parse(question.getSchemaDdl(), question.getSchemaSampleData()) : List.of(),
             choices,

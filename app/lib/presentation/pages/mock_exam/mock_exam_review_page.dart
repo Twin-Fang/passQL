@@ -97,6 +97,7 @@ class _MockExamReviewPageState extends ConsumerState<MockExamReviewPage> {
                 topicName: review.topicName,
                 stem: review.stem,
                 schemaTables: review.schemaTables,
+                figureSvg: review.figureSvg,
                 choices: review.choices,
                 choiceStateOf: (choice) => _choiceStateOf(choice, review),
                 footer: _ReviewExplanation(review: review),

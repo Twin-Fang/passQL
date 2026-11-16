@@ -56,6 +56,10 @@ public class Question extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String stem;
 
+    // 지문 아래 그림 SVG (ERD 등, 없으면 null, #1132). 저장 전 QuestionFigureSvgRule 검사
+    @Column(columnDefinition = "TEXT")
+    private String figureSvg;
+
     @Column(columnDefinition = "TEXT")
     private String schemaDisplay;
 
