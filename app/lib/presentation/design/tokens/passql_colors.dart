@@ -35,6 +35,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     required this.background,
     required this.card,
     required this.cardElevated,
+    required this.figurePaper,
+    required this.figureInk,
     required this.separator,
     required this.fill,
     required this.glass,
@@ -56,6 +58,7 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
   final Color wrong;
   final Color wrongText;
   final Color wrongTint;
+
   /// 실행 결과 비교 표에서 한쪽에만 있는 행 바탕 (Tint 보다 진하게, 표 글자 4.5 유지)
   final Color correctRowHighlight;
   final Color wrongRowHighlight;
@@ -91,6 +94,7 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
   final Color onCountBadge;
   final Color label;
   final Color secondaryLabel;
+
   /// 비활성·장식(쉐브론·손잡이) 전용. 읽어야 하는 글자는 secondaryLabel (규칙 테스트)
   final Color tertiaryLabel;
 
@@ -99,6 +103,12 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
   final Color background;
   final Color card;
   final Color cardElevated;
+
+  /// 문제 그림(ERD 등) 바탕: 시험지처럼 두 테마 모두 흰 종이, 그림 선은 검정 고정 (#1132)
+  final Color figurePaper;
+
+  /// 문제 그림 위 선·아이콘 (흰 종이 위라 두 테마 모두 진한 검정, 생성기 LINE_COLOR 와 같음)
+  final Color figureInk;
   final Color separator;
   final Color fill;
   final Color glass;
@@ -151,6 +161,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     background: Color(0xFFF2F2F7),
     card: Color(0xFFFFFFFF),
     cardElevated: Color(0xFFFFFFFF),
+    figurePaper: Color(0xFFFFFFFF),
+    figureInk: Color(0xFF1C1C1E),
     separator: Color(0x4A3C3C43),
     fill: Color(0x1F787880),
     glass: Color(0xB3F9F9F9),
@@ -195,6 +207,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
     background: Color(0xFF000000),
     card: Color(0xFF1C1C1E),
     cardElevated: Color(0xFF2C2C2E),
+    figurePaper: Color(0xFFFFFFFF),
+    figureInk: Color(0xFF1C1C1E),
     separator: Color(0x99545458),
     fill: Color(0x3D787880),
     glass: Color(0xB31D1D1D),
@@ -207,44 +221,46 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
 
   @override
   PassqlColors copyWith({Color? accent}) => PassqlColors(
-        accent: accent ?? this.accent,
-        onAccent: onAccent,
-        accentTint: accentTint,
-        accentText: accentText,
-        correct: correct,
-        correctText: correctText,
-        correctTint: correctTint,
-        wrong: wrong,
-        wrongText: wrongText,
-        wrongTint: wrongTint,
-        correctRowHighlight: correctRowHighlight,
-        wrongRowHighlight: wrongRowHighlight,
-        warning: warning,
-        warningText: warningText,
-        info: info,
-        infoText: infoText,
-        memorize: memorize,
-        memorizeText: memorizeText,
-        memorizeHighlight: memorizeHighlight,
-        memoInkBlue: memoInkBlue,
-        onSemantic: onSemantic,
-        countBadge: countBadge,
-        onCountBadge: onCountBadge,
-        label: label,
-        secondaryLabel: secondaryLabel,
-        tertiaryLabel: tertiaryLabel,
-        iconSecondary: iconSecondary,
-        background: background,
-        card: card,
-        cardElevated: cardElevated,
-        separator: separator,
-        fill: fill,
-        glass: glass,
-        imageViewerBackground: imageViewerBackground,
-        onImageViewer: onImageViewer,
-        passGradientEnd: passGradientEnd,
-        passGlow: passGlow,
-      );
+    accent: accent ?? this.accent,
+    onAccent: onAccent,
+    accentTint: accentTint,
+    accentText: accentText,
+    correct: correct,
+    correctText: correctText,
+    correctTint: correctTint,
+    wrong: wrong,
+    wrongText: wrongText,
+    wrongTint: wrongTint,
+    correctRowHighlight: correctRowHighlight,
+    wrongRowHighlight: wrongRowHighlight,
+    warning: warning,
+    warningText: warningText,
+    info: info,
+    infoText: infoText,
+    memorize: memorize,
+    memorizeText: memorizeText,
+    memorizeHighlight: memorizeHighlight,
+    memoInkBlue: memoInkBlue,
+    onSemantic: onSemantic,
+    countBadge: countBadge,
+    onCountBadge: onCountBadge,
+    label: label,
+    secondaryLabel: secondaryLabel,
+    tertiaryLabel: tertiaryLabel,
+    iconSecondary: iconSecondary,
+    background: background,
+    card: card,
+    cardElevated: cardElevated,
+    figurePaper: figurePaper,
+    figureInk: figureInk,
+    separator: separator,
+    fill: fill,
+    glass: glass,
+    imageViewerBackground: imageViewerBackground,
+    onImageViewer: onImageViewer,
+    passGradientEnd: passGradientEnd,
+    passGlow: passGlow,
+  );
 
   @override
   PassqlColors lerp(ThemeExtension<PassqlColors>? other, double t) {
@@ -261,7 +277,10 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
       wrong: lerpColor(wrong, other.wrong),
       wrongText: lerpColor(wrongText, other.wrongText),
       wrongTint: lerpColor(wrongTint, other.wrongTint),
-      correctRowHighlight: lerpColor(correctRowHighlight, other.correctRowHighlight),
+      correctRowHighlight: lerpColor(
+        correctRowHighlight,
+        other.correctRowHighlight,
+      ),
       wrongRowHighlight: lerpColor(wrongRowHighlight, other.wrongRowHighlight),
       warning: lerpColor(warning, other.warning),
       warningText: lerpColor(warningText, other.warningText),
@@ -281,6 +300,8 @@ class PassqlColors extends ThemeExtension<PassqlColors> {
       background: lerpColor(background, other.background),
       card: lerpColor(card, other.card),
       cardElevated: lerpColor(cardElevated, other.cardElevated),
+      figurePaper: lerpColor(figurePaper, other.figurePaper),
+      figureInk: lerpColor(figureInk, other.figureInk),
       separator: lerpColor(separator, other.separator),
       fill: lerpColor(fill, other.fill),
       glass: lerpColor(glass, other.glass),

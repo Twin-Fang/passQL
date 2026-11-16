@@ -92,5 +92,8 @@ abstract final class PassqlSize {
   static const double examStatisticsChartHeight = 180;
   static const double examStatisticsLineStroke = 2.5;
   static const double examStatisticsPointRadius = 3.5;
+
+  // 문제 그림 최대 폭 (태블릿에서 그림이 지나치게 커지지 않게, #1132)
+  static const double questionFigureMaxWidth = 520;
   static const double examSubjectShareBarHeight = 12;
 }

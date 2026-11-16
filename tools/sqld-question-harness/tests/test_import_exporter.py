@@ -4,7 +4,7 @@ from sqld_harness.import_exporter import render_stem, to_import_item, to_questio
 # 서버 QuestionExportDto 필드 순서 (#511 v1 출력 + #1117 internalTags)
 IMPORT_ITEM_FIELDS = [
     "questionUuid", "topicCode", "difficulty", "executionMode", "choiceSetPolicy", "stem", "hint",
-    "schemaDdl", "schemaSampleData", "schemaIntent", "answerSql", "choices", "internalTags",
+    "schemaDdl", "schemaSampleData", "schemaIntent", "answerSql", "choices", "internalTags", "figureSvg",
 ]
 
 

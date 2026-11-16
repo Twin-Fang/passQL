@@ -112,6 +112,7 @@ class _LockScreenQuestionViewState
             QuestionStem(
               stem: question.stem,
               schemaTables: question.schemaTables,
+              figureSvg: question.figureSvg,
             ),
             // AI 선택지 생성 대기: 선택지 자리에 기존 생성 로딩
             if (state.isGeneratingChoices)

@@ -17,6 +17,8 @@ class QuestionDetail with _$QuestionDetail {
     int? difficulty,
     String? executionMode,
     required String stem,
+    // 지문 아래 그림 SVG (ERD 등, 없으면 null, #1132)
+    String? figureSvg,
     String? schemaDisplay,
     String? schemaDdl,
     String? schemaSampleData,

@@ -4345,6 +4345,8 @@ export interface components {
             difficulty: number;
             /** @enum {string|null} */
             executionMode: "EXECUTABLE" | "CONCEPT_ONLY" | null;
+            /** @description 지문 아래 그림 SVG (ERD 등, 없으면 null, #1132) */
+            figureSvg: string | null;
             hint: string | null;
             /** @description 로그인 회원의 즐겨찾기 여부 (#1082) */
             isBookmarked: boolean;
@@ -4377,6 +4379,8 @@ export interface components {
             choices: components["schemas"]["MockExamChoice"][];
             correctChoiceKey: string;
             explanationSummary: string | null;
+            /** @description 지문 아래 그림 SVG (없으면 null, #1132) */
+            figureSvg: string | null;
             isCorrect: boolean;
             /** Format: int32 */
             questionNumber: number;
@@ -4532,6 +4536,8 @@ export interface components {
         };
         SheetQuestion: {
             choices: components["schemas"]["MockExamChoice"][];
+            /** @description 지문 아래 그림 SVG (없으면 null, #1132) */
+            figureSvg: string | null;
             isFlagged: boolean;
             /** Format: int32 */
             questionNumber: number;

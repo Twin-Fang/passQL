@@ -26,7 +26,9 @@ mixin _$QuestionDetail {
   String? get subtopicName => throw _privateConstructorUsedError;
   int? get difficulty => throw _privateConstructorUsedError;
   String? get executionMode => throw _privateConstructorUsedError;
-  String get stem => throw _privateConstructorUsedError;
+  String get stem =>
+      throw _privateConstructorUsedError; // 지문 아래 그림 SVG (ERD 등, 없으면 null, #1132)
+  String? get figureSvg => throw _privateConstructorUsedError;
   String? get schemaDisplay => throw _privateConstructorUsedError;
   String? get schemaDdl => throw _privateConstructorUsedError;
   String? get schemaSampleData => throw _privateConstructorUsedError;
@@ -68,6 +70,7 @@ abstract class $QuestionDetailCopyWith<$Res> {
     int? difficulty,
     String? executionMode,
     String stem,
+    String? figureSvg,
     String? schemaDisplay,
     String? schemaDdl,
     String? schemaSampleData,
@@ -103,6 +106,7 @@ class _$QuestionDetailCopyWithImpl<$Res, $Val extends QuestionDetail>
     Object? difficulty = freezed,
     Object? executionMode = freezed,
     Object? stem = null,
+    Object? figureSvg = freezed,
     Object? schemaDisplay = freezed,
     Object? schemaDdl = freezed,
     Object? schemaSampleData = freezed,
@@ -141,6 +145,10 @@ class _$QuestionDetailCopyWithImpl<$Res, $Val extends QuestionDetail>
                 ? _value.stem
                 : stem // ignore: cast_nullable_to_non_nullable
                       as String,
+            figureSvg: freezed == figureSvg
+                ? _value.figureSvg
+                : figureSvg // ignore: cast_nullable_to_non_nullable
+                      as String?,
             schemaDisplay: freezed == schemaDisplay
                 ? _value.schemaDisplay
                 : schemaDisplay // ignore: cast_nullable_to_non_nullable
@@ -207,6 +215,7 @@ abstract class _$$QuestionDetailImplCopyWith<$Res>
     int? difficulty,
     String? executionMode,
     String stem,
+    String? figureSvg,
     String? schemaDisplay,
     String? schemaDdl,
     String? schemaSampleData,
@@ -241,6 +250,7 @@ class __$$QuestionDetailImplCopyWithImpl<$Res>
     Object? difficulty = freezed,
     Object? executionMode = freezed,
     Object? stem = null,
+    Object? figureSvg = freezed,
     Object? schemaDisplay = freezed,
     Object? schemaDdl = freezed,
     Object? schemaSampleData = freezed,
@@ -279,6 +289,10 @@ class __$$QuestionDetailImplCopyWithImpl<$Res>
             ? _value.stem
             : stem // ignore: cast_nullable_to_non_nullable
                   as String,
+        figureSvg: freezed == figureSvg
+            ? _value.figureSvg
+            : figureSvg // ignore: cast_nullable_to_non_nullable
+                  as String?,
         schemaDisplay: freezed == schemaDisplay
             ? _value.schemaDisplay
             : schemaDisplay // ignore: cast_nullable_to_non_nullable
@@ -338,6 +352,7 @@ class _$QuestionDetailImpl implements _QuestionDetail {
     this.difficulty,
     this.executionMode,
     required this.stem,
+    this.figureSvg,
     this.schemaDisplay,
     this.schemaDdl,
     this.schemaSampleData,
@@ -367,6 +382,9 @@ class _$QuestionDetailImpl implements _QuestionDetail {
   final String? executionMode;
   @override
   final String stem;
+  // 지문 아래 그림 SVG (ERD 등, 없으면 null, #1132)
+  @override
+  final String? figureSvg;
   @override
   final String? schemaDisplay;
   @override
@@ -414,7 +432,7 @@ class _$QuestionDetailImpl implements _QuestionDetail {
 
   @override
   String toString() {
-    return 'QuestionDetail(questionUuid: $questionUuid, topicName: $topicName, subtopicName: $subtopicName, difficulty: $difficulty, executionMode: $executionMode, stem: $stem, schemaDisplay: $schemaDisplay, schemaDdl: $schemaDdl, schemaSampleData: $schemaSampleData, schemaIntent: $schemaIntent, schemaTables: $schemaTables, answerSql: $answerSql, hint: $hint, choiceSets: $choiceSets, isLatestTrend: $isLatestTrend, isDailySetFreeTrial: $isDailySetFreeTrial, isBookmarked: $isBookmarked)';
+    return 'QuestionDetail(questionUuid: $questionUuid, topicName: $topicName, subtopicName: $subtopicName, difficulty: $difficulty, executionMode: $executionMode, stem: $stem, figureSvg: $figureSvg, schemaDisplay: $schemaDisplay, schemaDdl: $schemaDdl, schemaSampleData: $schemaSampleData, schemaIntent: $schemaIntent, schemaTables: $schemaTables, answerSql: $answerSql, hint: $hint, choiceSets: $choiceSets, isLatestTrend: $isLatestTrend, isDailySetFreeTrial: $isDailySetFreeTrial, isBookmarked: $isBookmarked)';
   }
 
   @override
@@ -433,6 +451,8 @@ class _$QuestionDetailImpl implements _QuestionDetail {
             (identical(other.executionMode, executionMode) ||
                 other.executionMode == executionMode) &&
             (identical(other.stem, stem) || other.stem == stem) &&
+            (identical(other.figureSvg, figureSvg) ||
+                other.figureSvg == figureSvg) &&
             (identical(other.schemaDisplay, schemaDisplay) ||
                 other.schemaDisplay == schemaDisplay) &&
             (identical(other.schemaDdl, schemaDdl) ||
@@ -470,6 +490,7 @@ class _$QuestionDetailImpl implements _QuestionDetail {
     difficulty,
     executionMode,
     stem,
+    figureSvg,
     schemaDisplay,
     schemaDdl,
     schemaSampleData,
@@ -508,6 +529,7 @@ abstract class _QuestionDetail implements QuestionDetail {
     final int? difficulty,
     final String? executionMode,
     required final String stem,
+    final String? figureSvg,
     final String? schemaDisplay,
     final String? schemaDdl,
     final String? schemaSampleData,
@@ -535,7 +557,9 @@ abstract class _QuestionDetail implements QuestionDetail {
   @override
   String? get executionMode;
   @override
-  String get stem;
+  String get stem; // 지문 아래 그림 SVG (ERD 등, 없으면 null, #1132)
+  @override
+  String? get figureSvg;
   @override
   String? get schemaDisplay;
   @override

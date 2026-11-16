@@ -19,6 +19,7 @@ class MockExamQuestionView extends StatelessWidget {
     required this.topicName,
     required this.stem,
     required this.schemaTables,
+    this.figureSvg,
     required this.choices,
     required this.choiceStateOf,
     this.onChoiceTap,
@@ -31,6 +32,9 @@ class MockExamQuestionView extends StatelessWidget {
   final String? topicName;
   final String stem;
   final List<QuestionSchemaTable> schemaTables;
+
+  /// 지문 아래 그림 SVG (없으면 null, #1132)
+  final String? figureSvg;
   final List<MockExamChoice> choices;
   final PassqlChoiceState Function(MockExamChoice choice) choiceStateOf;
 
@@ -84,7 +88,11 @@ class MockExamQuestionView extends StatelessWidget {
             ],
           ),
         ),
-        QuestionStem(stem: stem, schemaTables: schemaTables),
+        QuestionStem(
+          stem: stem,
+          schemaTables: schemaTables,
+          figureSvg: figureSvg,
+        ),
         const SizedBox(height: PassqlSpacing.xs),
         for (
           var displayIndex = 0;

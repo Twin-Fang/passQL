@@ -27,6 +27,7 @@ public record MockExamSheetResponse(
         MockExamSubject subject,
         @Schema(nullable = true) String topicName,
         String stem,
+        @Schema(nullable = true, description = "지문 아래 그림 SVG (없으면 null, #1132)") String figureSvg,
         @Schema(nullable = true) String schemaDisplay,
         List<QuestionSchemaTable> schemaTables,
         List<MockExamChoice> choices,
