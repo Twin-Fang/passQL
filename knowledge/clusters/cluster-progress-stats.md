@@ -2,7 +2,7 @@
 type: cluster
 topic: progress-stats
 created: 2026-10-29
-members: 56
+members: 58
 status: active
 related: []
 ---
@@ -13,10 +13,11 @@ related: []
 통계·합격 준비도·학습 현황·순위
 
 ## 현재 상태 요약
-(2026-11-07, 자동 생성) 활성 결정 12개, 열린 이슈 1개. 영역별 정답률은 레이더 그래프 위, 목록 아래(토글 없음)이고 학습 패턴(최근 4주 학습, 공부하는 시간)은 무료, 정답률 상세(난이도별, 오답 정리)는 프로, 판정은 서버 계산기: [[DEC-0274-stats-radar-above-list-study-pattern-free]] (#909, DEC-0206 대체, main 머지, 배포 전). 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 과목별 예상 점수·과락 판정 — [[DEC-0260-exam-forecast-score-thresholds]] (#862, 릴리스 #888). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-13) 모의고사 결과 순위(상위 N%)는 [[DEC-0301-mock-exam-ranking-first-attempt-top-percent]]. (2026-11-16) SQLD 시험 소개·연도별 응시자·합격률 통계는 서버 JSON 단일 원본 공개 API — [[DEC-0318-exam-guide-single-source-public-api]], 회차별 합격률은 확인된 전언만 비공식 표시 — [[DEC-0319-round-pass-rate-unofficial-only]] (#1077, 서버·소개 사이트 배포, 앱 대기). (2026-11-16) 예상 점수 설명을 과락·합격선 여유 문항 수로 — [[DEC-0323-pass-fail-margin-count-single-source]], 점수 올리기 좋은 영역 +N점 — [[DEC-0322-score-gain-topics-exam-weighted]] (#1111, 릴리스 #1115).
+(2026-11-07, 자동 생성) 활성 결정 12개, 열린 이슈 1개. 영역별 정답률은 레이더 그래프 위, 목록 아래(토글 없음)이고 학습 패턴(최근 4주 학습, 공부하는 시간)은 무료, 정답률 상세(난이도별, 오답 정리)는 프로, 판정은 서버 계산기: [[DEC-0274-stats-radar-above-list-study-pattern-free]] (#909, DEC-0206 대체, main 머지, 배포 전). 통계 AI 분석은 서버 판정 + LLM 한 문장 — [[DEC-0259-ai-analysis-server-decides-llm-explains]], 과목별 예상 점수·과락 판정 — [[DEC-0260-exam-forecast-score-thresholds]] (#862, 릴리스 #888). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-13) 모의고사 결과 순위(상위 N%)는 [[DEC-0301-mock-exam-ranking-first-attempt-top-percent]]. (2026-11-16) SQLD 시험 소개·연도별 응시자·합격률 통계는 서버 JSON 단일 원본 공개 API — [[DEC-0318-exam-guide-single-source-public-api]], 회차별 합격률은 확인된 전언만 비공식 표시 — [[DEC-0319-round-pass-rate-unofficial-only]] (#1077, 서버·소개 사이트 배포, 앱 대기). (2026-11-16) 예상 점수 설명을 과락·합격선 여유 문항 수로 — [[DEC-0323-pass-fail-margin-count-single-source]], 점수 올리기 좋은 영역 +N점 — [[DEC-0322-score-gain-topics-exam-weighted]] (#1111, 릴리스 #1115). (2026-11-16) 가답안 공유 이미지는 다크 모드여도 흰 바탕 — [[DEC-0332-exam-answer-share-image-always-light]](DEC-0321 대체); 모의고사 순위는 빈 답안 제외 — [[DEC-0333-mock-exam-ranking-excludes-empty-attempts]] (#1126, 릴리스 #1130).
 
 ## 활성 결정
 - [[DEC-0301-mock-exam-ranking-first-attempt-top-percent]] — 모의고사 결과에 같은 회차 "상위 N%" 한 줄, 회원별 첫 응시 기준·응시자 10명 미만 숨김·무료 공개 (#1041)
+- [[DEC-0333-mock-exam-ranking-excludes-empty-attempts]] — 모의고사 순위에서 빈 답안(한 문항도 안 고른 제출)은 응시자로 세지 않고, 내 응시가 빈 답안이면 순위 숨김 (#1126, DEC-0301 보완)
 - [[DEC-0024-progress-metric-definitions]] — 학습 진도 지표 정의 — 푼 문제는 distinct, 정답률은 문제별 마지막 시도, 스트릭은 하루 그레이스
 - [[DEC-0042-ai-comment-cache-evict-on-submit]] — AI 영역 분석 코멘트는 별도 API로 Redis 24시간 캐싱하고, 제출 시 직접 evict한다
 - [[DEC-0043-topic-correct-rate-last-7-days]] — 토픽별 정답률은 최근 7일 제출 중 문제별 최근 1회 기준, 토픽별 문제 수는 전체 활성 문제
@@ -39,6 +40,7 @@ related: []
 - [[DEC-0206-topic-accuracy-list-with-octagon-chart]] → DEC-0274
 
 ## 관련 이슈
+- [[ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking]] (resolved, #1126) — SQLD 63회 가답안·모의고사 결과 실기 검수 결함 7건: 빈 답안 순위 제외, 공유 이미지 흰 바탕, 합의율 응답 5명 미만이면 "응답 N명", 관리자 답안지 삭제. 완료 리포트 [[ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking-report]] (PR #1127, 릴리스 #1130)
 - [[ISS-0532-expected-pass-rate-mock-exam]] (resolved, #1086): 예상 합격률(최근 채점 모의고사 최대 5회, 과락 위험 = 과락선 + 4점 이하). 완료 리포트 [[ISS-0531-ox-quiz-expected-pass-lock-screen-ox-report]]
 - [[ISS-0529-hardest-questions-top30]] (resolved, #1080): 전체 사용자 오답률 TOP 30(회원별 첫 제출, 20명 이상, 1시간 캐시). 완료 리포트 [[ISS-0528-review-bundle-wrong-note-bookmark-hardest-report]]
 - [[ISS-0528-wrong-note-subject-filter-retry-set]] (resolved, #1081): 오답노트 과목 필터·많이 틀린 순·정리된 오답 숨기기·오답 10문제 다시 풀기, 복습 묶음 PR #1108·릴리스 #1112. 완료 리포트(#1080·#1082 공유) [[ISS-0528-review-bundle-wrong-note-bookmark-hardest-report]]
