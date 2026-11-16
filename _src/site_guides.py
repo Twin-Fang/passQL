@@ -7,7 +7,7 @@ from site_page_frame import render_guide_page, render_page_link_cards, select_ex
 from site_schema import build_app_json_ld
 
 # 허브의 '기출과 개념 정리' 카드 경로 (#1088)
-SQLD_STUDY_LINK_PATHS = ["sqld/past/", "sqld/guide/null-traps/", "sqld/guide/window-functions/", "sqld/guide/join-types/"]
+SQLD_STUDY_LINK_PATHS = ["sqld/guide/passql-route/", "sqld/past/", "sqld/guide/null-traps/", "sqld/guide/window-functions/", "sqld/guide/join-types/"]
 
 
 def render_sqld_page():

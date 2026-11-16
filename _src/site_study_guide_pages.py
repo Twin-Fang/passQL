@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""SQLD 개념 정리 글 페이지 3장 (#1088): 머리말 > 구역별 본문 > 관련 기출 공개 문항 > 앱 안내
+"""SQLD 공부 글 페이지 4장 (#1088, #1078): 머리말 > 구역별 본문 > 관련 기출 공개 문항 > 앱 안내
 글 원본은 site_study_guide_content.py, 표·코드 블록 모양은 기출 복원 페이지와 같은 조각을 씀
 """
 
@@ -50,7 +50,9 @@ def render_article_sections(sections):
 
 
 def find_related_samples(article, samples_by_round):
-    """글의 관련 기출 기준 > 공개 문항 (최근 회차 먼저, 최대 RELATED_SAMPLE_LIMIT 개)"""
+    """글의 관련 기출 기준 > 공개 문항 (최근 회차 먼저, 최대 RELATED_SAMPLE_LIMIT 개, 기준 없으면 빈 목록)"""
+    if article["related_rule"] is None:
+        return []
     rule_type, rule_value = article["related_rule"]
     if rule_type == "topic":
         return past_content.find_samples_by_topic_codes(samples_by_round, rule_value, guide_content.RELATED_SAMPLE_LIMIT)

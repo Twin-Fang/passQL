@@ -499,6 +499,13 @@ GUIDE_PAGES = {
         "description": "SQLD 조인 문제의 결과 행 수를 같은 두 테이블로 비교했어요. INNER, LEFT와 RIGHT와 FULL OUTER, CROSS, NATURAL과 USING, 셀프 조인, 비등가 조인, ON과 WHERE 조건 차이까지.",
         "summary": "조인 종류별 결과 행 수와 ON, WHERE 차이",
     },
+    # passQL 학습 순서 (#1078)
+    "sqld/guide/passql-route/": {
+        "menu_name": "합격까지 공부 순서", "parent": "sqld/", "priority": "0.7", "icon": "route",
+        "title": "SQLD 합격까지 공부 순서 — 기출 복원, 모의고사, FINAL 4단계 | passQL",
+        "description": "passQL로 SQLD를 준비하는 순서를 정리했어요. 매일 개념 학습과 오늘의 세트, 1단계 최신 기출 복원, 2단계 이전 기출, 3단계 모의고사, 4단계 시험 직전 FINAL과 오답률 TOP 30까지.",
+        "summary": "매일 할 일과 기출, 모의고사, FINAL 4단계",
+    },
     "sqld/app/": {
         "menu_name": "SQLD 앱", "parent": "sqld/", "priority": "0.8", "icon": "quiz",
         "title": "SQLD 공부 앱 passQL — 교재 없이 SQL 자격증 준비 | passQL",
