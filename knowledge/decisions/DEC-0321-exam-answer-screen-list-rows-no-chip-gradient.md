@@ -4,9 +4,9 @@ id: DEC-0321
 created: 2026-11-16
 reviewed: null
 topics: [design-system, practice]
-status: active
+status: superseded
 supersedes: null
-superseded_by: null
+superseded_by: DEC-0332
 related: ["[[ISS-0524-exam-answer-screen-no-card-chip-gradient]]", "[[ISS-0524-exam-answer-screen-no-card-chip-gradient-report]]", "[[DEC-0116-app-apple-hig-design-system]]", "[[DEC-0189-home-section-layout-single-cta]]", "[[DEC-0310-intro-site-light-app-demo-first-screen]]"]
 ---
 
