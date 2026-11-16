@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../core/push/push_link.dart';
 import 'app_routes.dart';
 
-/// 알림 이동 정보 > 앱 경로 (허용 목록 6종만, 그 외 경로 없음)
+/// 알림 이동 정보 > 앱 경로 (허용 목록 7종만, 그 외 경로 없음)
 String toPushLinkLocation(PushLink link) => switch (link.target) {
   PushLinkTarget.home => AppRoutes.home,
   PushLinkTarget.dailySet => AppRoutes.dailySet,
@@ -13,6 +13,7 @@ String toPushLinkLocation(PushLink link) => switch (link.target) {
   PushLinkTarget.questionDetail => AppRoutes.questionDetail(link.questionUuid!),
   PushLinkTarget.stats => AppRoutes.stats,
   PushLinkTarget.examSchedule => AppRoutes.examSchedule,
+  PushLinkTarget.mockExam => AppRoutes.mockExams,
 };
 
 /// 알림 탭으로 들어온 화면 표시 (go_router extra): 진입 직후 프로 안내 시트 금지 (#576 §4-5)

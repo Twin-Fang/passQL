@@ -2108,6 +2108,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/mock-exams/rounds/{roundUuid}/study-questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 학습 모드 문항
+         * @description 회차 50문항의 문제 uuid (시험 번호 순서). 응시 기록을 만들지 않고, 풀이는 문제 상세·제출 기존 경로. PRO 또는 무료 체험·무료 기출 회차만 (아니면 PRO_REQUIRED), 미공개·아직 안 열린 FINAL 은 MOCK_EXAM_ROUND_NOT_FOUND.
+         */
+        get: operations["getStudySet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ox/answers": {
         parameters: {
             query?: never;
@@ -4038,7 +4058,7 @@ export interface components {
              * @description 회차 종류 (MOCK 모의고사, PAST_EXAM 기출 복원, #1079)
              * @enum {string}
              */
-            roundType: "MOCK" | "PAST_EXAM";
+            roundType: "MOCK" | "PAST_EXAM" | "FINAL";
             /** Format: uuid */
             roundUuid: string;
             /** Format: date-time */
@@ -4086,6 +4106,12 @@ export interface components {
             roundUuid: string;
             /** @enum {string} */
             status: "IN_PROGRESS" | "SUBMITTED";
+            title: string;
+        };
+        MockExamStudySetResponse: {
+            questionUuids: string[];
+            /** Format: uuid */
+            roundUuid: string;
             title: string;
         };
         MockExamSubmitRequest: {
@@ -4458,6 +4484,11 @@ export interface components {
         };
         RoundSummary: {
             /**
+             * Format: double
+             * @description 문항 평균 난이도 1~5 (#1084)
+             */
+            averageDifficulty: number | null;
+            /**
              * @description 최고 점수 응시(동점이면 최근)의 불합격 이유
              * @enum {string|null}
              */
@@ -4467,9 +4498,11 @@ export interface components {
             /** Format: int32 */
             bestScore: number | null;
             canStart: boolean;
+            /** @description 학습 모드 가능 (PRO 또는 무료 체험·무료 기출 회차, #1084) */
+            canStudy: boolean;
             /**
              * Format: date
-             * @description 실제 시험일 (PAST_EXAM 만)
+             * @description 실제 시험일 (PAST_EXAM), 대상 시험일 (FINAL)
              */
             examDate: string | null;
             /**
@@ -4485,10 +4518,10 @@ export interface components {
             /** Format: int32 */
             roundNumber: number;
             /**
-             * @description 회차 종류 (MOCK 모의고사, PAST_EXAM 기출 복원, #1079)
+             * @description 회차 종류 (MOCK 모의고사, PAST_EXAM 기출 복원 #1079, FINAL 시험 직전 회차 #1084)
              * @enum {string}
              */
-            roundType: "MOCK" | "PAST_EXAM";
+            roundType: "MOCK" | "PAST_EXAM" | "FINAL";
             /** Format: uuid */
             roundUuid: string;
             /** @enum {string|null} */
@@ -6529,6 +6562,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["MockExamSheetResponse"];
+                };
+            };
+        };
+    };
+    getStudySet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roundUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MockExamStudySetResponse"];
                 };
             };
         };

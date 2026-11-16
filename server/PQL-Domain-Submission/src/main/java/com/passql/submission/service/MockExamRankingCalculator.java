@@ -10,7 +10,7 @@ import java.util.UUID;
 
 /**
  * 회차 순위 (순수 계산): 회원별 첫 제출 점수 분포 > 내 회원 빼고 지금 점수 넣기 > 순위·상위 %
- * 재응시 점수는 분포에 넣지 않음 (재응시로 순위 올리기 방지)
+ * 재응시 점수는 분포에 넣지 않음 (재응시로 순위 올리기 방지), 빈 답안은 분포·내 순위 모두 제외 (#1126)
  */
 public final class MockExamRankingCalculator {
 
@@ -21,10 +21,16 @@ public final class MockExamRankingCalculator {
     }
 
     /**
-     * 제출 응시 목록(제출 시각 오름차순) + 내 회원·지금 점수 > 순위 (응시자 10명 미만이면 null)
+     * 제출 응시 목록(제출 시각 오름차순, 빈 답안 제외) + 내 회원·지금 점수 > 순위
+     * null 2가지: 내 응시가 빈 답안, 응시자 10명 미만
      */
     public static MockExamRanking rank(List<MockExamRoundScoreProjection> submittedScoresInSubmitOrder,
-                                       UUID memberUuid, int currentScore) {
+                                       UUID memberUuid, int currentScore, boolean isCurrentAttemptAnswered) {
+        // 빈 답안은 응시가 아니라 순위 없음 (0점 동점 무리 속 좋은 순위 방지)
+        if (!isCurrentAttemptAnswered) {
+            return null;
+        }
+
         // 회원별 첫 제출 점수 (내 회원 제외)
         Map<UUID, Integer> firstScoreByMemberUuid = new LinkedHashMap<>();
         for (MockExamRoundScoreProjection submittedScore : submittedScoresInSubmitOrder) {

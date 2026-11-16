@@ -4,7 +4,8 @@ import '../../../data/models/mock_exam/mock_exam_enums.dart';
 import '../../../data/models/mock_exam/mock_exam_result.dart';
 import '../../design/design.dart';
 
-/// 결과 첫 화면: 합격·불합격 마크 + 총점 + 이유 한 줄 + 제출 방식·푼 시간 + (응시자 10명 이상) 회차 순위
+/// 결과 첫 화면: 판정(의미색 글자) > 총점(차오름) > 이유 한 줄 > 목록 묶음(정답 수, 풀이 시간, 회차 순위)
+/// 가채점 결과(ExamAnswerScoreResult)와 같은 글자·목록 행 구성, 큰 마크·알약 칩 없음 (#1126, DEC-0321)
 class MockExamScoreHero extends StatelessWidget {
   const MockExamScoreHero({super.key, required this.examResult});
 
@@ -14,85 +15,92 @@ class MockExamScoreHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final elapsedMinutes = (examResult.elapsedSeconds / 60).ceil();
-    return Semantics(
-      container: true,
-      label:
-          '${examResult.isPassed ? '합격' : '불합격'}, ${examResult.totalScore}점. ${_reasonOf(examResult)}${_rankingSemanticsOf(examResult.ranking)}',
-      excludeSemantics: true,
-      child: Column(
-        children: [
-          // 합격·불합격 마크 (화면 전환 뒤 톡 튀어나옴, 동작 줄이기면 정지)
-          PassqlResultMark(
-            isCorrect: examResult.isPassed,
-            label: examResult.isPassed ? '합격' : '불합격',
-            isLarge: true,
-          ),
-          const SizedBox(height: PassqlSpacing.xxs),
-          // 총점은 0에서 차오름 (#1041, 낭독은 위 Semantics 가 최종값)
-          PassqlCountUp(
-            value: examResult.totalScore,
-            builder: (context, displayedScore) => Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: '$displayedScore',
-                    style: PassqlTypography.scoreNumber.copyWith(
-                      color: colors.label,
-                    ),
-                  ),
-                  TextSpan(
-                    text: ' / ${examResult.maxScore}점',
-                    style: PassqlTypography.headline.copyWith(
-                      color: colors.secondaryLabel,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: PassqlSpacing.xs),
-          Text(
-            _reasonOf(examResult),
-            textAlign: TextAlign.center,
-            style: PassqlTypography.subheadline.copyWith(
-              color: colors.secondaryLabel,
-            ),
-          ),
-          const SizedBox(height: PassqlSpacing.sm),
-          Wrap(
-            spacing: PassqlSpacing.xs,
-            alignment: WrapAlignment.center,
+    final isTimeUp = examResult.submitReason == MockExamSubmitReason.timeUp;
+    final ranking = examResult.ranking;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 판정 + 총점 + 이유 (장식 아이콘 없이 글자만)
+        Semantics(
+          container: true,
+          label:
+              '${_verdictOf(examResult)}, ${examResult.totalScore}점. ${_reasonOf(examResult)}',
+          excludeSemantics: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              PassqlBadge(
-                text: '${examResult.correctCount} / ${examResult.questionCount} 정답',
-                kind: PassqlBadgeKind.neutral,
-              ),
-              PassqlBadge(
-                text: '$elapsedMinutes분 풀이',
-                kind: PassqlBadgeKind.neutral,
-                icon: CupertinoIcons.timer,
-              ),
-              if (examResult.submitReason == MockExamSubmitReason.timeUp)
-                const PassqlBadge(
-                  text: '시간 끝 자동 제출',
-                  kind: PassqlBadgeKind.warning,
+              Text(
+                _verdictOf(examResult),
+                style: PassqlTypography.headline.copyWith(
+                  color: examResult.isPassed
+                      ? colors.correctText
+                      : colors.wrongText,
                 ),
+              ),
+              // 총점은 0에서 차오름 (#1041, 낭독은 위 Semantics 가 최종값)
+              PassqlCountUp(
+                value: examResult.totalScore,
+                builder: (context, displayedScore) => Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '$displayedScore',
+                        style: PassqlTypography.scoreNumber.copyWith(
+                          fontFeatures: PassqlTypography.tabular,
+                          color: colors.label,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' / ${examResult.maxScore}점',
+                        style: PassqlTypography.headline.copyWith(
+                          color: colors.secondaryLabel,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: PassqlSpacing.xxs),
+              Text(
+                _reasonOf(examResult),
+                style: PassqlTypography.subheadline.copyWith(
+                  color: colors.secondaryLabel,
+                ),
+              ),
             ],
           ),
-          if (examResult.ranking case final ranking?) ...[
-            const SizedBox(height: PassqlSpacing.md),
-            _RankingLine(ranking: ranking),
+        ),
+        const SizedBox(height: PassqlSpacing.lg),
+        // 정답 수 > 풀이 시간(시간 끝 자동 제출이면 보조 줄) > 순위(응시자 10명 이상)
+        PassqlGroupedSection(
+          children: [
+            PassqlListRow(
+              title: '정답',
+              trailing: Text(
+                '${examResult.correctCount} / ${examResult.questionCount}문항',
+              ),
+            ),
+            PassqlListRow(
+              title: '풀이 시간',
+              subtitle: isTimeUp ? '시간이 끝나 자동 제출했어요' : null,
+              trailing: Text('$elapsedMinutes분'),
+            ),
+            if (ranking != null)
+              PassqlListRow(
+                title: '응시자 중 순위',
+                subtitle:
+                    '이 회차 응시자 ${ranking.takerCount}명 중 ${ranking.rankPosition}위',
+                trailing: Text('상위 ${ranking.topPercent}%'),
+              ),
           ],
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  /// 순위 낭독 문장 (순위 없으면 빈 글자)
-  static String _rankingSemanticsOf(MockExamRanking? ranking) =>
-      ranking == null
-      ? ''
-      : '. 이 회차 응시자 ${ranking.takerCount}명 중 ${ranking.rankPosition}위, 상위 ${ranking.topPercent}%';
+  /// 판정 글자: 합격·불합격
+  static String _verdictOf(MockExamResultResponse examResult) =>
+      examResult.isPassed ? '합격' : '불합격';
 
   /// 이유 한 줄: 과락(과목명 있으면 함께) > 서버 합격선 여유 문장(#1111) > (옛 서버) 합격선까지 남은 점수·합격
   static String _reasonOf(MockExamResultResponse examResult) {
@@ -113,34 +121,5 @@ class MockExamScoreHero extends StatelessWidget {
       case MockExamFailReason.none || MockExamFailReason.unknown:
         return '합격선 ${examResult.passScore}점을 넘었어요';
     }
-  }
-}
-
-/// 회차 순위 한 줄 (#1041 A안): 위 구분선 > 상위 N%(강조) > 응시자 수 중 순위
-class _RankingLine extends StatelessWidget {
-  const _RankingLine({required this.ranking});
-
-  final MockExamRanking ranking;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.passqlColors;
-    return Column(
-      children: [
-        Container(height: PassqlSize.hairline, color: colors.separator),
-        const SizedBox(height: PassqlSpacing.sm),
-        Text(
-          '상위 ${ranking.topPercent}%',
-          style: PassqlTypography.headline.copyWith(color: colors.accentText),
-        ),
-        const SizedBox(height: PassqlSpacing.hairlineGap),
-        Text(
-          '이 회차 응시자 ${ranking.takerCount}명 중 ${ranking.rankPosition}위',
-          style: PassqlTypography.footnote.copyWith(
-            color: colors.secondaryLabel,
-          ),
-        ),
-      ],
-    );
   }
 }

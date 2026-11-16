@@ -4,6 +4,8 @@ import com.passql.submission.constant.MockExamRoundStatus;
 import com.passql.submission.constant.MockExamRoundType;
 import com.passql.submission.entity.MockExamRound;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -21,4 +23,8 @@ public interface MockExamRoundRepository extends JpaRepository<MockExamRound, UU
 
     /** 회차 번호 중복 (종류별 유일) */
     boolean existsByRoundTypeAndRoundNumber(MockExamRoundType roundType, Integer roundNumber);
+
+    /** 종류별 최대 회차 번호 (없으면 0) */
+    @Query("SELECT COALESCE(MAX(r.roundNumber), 0) FROM MockExamRound r WHERE r.roundType = :roundType")
+    int findMaxRoundNumberByRoundType(@Param("roundType") MockExamRoundType roundType);
 }

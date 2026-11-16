@@ -47,13 +47,19 @@ public interface MockExamAttemptRepository extends JpaRepository<MockExamAttempt
 
     List<MockExamAttempt> findByMockExamRoundUuidAndStatus(UUID mockExamRoundUuid, MockExamAttemptStatus status);
 
-    /** 회차 순위 재료: 제출 응시 (회원, 총점) 제출 시각 오름차순 (회원별 첫 응시는 호출자가 고름) */
+    /**
+     * 회차 순위 재료: 제출 응시 (회원, 총점) 제출 시각 오름차순 (회원별 첫 응시는 호출자가 고름)
+     * 한 문항도 고르지 않은 빈 답안(시간 종료·바로 제출)은 응시로 세지 않음 (#1126)
+     */
     @Query("""
             SELECT new com.passql.submission.dto.mockexam.MockExamRoundScoreProjection(a.memberUuid, a.totalScore)
             FROM MockExamAttempt a
             WHERE a.mockExamRoundUuid = :mockExamRoundUuid
               AND a.status = com.passql.submission.constant.MockExamAttemptStatus.SUBMITTED
               AND a.totalScore IS NOT NULL
+              AND EXISTS (SELECT 1 FROM MockExamAnswer answer
+                          WHERE answer.mockExamAttemptUuid = a.mockExamAttemptUuid
+                            AND answer.selectedChoiceKey IS NOT NULL)
             ORDER BY a.submittedAt ASC, a.startedAt ASC
             """)
     List<MockExamRoundScoreProjection> findSubmittedScoresByRoundInSubmitOrder(

@@ -92,7 +92,7 @@ CI/CD·배포·버전 관리·빌드
 - [[ISS-0422-play-closed-testing-promote-default-off]] (resolved, GitHub #729) — Play 수동 배포 비공개 테스트 승급 기본값 끄기
 - [[ISS-0423-test-build-version-mismatch-android-ios]] (resolved, GitHub #731) — 앱 테스트 빌드가 같은 커밋인데 Android·iOS 버전이 다르게 올라감
 - [[ISS-0487-synology-secret-upload-ssh-handshake-flaky]] (resolved, GitHub #950) — 시놀로지 시크릿 업로드가 NAS SSH 무차별 대입 급증으로 handshake 간헐 실패, 최대 3회 재시도
-- [[ISS-0521-sqld-exam-guide-and-yearly-stats]] (open, #1077·#1076): SQLD 알아보기(시험 소개, 연도별 응시자·합격률) — 서버 API·소개 사이트 sqld/stats/ 운영 반영, 앱 화면은 브랜치 대기(앱 출시 때 병합)
+- [[ISS-0521-sqld-exam-guide-and-yearly-stats]] (resolved, #1077·#1076): SQLD 알아보기(시험 소개, 연도별 응시자·합격률) — 서버 API·소개 사이트 sqld/stats/, 앱 PR #1102·릴리스 #1104 출시(iOS 1.132.0 재제출). 완료 리포트 [[ISS-0521-sqld-exam-guide-and-yearly-stats-report]]
 
 ## 관련 교훈
 - [[LSN-0004-app-change-release-means-ios-review]] — 앱 변경이 든 릴리스 deploy 푸시는 iOS 심사 자동 제출까지, 서버 배포라도 따로 확인 (#1075)

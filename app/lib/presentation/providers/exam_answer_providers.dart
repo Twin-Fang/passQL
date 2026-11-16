@@ -192,7 +192,7 @@ class ExamAnswerSheetNotifier
     );
   }
 
-  /// 채점: 제출(서버 채점, 실패면 기기 계산) > 결과 화면
+  /// 채점: 제출(서버 채점, 실패면 기기 계산) > 결과 화면 > 회차 정보 무효화
   Future<void> grade() async {
     if (state.isGrading) return;
     state = state.copyWith(isGrading: true, shouldClearGradingError: true);
@@ -207,6 +207,10 @@ class ExamAnswerSheetNotifier
         isGrading: false,
         isEditing: false,
       );
+      // 참여 수·득표 다시 받기 (회차 요약, 홈 가답안 구간)
+      ref
+        ..invalidate(examAnswerRoundProvider(arg))
+        ..invalidate(examAnswerHomeEntryProvider);
     } catch (exception) {
       state = state.copyWith(
         isGrading: false,

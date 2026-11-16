@@ -267,3 +267,12 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-16 08:40 | W6 | issue 생성 + completion-report, issue resolved + resolution 연결 (#1122 63회 신유형 batch07, 태그 백필) | ISS-0527, ISS-0527-sqld-round63-batch07-internal-tags-report
 - 2026-11-16 08:40 | W4 | decision 생성 2건 (내부 태그 형식·네임스페이스, 옛 파일 갱신 시 태그 유지; 충돌 없음, DEC-0038 확장) | DEC-0324, DEC-0325
 - 2026-11-16 08:40 | W2 | 활성 결정·관련 이슈 줄 추가, members 실제 수로 갱신(W10 수정, W11 크기·요약 날짜 경고는 보고만) | cluster-question-bank, cluster-admin
+- 2026-11-16 09:27 | W6 | issue 3건 생성 + 공유 completion-report 1건, 세 이슈 resolved + resolution 연결 (#1081·#1080·#1082 복습 묶음, PR #1108, 릴리스 #1112) | ISS-0528, ISS-0529, ISS-0530, ISS-0528-review-bundle-wrong-note-bookmark-hardest-report
+- 2026-11-16 09:27 | W6 | issue 3건 생성 + 공유 completion-report 1건, 세 이슈 resolved + resolution 연결 (#1083·#1086·#1110 OX 퀴즈·예상 합격률·잠금화면 OX, PR #1118, 릴리스 #1119) | ISS-0531, ISS-0532, ISS-0533, ISS-0531-ox-quiz-expected-pass-lock-screen-ox-report
+- 2026-11-16 09:27 | W6 | issue 생성 + completion-report, resolved (#1088 소개 사이트 기출 일부 공개·공부 글, 보고서 #1079 공유) | ISS-0534, ISS-0534-intro-site-past-exam-preview-study-guides-report
+- 2026-11-16 09:27 | W6 | open issue 생성 (#1079 기출 복원 회차, 52~62회 공개까지, 45~51회·학습 모드 남음; LSN-0002 재발 기록) | ISS-0535
+- 2026-11-16 09:27 | W6 | completion-report 생성, issue resolved + resolution 연결, 앱 출시 반영 기록 (#1077·#1076, 앱 PR #1102, 릴리스 #1104) | ISS-0521, ISS-0521-sqld-exam-guide-and-yearly-stats-report
+- 2026-11-16 09:27 | W6 | 원본 이슈 본문 보존 9건 (ISS-0521 누락분 포함) | _sources/issues/ISS-0521, ISS-0528~ISS-0535
+- 2026-11-16 09:27 | W4 | decision 생성 3건 + supersede: DEC-0295 superseded_by DEC-0326 (사용자 선택 "기출 문항도 일부 공개", 원문 비공개 항목만 변경·나머지 이어받음); DEC-0327 충돌 없음(DEC-0315·0317·0320·0321); DEC-0328 DEC-0264 와 조건부 공존 | DEC-0326, DEC-0327, DEC-0328, DEC-0295
+- 2026-11-16 09:27 | W8 | lesson 생성 2건 (내보내기 500건 상한으로 중복 판단 집계 잘림, 운영 조회 출력 자르기로 스위치 오판) | LSN-0005, LSN-0006
+- 2026-11-16 09:27 | W2 | 활성 결정·관련 이슈·관련 교훈 줄 추가, DEC-0295 대체된 결정으로 이동, ISS-0521 줄 resolved 로, members 실제 수로 갱신(W10 수정, W11 크기·요약 날짜 경고는 보고만) | cluster-practice, cluster-progress-stats, cluster-concept-learning, cluster-store-release, cluster-question-bank, cluster-admin, cluster-home, cluster-billing, cluster-ops-infra, cluster-dev-workflow, cluster-ci-deploy

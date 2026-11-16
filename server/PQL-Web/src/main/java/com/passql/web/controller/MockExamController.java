@@ -9,6 +9,7 @@ import com.passql.submission.dto.mockexam.MockExamAnswerSaveResponse;
 import com.passql.submission.dto.mockexam.MockExamHistoryResponse;
 import com.passql.submission.dto.mockexam.MockExamResultResponse;
 import com.passql.submission.dto.mockexam.MockExamRoundListResponse;
+import com.passql.submission.dto.mockexam.MockExamStudySetResponse;
 import com.passql.submission.dto.mockexam.MockExamSheetResponse;
 import com.passql.submission.dto.mockexam.MockExamSubmitRequest;
 import com.passql.web.support.RequiresProFeature;
@@ -38,6 +39,12 @@ public class MockExamController implements MockExamControllerDocs {
     @GetMapping("/rounds")
     public ResponseEntity<MockExamRoundListResponse> getRounds(@AuthMember LoginMember loginMember) {
         return ResponseEntity.ok(mockExamService.getRounds(loginMember.memberUuid()));
+    }
+
+    @GetMapping("/rounds/{roundUuid}/study-questions")
+    public ResponseEntity<MockExamStudySetResponse> getStudySet(@AuthMember LoginMember loginMember,
+                                                                @PathVariable UUID roundUuid) {
+        return ResponseEntity.ok(mockExamService.getStudySet(loginMember.memberUuid(), roundUuid));
     }
 
     @PostMapping("/rounds/{roundUuid}/attempts")

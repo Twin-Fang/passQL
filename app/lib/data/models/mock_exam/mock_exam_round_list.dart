@@ -75,7 +75,7 @@ class MockExamRoundSummary with _$MockExamRoundSummary {
     required String roundUuid,
     required int roundNumber,
     required String title,
-    // 회차 종류·실제 시험 회차·시험일 (기출 복원만, #1079)
+    // 회차 종류·실제 시험 회차(기출만, #1079)·시험일(기출 실제 시험일, FINAL 대상 시험일 #1084)
     @JsonKey(unknownEnumValue: MockExamRoundType.unknown)
     @Default(MockExamRoundType.mock)
     MockExamRoundType roundType,
@@ -87,6 +87,10 @@ class MockExamRoundSummary with _$MockExamRoundSummary {
     required bool canStart,
     @JsonKey(unknownEnumValue: MockExamStartBlockReason.unknown)
     MockExamStartBlockReason? startBlockReason,
+    // 학습 모드 가능 (PRO 또는 무료 체험·무료 기출 회차, #1084)
+    @Default(false) bool canStudy,
+    // 문항 평균 난이도 1~5 (#1084)
+    double? averageDifficulty,
     required int submittedAttemptCount,
     int? bestScore,
 

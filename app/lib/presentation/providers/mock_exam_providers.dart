@@ -45,6 +45,15 @@ final mockExamResultProvider = FutureProvider.autoDispose
       return ref.read(mockExamApiProvider).getResult(attemptUuid);
     });
 
+/// 학습 모드 문항 uuid (#1084, 시험 번호 순서, 학습 가능 판정은 서버)
+Future<List<String>> fetchMockExamStudyQuestionUuids(
+  WidgetRef ref,
+  String roundUuid,
+) async {
+  final studySet = await ref.read(mockExamApiProvider).getStudySet(roundUuid);
+  return studySet.questionUuids;
+}
+
 /// 시작 또는 같은 회차 이어 풀기 > 응시 UUID (시작 판정은 서버, 목록은 다시 받음)
 Future<String> startOrResumeMockExam(WidgetRef ref, String roundUuid) async {
   final sheet = await ref.read(mockExamApiProvider).startOrResume(roundUuid);

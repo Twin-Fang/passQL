@@ -1,5 +1,5 @@
 /**
- * 관리자 회차별 가답안 (#1075): 회차 생성·정보 저장, 공식 정답 반영, 문항 50개 일괄 저장
+ * 관리자 회차별 가답안 (#1075): 회차 생성·정보 저장, 공식 정답 반영, 문항 50개 일괄 저장, 답안지 삭제 (#1126)
  * 요청·토스트·확인 창은 admin-fetch.js (AdminApi, AdminUi)
  */
 (function () {
@@ -101,5 +101,21 @@
         } catch (error) {
             AdminUi.showError(error, '문항을 저장하지 못했어요');
         }
+    });
+
+    // 답안지 삭제 (확인 창, 테스트 제출 정리)
+    document.querySelectorAll('[data-sheet-uuid]').forEach(button => {
+        button.addEventListener('click', async () => {
+            const isConfirmed = await AdminUi.confirmDanger(
+                '토큰 해시 ' + button.dataset.sheetLabel + ' 답안지를 삭제합니다. 득표·참여 수에서 바로 빠지고 되돌릴 수 없어요.',
+                { confirmLabel: '답안지 삭제' });
+            if (!isConfirmed) return;
+            try {
+                await AdminApi.delete('/admin/exam-answers/' + roundUuid + '/sheets/' + button.dataset.sheetUuid);
+                AdminUi.reloadWithToast('답안지를 삭제했어요');
+            } catch (error) {
+                AdminUi.showError(error, '답안지를 삭제하지 못했어요');
+            }
+        });
     });
 })();

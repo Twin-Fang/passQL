@@ -6,7 +6,9 @@ import com.passql.submission.dto.mockexam.AdminMockExamComposeResult;
 import com.passql.submission.dto.mockexam.AdminMockExamEligibleCount;
 import com.passql.submission.dto.mockexam.AdminMockExamItemReplaceRequest;
 import com.passql.submission.dto.mockexam.AdminMockExamItemStat;
+import com.passql.submission.dto.mockexam.AdminMockExamFinalRoundCreateRequest;
 import com.passql.submission.dto.mockexam.AdminMockExamPastRoundCreateRequest;
+import com.passql.submission.dto.mockexam.AdminMockExamPublishResult;
 import com.passql.submission.dto.mockexam.AdminMockExamPublishCheck;
 import com.passql.submission.dto.mockexam.AdminMockExamRoundDetail;
 import com.passql.submission.dto.mockexam.AdminMockExamRoundRow;
@@ -14,6 +16,7 @@ import com.passql.submission.service.MockExamAdminStatService;
 import com.passql.submission.service.MockExamPastRoundCreator;
 import com.passql.submission.service.MockExamRoundAdminService;
 import com.passql.submission.service.MockExamRoundComposer;
+import com.passql.web.service.AdminFinalRoundPushService;
 import com.passql.web.support.AdminPageRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,11 +32,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * 관리자 모의고사 API (#866): 회차 목록·자동 구성·기출 회차 생성(#1079)·상세·문항 교체·공개 검사·공개·보관·초안 되돌리기·삭제, 문항 통계, 응시 기록, 출제 가능 문제 수
+ * 관리자 모의고사 API (#866): 회차 목록·자동 구성·기출 회차 생성(#1079)·FINAL 회차 생성(#1084)·상세·문항 교체·공개 검사·공개·보관·초안 되돌리기·삭제, 문항 통계, 응시 기록, 출제 가능 문제 수
  */
 @RestController
 @RequestMapping("/admin/api/mock-exams")
@@ -44,6 +48,7 @@ public class AdminMockExamApiController implements AdminMockExamApiControllerDoc
     private final MockExamRoundComposer roundComposer;
     private final MockExamAdminStatService adminStatService;
     private final MockExamPastRoundCreator pastRoundCreator;
+    private final AdminFinalRoundPushService finalRoundPushService;
 
     @GetMapping("/rounds")
     public ResponseEntity<List<AdminMockExamRoundRow>> getRounds() {
@@ -59,6 +64,12 @@ public class AdminMockExamApiController implements AdminMockExamApiControllerDoc
     public ResponseEntity<AdminMockExamComposeResult> createPastRound(
             @Valid @RequestBody AdminMockExamPastRoundCreateRequest request) {
         return ResponseEntity.ok(pastRoundCreator.create(request));
+    }
+
+    @PostMapping("/final-rounds")
+    public ResponseEntity<AdminMockExamComposeResult> createFinalRound(
+            @Valid @RequestBody AdminMockExamFinalRoundCreateRequest request) {
+        return ResponseEntity.ok(pastRoundCreator.createFinal(request));
     }
 
     @GetMapping("/rounds/{roundUuid}")
@@ -79,8 +90,10 @@ public class AdminMockExamApiController implements AdminMockExamApiControllerDoc
     }
 
     @PostMapping("/rounds/{roundUuid}/publish")
-    public ResponseEntity<Void> publish(@PathVariable UUID roundUuid) {
-        roundAdminService.publish(roundUuid);
+    public ResponseEntity<Void> publish(@PathVariable UUID roundUuid, Principal principal) {
+        AdminMockExamPublishResult publishResult = roundAdminService.publish(roundUuid);
+        // FINAL 이면 여는 날 공개 알림 예약 (#1084)
+        finalRoundPushService.notifyIfFinalOpened(publishResult, principal.getName());
         return ResponseEntity.noContent().build();
     }
 
