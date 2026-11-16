@@ -1,4 +1,1672 @@
 {
+ "45": [
+  {
+   "id": "past45_01",
+   "round": 45,
+   "number": 1,
+   "topicCode": "data_modeling",
+   "stem": "쇼핑몰 데이터 모델을 처음 그리는 팀이 세운 작업 원칙들이다. 데이터 모델링 유의점에 비추어 볼 때 가장 적절하지 않은 원칙은?",
+   "choices": [
+    {
+     "body": "고객 주소를 주문, 배송, 청구 엔터티마다 따로 복사해 두지 않고 한 곳에서만 관리한다",
+     "isSql": false
+    },
+    {
+     "body": "모델을 처음 그릴 때부터 화면 조회 속도를 기준으로 테이블을 합치고 컬럼을 복제해 둔다",
+     "isSql": false
+    },
+    {
+     "body": "배송 절차가 바뀌어도 데이터 구조를 고치지 않도록 데이터 정의와 업무 절차를 떼어 둔다",
+     "isSql": false
+    },
+    {
+     "body": "같은 뜻의 회원 등급 코드가 부서마다 다른 값으로 쓰이지 않도록 데이터 사이 연관을 분명히 정한다",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 2
+  },
+  {
+   "id": "past45_11",
+   "round": 45,
+   "number": 11,
+   "topicCode": "sql_ddl_dml_tcl",
+   "stem": "새로 가입한 회원 한 명의 정보를 회원 테이블에 한 행으로 새로 등록하려고 한다. 이때 쓰는 DML 명령어로 가장 적절한 것은?",
+   "choices": [
+    {
+     "body": "UPDATE 로 이미 있는 행의 값을 고친다",
+     "isSql": false
+    },
+    {
+     "body": "DELETE 로 조건에 맞는 행을 지운다",
+     "isSql": false
+    },
+    {
+     "body": "TRUNCATE 로 테이블의 행을 모두 비운다",
+     "isSql": false
+    },
+    {
+     "body": "INSERT 로 없던 행을 새로 넣는다",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 4
+  },
+  {
+   "id": "past45_12",
+   "round": 45,
+   "number": 12,
+   "topicCode": "sql_function",
+   "stem": "아래 네 쿼리를 하나씩 실행했을 때 결과 R 이 나머지 셋과 다른 것은?",
+   "choices": [
+    {
+     "body": "SELECT FLOOR(58.36) AS R FROM DUAL",
+     "isSql": true
+    },
+    {
+     "body": "SELECT CEIL(58.36) AS R FROM DUAL",
+     "isSql": true
+    },
+    {
+     "body": "SELECT ROUND(58.36) AS R FROM DUAL",
+     "isSql": true
+    },
+    {
+     "body": "SELECT TRUNC(58.36) AS R FROM DUAL",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 2
+  },
+  {
+   "id": "past45_13",
+   "round": 45,
+   "number": 13,
+   "topicCode": "sql_subquery",
+   "stem": "항온항습기와 같은 제조사에서 만든 장비 전부의 상태를 '점검' 으로 바꾸려 한다. 의도대로 동작하는 SQL 로 가장 적절한 것은?",
+   "choices": [
+    {
+     "body": "UPDATE EQUIP SET STATUS = '점검'\n WHERE MAKER_CD = (SELECT MAKER_CD FROM EQUIP\n                    WHERE EQ_NAME = '항온항습기')",
+     "isSql": true
+    },
+    {
+     "body": "UPDATE EQUIP SET STATUS = '점검'\n WHERE EQ_NAME = (SELECT EQ_NAME FROM EQUIP\n                   WHERE EQ_NAME = '항온항습기')",
+     "isSql": true
+    },
+    {
+     "body": "UPDATE EQUIP SET MAKER_CD = '점검'\n WHERE MAKER_CD = (SELECT MAKER_CD FROM EQUIP\n                    WHERE EQ_NAME = '항온항습기')",
+     "isSql": true
+    },
+    {
+     "body": "UPDATE EQUIP SET STATUS = '점검' WHERE MAKER_CD = '항온항습기'",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 1,
+   "tables": [
+    {
+     "name": "EQUIP",
+     "columns": [
+      "EQ_NO",
+      "EQ_NAME",
+      "MAKER_CD",
+      "STATUS"
+     ],
+     "rows": [
+      [
+       "E1",
+       "항온항습기",
+       "M3",
+       "정상"
+      ],
+      [
+       "E2",
+       "공기청정기",
+       "M5",
+       "정상"
+      ],
+      [
+       "E3",
+       "제습기",
+       "M3",
+       "정상"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "past45_16",
+   "round": 45,
+   "number": 16,
+   "topicCode": "sql_basic_select",
+   "stem": "두 구역에 배정된 번호 목록이다. 양쪽 구역에 모두 있는 번호 5, 9 만 결과로 나오는 SQL 로 가장 적절한 것은?",
+   "choices": [
+    {
+     "body": "SELECT A_NO FROM ZONE_A\nUNION\nSELECT B_NO FROM ZONE_B",
+     "isSql": true
+    },
+    {
+     "body": "SELECT A_NO FROM ZONE_A\nMINUS\nSELECT B_NO FROM ZONE_B",
+     "isSql": true
+    },
+    {
+     "body": "SELECT A_NO FROM ZONE_A\nUNION ALL\nSELECT B_NO FROM ZONE_B",
+     "isSql": true
+    },
+    {
+     "body": "SELECT A_NO FROM ZONE_A\nINTERSECT\nSELECT B_NO FROM ZONE_B",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 4,
+   "tables": [
+    {
+     "name": "ZONE_A",
+     "columns": [
+      "A_NO"
+     ],
+     "rows": [
+      [
+       2
+      ],
+      [
+       5
+      ],
+      [
+       7
+      ],
+      [
+       9
+      ]
+     ]
+    },
+    {
+     "name": "ZONE_B",
+     "columns": [
+      "B_NO"
+     ],
+     "rows": [
+      [
+       5
+      ],
+      [
+       9
+      ],
+      [
+       11
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "46": [
+  {
+   "id": "past46_08",
+   "round": 46,
+   "number": 8,
+   "topicCode": "data_modeling",
+   "stem": "쇼핑몰 모델에서 식별자 역할을 하는 속성 넷을 골라 설명을 붙였다.\n- (가) 회원의 회원번호: 회원을 대표하며 주문, 리뷰 엔터티가 이 값으로 회원을 가리킨다\n- (나) 회원의 이메일: 회원마다 다르지만 다른 엔터티가 이 값으로 회원을 가리키지는 않는다\n- (다) 주문의 주문번호: 주문이라는 업무가 일어날 때 그 자체로 생겨나는 값이다\n- (라) 주문 안의 회원번호: 회원과 관계를 맺으면서 회원 쪽에서 넘겨받은 값이다\n(가)부터 (라)까지 해당하는 식별자 종류를 차례로 짝지은 것으로 가장 적절한 것은?",
+   "choices": [
+    {
+     "body": "(가) 보조식별자, (나) 주식별자, (다) 본질식별자, (라) 외부식별자",
+     "isSql": false
+    },
+    {
+     "body": "(가) 주식별자, (나) 보조식별자, (다) 외부식별자, (라) 본질식별자",
+     "isSql": false
+    },
+    {
+     "body": "(가) 주식별자, (나) 보조식별자, (다) 본질식별자, (라) 외부식별자",
+     "isSql": false
+    },
+    {
+     "body": "(가) 본질식별자, (나) 보조식별자, (다) 주식별자, (라) 외부식별자",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 3
+  },
+  {
+   "id": "past46_13",
+   "round": 46,
+   "number": 13,
+   "topicCode": "sql_hierarchy_pivot",
+   "stem": "STAFF 테이블에서 상위자가 없는 대표부터 시작해 아래 직원 방향으로 조직을 펼치려 한다. 의도대로 4명을 모두 전개하는 SQL 로 옳은 것은?",
+   "choices": [
+    {
+     "body": "SELECT LEVEL, EMP_NO, EMP_NAME\n  FROM STAFF\n START WITH EMP_NO IS NULL\nCONNECT BY PRIOR EMP_NO = BOSS_NO",
+     "isSql": true
+    },
+    {
+     "body": "SELECT LEVEL, EMP_NO, EMP_NAME\n  FROM STAFF\n START WITH BOSS_NO IS NULL\nCONNECT BY PRIOR EMP_NO = BOSS_NO",
+     "isSql": true
+    },
+    {
+     "body": "SELECT LEVEL, EMP_NO, EMP_NAME\n  FROM STAFF\n START WITH BOSS_NO IS NULL\nCONNECT BY PRIOR BOSS_NO = EMP_NO",
+     "isSql": true
+    },
+    {
+     "body": "SELECT LEVEL, EMP_NO, EMP_NAME\n  FROM STAFF\n START WITH BOSS_NO = EMP_NO\nCONNECT BY PRIOR EMP_NO = BOSS_NO",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 2,
+   "tables": [
+    {
+     "name": "STAFF",
+     "columns": [
+      "EMP_NO",
+      "EMP_NAME",
+      "BOSS_NO"
+     ],
+     "rows": [
+      [
+       501,
+       "한대표",
+       null
+      ],
+      [
+       502,
+       "오본부",
+       501
+      ],
+      [
+       503,
+       "류팀장",
+       502
+      ],
+      [
+       504,
+       "문사원",
+       503
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "past46_16",
+   "round": 46,
+   "number": 16,
+   "topicCode": "sql_ddl_dml_tcl",
+   "stem": "SQL 명령을 성격에 따라 나눈 설명 가운데 옳지 않은 것은?",
+   "choices": [
+    {
+     "body": "INSERT 와 DELETE 처럼 행을 넣고 지우는 명령은 DML 로 분류한다",
+     "isSql": false
+    },
+    {
+     "body": "트랜잭션을 확정하는 COMMIT 과 되돌리는 ROLLBACK 은 TCL 로 분류한다",
+     "isSql": false
+    },
+    {
+     "body": "테이블을 새로 만드는 CREATE 와 없애는 DROP 은 DCL 에 해당한다",
+     "isSql": false
+    },
+    {
+     "body": "REVOKE 로 권한을 거두고 GRANT 로 부여하는 명령은 DCL 이다",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 3
+  },
+  {
+   "id": "past46_20",
+   "round": 46,
+   "number": 20,
+   "topicCode": "sql_join",
+   "stem": "다음 SQL 에서 짝이 되는 행이 있든 없든 모든 행이 결과에 남는 테이블로 옳은 것은?",
+   "choices": [
+    {
+     "body": "FROM 절에서 먼저 적은 COACH",
+     "isSql": false
+    },
+    {
+     "body": "ON 절 뒤에서 조건을 받는 LESSON",
+     "isSql": false
+    },
+    {
+     "body": "COACH 와 LESSON 둘 다",
+     "isSql": false
+    },
+    {
+     "body": "어느 쪽도 모든 행이 남는다고 장담할 수 없음",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 1,
+   "tables": [
+    {
+     "name": "COACH",
+     "columns": [
+      "COACH_ID",
+      "COACH_NAME"
+     ],
+     "rows": [
+      [
+       "K1",
+       "성민호"
+      ],
+      [
+       "K2",
+       "탁소희"
+      ],
+      [
+       "K3",
+       "맹지후"
+      ]
+     ]
+    },
+    {
+     "name": "LESSON",
+     "columns": [
+      "LESSON_NO",
+      "COACH_ID"
+     ],
+     "rows": [
+      [
+       "L1",
+       "K2"
+      ],
+      [
+       "L2",
+       "K3"
+      ],
+      [
+       "L3",
+       "K3"
+      ]
+     ]
+    }
+   ],
+   "displaySql": "SELECT C.COACH_NAME, L.LESSON_NO\n  FROM COACH C LEFT OUTER JOIN LESSON L\n    ON C.COACH_ID = L.COACH_ID;"
+  },
+  {
+   "id": "past46_22",
+   "round": 46,
+   "number": 22,
+   "topicCode": "sql_window",
+   "stem": "반별 학생 점수에 윈도우 함수를 적용하려 한다. 다음 가운데 등수를 매기는 함수가 아닌 것은?",
+   "choices": [
+    {
+     "body": "DENSE_RANK() OVER (ORDER BY SCORE DESC)",
+     "isSql": false
+    },
+    {
+     "body": "RATIO_TO_REPORT(SCORE) OVER (PARTITION BY CLASS_CD)",
+     "isSql": false
+    },
+    {
+     "body": "ROW_NUMBER() OVER (PARTITION BY CLASS_CD ORDER BY SCORE DESC)",
+     "isSql": false
+    },
+    {
+     "body": "RANK() OVER (ORDER BY SCORE DESC)",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 2
+  }
+ ],
+ "47": [
+  {
+   "id": "past47_04",
+   "round": 47,
+   "number": 4,
+   "topicCode": "data_modeling",
+   "stem": "사원 엔터티에 부서코드와 부서명이 함께 들어 있고, 부서명은 사원번호가 아니라 부서코드에 따라 정해진다.\n이처럼 식별자가 아닌 속성이 또 다른 식별자 아닌 속성을 결정하는 관계를 없애는 정규화 단계로 가장 적절한 것은?",
+   "choices": [
+    {
+     "body": "한 칸에 값이 하나씩만 들어가게 반복 값을 나누는 1단계",
+     "isSql": false
+    },
+    {
+     "body": "복합 식별자의 일부에만 기대는 속성을 떼어 내는 2단계",
+     "isSql": false
+    },
+    {
+     "body": "일반 속성끼리 결정하는 이행 관계를 떼어 내는 3단계",
+     "isSql": false
+    },
+    {
+     "body": "결정자 노릇을 하는 모든 속성이 후보 식별자가 되게 하는 보이스 코드 단계",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 3
+  },
+  {
+   "id": "past47_12",
+   "round": 47,
+   "number": 12,
+   "topicCode": "sql_group_aggregate",
+   "stem": "매장별 합계, 매장과 메뉴 조합별 합계, 전체 합계 세 가지를 SQL 한 번으로 뽑되 그 밖의 집계 행은 나오지 않게 하려 한다.\n이 요구를 정확히 만족하는 SQL 로 가장 적절한 것은?",
+   "choices": [
+    {
+     "body": "SELECT SHOP, MENU, SUM(PRICE) AS TOTAL\nFROM CAFE_SALE\nGROUP BY ROLLUP(SHOP, MENU)",
+     "isSql": true
+    },
+    {
+     "body": "SELECT SHOP, MENU, SUM(PRICE) AS TOTAL\nFROM CAFE_SALE\nGROUP BY CUBE(SHOP, MENU)",
+     "isSql": true
+    },
+    {
+     "body": "SELECT SHOP, MENU, SUM(PRICE) AS TOTAL\nFROM CAFE_SALE\nGROUP BY GROUPING SETS(SHOP, MENU)",
+     "isSql": true
+    },
+    {
+     "body": "SELECT SHOP, MENU, SUM(PRICE) AS TOTAL\nFROM CAFE_SALE\nGROUP BY SHOP, MENU",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 1,
+   "tables": [
+    {
+     "name": "CAFE_SALE",
+     "columns": [
+      "SHOP",
+      "MENU",
+      "PRICE"
+     ],
+     "rows": [
+      [
+       "역삼",
+       "라떼",
+       5000
+      ],
+      [
+       "역삼",
+       "에이드",
+       6000
+      ],
+      [
+       "판교",
+       "라떼",
+       4500
+      ],
+      [
+       "판교",
+       "라떼",
+       4500
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "past47_17",
+   "round": 47,
+   "number": 17,
+   "topicCode": "sql_function",
+   "stem": "진료 예약 테이블의 예약일(DATE)을 '2026.05.07' 처럼 연, 월, 일을 점으로 이은 문자열로 보여 주려 한다. 의도한 결과를 내는 SQL 로 가장 적절한 것은?",
+   "choices": [
+    {
+     "body": "SELECT TO_DATE(BOOK_DT, 'YYYY.MM.DD') AS BOOK_DAY FROM CLINIC_BOOKING",
+     "isSql": true
+    },
+    {
+     "body": "SELECT TO_CHAR(BOOK_DT, 'YYYY.MM.DD') AS BOOK_DAY FROM CLINIC_BOOKING",
+     "isSql": true
+    },
+    {
+     "body": "SELECT TO_NUMBER(BOOK_DT, 'YYYY.MM.DD') AS BOOK_DAY FROM CLINIC_BOOKING",
+     "isSql": true
+    },
+    {
+     "body": "SELECT CAST(BOOK_DT AS VARCHAR2(10)) AS BOOK_DAY FROM CLINIC_BOOKING",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 2,
+   "tables": [
+    {
+     "name": "CLINIC_BOOKING",
+     "columns": [
+      "BOOK_NO",
+      "BOOK_DT"
+     ],
+     "rows": [
+      [
+       1,
+       "2026-05-07"
+      ],
+      [
+       2,
+       "2026-11-30"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "past47_18",
+   "round": 47,
+   "number": 18,
+   "topicCode": "sql_window",
+   "stem": "체중 기록을 측정일 오름차순으로 보면서, 각 행 옆에 바로 전 측정일의 체중을 함께 보여 주려 한다. 의도한 결과를 내는 SQL 로 가장 적절한 것은?",
+   "choices": [
+    {
+     "body": "SELECT LOG_DT, KG,\n       LEAD(KG) OVER (ORDER BY LOG_DT) AS PREV_KG\nFROM WEIGHT_LOG",
+     "isSql": true
+    },
+    {
+     "body": "SELECT LOG_DT, KG,\n       SUM(KG) OVER (ORDER BY LOG_DT) AS PREV_KG\nFROM WEIGHT_LOG",
+     "isSql": true
+    },
+    {
+     "body": "SELECT LOG_DT, KG,\n       ROW_NUMBER() OVER (ORDER BY LOG_DT) AS PREV_KG\nFROM WEIGHT_LOG",
+     "isSql": true
+    },
+    {
+     "body": "SELECT LOG_DT, KG,\n       LAG(KG) OVER (ORDER BY LOG_DT) AS PREV_KG\nFROM WEIGHT_LOG",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 4,
+   "tables": [
+    {
+     "name": "WEIGHT_LOG",
+     "columns": [
+      "LOG_DT",
+      "KG"
+     ],
+     "rows": [
+      [
+       "2026-01-03",
+       72
+      ],
+      [
+       "2026-01-10",
+       71
+      ],
+      [
+       "2026-01-17",
+       73
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "past47_19",
+   "round": 47,
+   "number": 19,
+   "topicCode": "sql_subquery",
+   "stem": "아래 SQL 을 각각 실행할 때 오류가 발생하는 것은?",
+   "choices": [
+    {
+     "body": "SELECT ITEM_NM FROM STATIONERY\nWHERE PRICE = (SELECT PRICE FROM STATIONERY\n               WHERE KIND = '사무')",
+     "isSql": true
+    },
+    {
+     "body": "SELECT ITEM_NM FROM STATIONERY\nWHERE PRICE = (SELECT MIN(PRICE) FROM STATIONERY)",
+     "isSql": true
+    },
+    {
+     "body": "SELECT ITEM_NM FROM STATIONERY\nWHERE ITEM_NO IN (SELECT ITEM_NO FROM STATIONERY\n                  WHERE KIND = '필기')",
+     "isSql": true
+    },
+    {
+     "body": "SELECT ITEM_NM FROM STATIONERY\nWHERE PRICE = (SELECT PRICE FROM STATIONERY\n               WHERE ITEM_NO = 2)",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 1,
+   "tables": [
+    {
+     "name": "STATIONERY",
+     "columns": [
+      "ITEM_NO",
+      "ITEM_NM",
+      "KIND",
+      "PRICE"
+     ],
+     "rows": [
+      [
+       1,
+       "만년필",
+       "필기",
+       900
+      ],
+      [
+       2,
+       "형광펜",
+       "필기",
+       80
+      ],
+      [
+       3,
+       "스테이플러",
+       "사무",
+       120
+      ],
+      [
+       4,
+       "파일철",
+       "사무",
+       60
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "48": [
+  {
+   "id": "past48_04",
+   "round": 48,
+   "number": 4,
+   "topicCode": "data_modeling",
+   "stem": "도서관 모델에서 대출과 대출상세, 회원과 대출 사이 관계를 정하고 있다. 식별 관계와 비식별 관계를 설명한 내용 가운데 가장 적절하지 않은 것은?",
+   "choices": [
+    {
+     "body": "까마귀발 그림에서 부모 키를 기본키로 받는 관계선은 끊김 없는 선, 일반 속성으로 받는 관계선은 끊어진 선이다",
+     "isSql": false
+    },
+    {
+     "body": "비식별 관계로 맺으면 부모 주식별자가 자식 주식별자 안에 들어가 자식이 복합 주식별자를 갖는다",
+     "isSql": false
+    },
+    {
+     "body": "식별 관계에서는 부모 인스턴스 없이 자식 인스턴스가 생길 수 없다",
+     "isSql": false
+    },
+    {
+     "body": "비식별 관계의 자식은 부모 키를 일반 속성으로 받고 자기 고유의 주식별자를 따로 둔다",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 2
+  },
+  {
+   "id": "past48_11",
+   "round": 48,
+   "number": 11,
+   "topicCode": "sql_ddl_dml_tcl",
+   "stem": "택배 접수 테이블을 만들며 컬럼마다 제약조건을 붙였다. 각 제약조건의 역할을 설명한 내용으로 가장 적절하지 않은 것은?",
+   "choices": [
+    {
+     "body": "기사번호 FOREIGN KEY 는 그 컬럼 값이 테이블 안에서 겹치지 않고 비어 있지도 않음을 보장한다",
+     "isSql": false
+    },
+    {
+     "body": "수취인명 NOT NULL 은 접수 때 수취인명을 비워 둘 수 없게 한다",
+     "isSql": false
+    },
+    {
+     "body": "송장번호 UNIQUE 는 이미 있는 송장번호를 다시 저장하지 못하게 한다",
+     "isSql": false
+    },
+    {
+     "body": "무게 CHECK (무게 > 0) 은 0 이하의 무게가 들어오지 못하게 한다",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 1
+  },
+  {
+   "id": "past48_12",
+   "round": 48,
+   "number": 12,
+   "topicCode": "sql_basic_select",
+   "stem": "창고 구역별 적재 수량을 기록한 아래 테이블에 다음 SQL 을 수행했을 때 반환되는 행 수로 옳은 것은?",
+   "choices": [
+    {
+     "body": "3",
+     "isSql": false
+    },
+    {
+     "body": "5",
+     "isSql": false
+    },
+    {
+     "body": "6",
+     "isSql": false
+    },
+    {
+     "body": "7",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 2,
+   "tables": [
+    {
+     "name": "SHELF_LOG",
+     "columns": [
+      "ZONE",
+      "QTY"
+     ],
+     "rows": [
+      [
+       "N",
+       5
+      ],
+      [
+       "N",
+       5
+      ],
+      [
+       "N",
+       8
+      ],
+      [
+       "S",
+       8
+      ],
+      [
+       "S",
+       8
+      ],
+      [
+       "S",
+       5
+      ],
+      [
+       "E",
+       5
+      ]
+     ]
+    }
+   ],
+   "displaySql": "SELECT DISTINCT ZONE, QTY\n  FROM SHELF_LOG;"
+  },
+  {
+   "id": "past48_17",
+   "round": 48,
+   "number": 17,
+   "topicCode": "sql_function",
+   "stem": "다음 SQL 가운데 실행 결과 값이 가장 작은 것은? (Oracle 기준)",
+   "choices": [
+    {
+     "body": "SELECT CEIL(-3.8) FROM DUAL",
+     "isSql": true
+    },
+    {
+     "body": "SELECT TRUNC(-3.9) FROM DUAL",
+     "isSql": true
+    },
+    {
+     "body": "SELECT FLOOR(-3.2) FROM DUAL",
+     "isSql": true
+    },
+    {
+     "body": "SELECT ROUND(-3.4) FROM DUAL",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 3
+  },
+  {
+   "id": "past48_30",
+   "round": 48,
+   "number": 30,
+   "topicCode": "sql_hierarchy_pivot",
+   "stem": "숫자 행을 만들어 낼 때 자주 쓰는 아래 계층 질의를 Oracle 에서 실행했다. ROW_CNT 결과로 옳은 것은?",
+   "choices": [
+    {
+     "body": "0",
+     "isSql": false
+    },
+    {
+     "body": "1",
+     "isSql": false
+    },
+    {
+     "body": "6",
+     "isSql": false
+    },
+    {
+     "body": "7",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 4,
+   "displaySql": "SELECT COUNT(LEVEL) AS ROW_CNT\n  FROM DUAL\nCONNECT BY LEVEL < 8;"
+  }
+ ],
+ "49": [
+  {
+   "id": "past49_06",
+   "round": 49,
+   "number": 6,
+   "topicCode": "data_modeling",
+   "stem": "도서관 모델에서 도서와 소장본, 도서와 대출 사이의 관계를 정리하던 중 식별 관계와 비식별 관계를 설명한 문장이다. 옳지 않은 것은?",
+   "choices": [
+    {
+     "body": "식별 관계의 자식은 부모와 별개로 자기 주식별자를 꾸리고, 비식별 관계의 자식은 주식별자를 부모에게 기댄다",
+     "isSql": false
+    },
+    {
+     "body": "식별 관계라면 부모의 주식별자가 자식 주식별자를 이루는 한 부분이 된다",
+     "isSql": false
+    },
+    {
+     "body": "식별 관계로 이어진 자식 인스턴스는 대응하는 부모 인스턴스가 없으면 생길 수 없다",
+     "isSql": false
+    },
+    {
+     "body": "비식별 관계라면 부모의 주식별자는 자식에게 일반 속성으로만 내려간다",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 1
+  },
+  {
+   "id": "past49_14",
+   "round": 49,
+   "number": 14,
+   "topicCode": "sql_hierarchy_pivot",
+   "stem": "본부부터 시작해 하위 조직으로 내려가며 조직도를 펼치려 한다. 의도한 결과를 내는 SQL 로 옳은 것은?",
+   "choices": [
+    {
+     "body": "SELECT LEVEL AS LV, UNIT_ID\n  FROM ORG_UNIT\n START WITH PARENT_ID IS NULL\n CONNECT BY PRIOR UNIT_ID = PARENT_ID\n ORDER BY UNIT_ID",
+     "isSql": true
+    },
+    {
+     "body": "SELECT LEVEL AS LV, UNIT_ID\n  FROM ORG_UNIT\n START WITH PARENT_ID IS NULL\n CONNECT BY PRIOR PARENT_ID = UNIT_ID\n ORDER BY UNIT_ID",
+     "isSql": true
+    },
+    {
+     "body": "SELECT LEVEL AS LV, UNIT_ID\n  FROM ORG_UNIT\n START WITH PARENT_ID IS NULL\n CONNECT BY UNIT_ID = PARENT_ID\n ORDER BY UNIT_ID",
+     "isSql": true
+    },
+    {
+     "body": "SELECT LEVEL AS LV, UNIT_ID\n  FROM ORG_UNIT\n START WITH PARENT_ID IS NULL\n CONNECT BY PRIOR UNIT_ID = UNIT_ID\n ORDER BY UNIT_ID",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 1,
+   "tables": [
+    {
+     "name": "ORG_UNIT",
+     "columns": [
+      "UNIT_ID",
+      "UNIT_NAME",
+      "PARENT_ID"
+     ],
+     "rows": [
+      [
+       10,
+       "본부",
+       null
+      ],
+      [
+       20,
+       "영업부",
+       10
+      ],
+      [
+       30,
+       "개발부",
+       10
+      ],
+      [
+       40,
+       "영업1팀",
+       20
+      ],
+      [
+       50,
+       "플랫폼팀",
+       30
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "past49_16",
+   "round": 49,
+   "number": 16,
+   "topicCode": "sql_group_aggregate",
+   "stem": "대여 테이블 RENTAL 에 아래 조회문을 수행했을 때 출력되는 회원 순서로 옳은 것은?",
+   "choices": [
+    {
+     "body": "M1, M2, M3",
+     "isSql": false
+    },
+    {
+     "body": "M3, M1, M2",
+     "isSql": false
+    },
+    {
+     "body": "M3, M2",
+     "isSql": false
+    },
+    {
+     "body": "M3, M1, M2, M4",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 2,
+   "tables": [
+    {
+     "name": "RENTAL",
+     "columns": [
+      "RENT_NO",
+      "MEMBER_ID"
+     ],
+     "rows": [
+      [
+       1,
+       "M1"
+      ],
+      [
+       2,
+       "M3"
+      ],
+      [
+       3,
+       "M1"
+      ],
+      [
+       4,
+       "M2"
+      ],
+      [
+       5,
+       "M3"
+      ],
+      [
+       6,
+       "M1"
+      ],
+      [
+       7,
+       "M4"
+      ],
+      [
+       8,
+       "M2"
+      ]
+     ]
+    }
+   ],
+   "displaySql": "SELECT MEMBER_ID, COUNT(*) AS CNT\n  FROM RENTAL\n GROUP BY MEMBER_ID\nHAVING COUNT(*) >= 2\n ORDER BY CASE WHEN MEMBER_ID = 'M3' THEN 0 ELSE 1 END,\n          MEMBER_ID;"
+  },
+  {
+   "id": "past49_24",
+   "round": 49,
+   "number": 24,
+   "topicCode": "sql_window",
+   "stem": "일자별 판매량 SALE_DAY 에서 각 날짜 옆에 전날 판매량을 붙이되, 전날이 없으면 0 으로 보이게 하려 한다. 의도한 결과를 내는 SQL 로 옳은 것은?",
+   "choices": [
+    {
+     "body": "SELECT DAY_NO, QTY,\n       LEAD(QTY, 1, 0) OVER (ORDER BY DAY_NO) AS PREV_QTY\n  FROM SALE_DAY\n ORDER BY DAY_NO",
+     "isSql": true
+    },
+    {
+     "body": "SELECT DAY_NO, QTY,\n       LAG(QTY, 1, 0) OVER (ORDER BY DAY_NO) AS PREV_QTY\n  FROM SALE_DAY\n ORDER BY DAY_NO",
+     "isSql": true
+    },
+    {
+     "body": "SELECT DAY_NO, QTY,\n       LAG(QTY) OVER (ORDER BY DAY_NO) AS PREV_QTY\n  FROM SALE_DAY\n ORDER BY DAY_NO",
+     "isSql": true
+    },
+    {
+     "body": "SELECT DAY_NO, QTY,\n       FIRST_VALUE(QTY) OVER (ORDER BY DAY_NO) AS PREV_QTY\n  FROM SALE_DAY\n ORDER BY DAY_NO",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 2,
+   "tables": [
+    {
+     "name": "SALE_DAY",
+     "columns": [
+      "DAY_NO",
+      "QTY"
+     ],
+     "rows": [
+      [
+       1,
+       40
+      ],
+      [
+       2,
+       70
+      ],
+      [
+       3,
+       90
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "past49_27",
+   "round": 49,
+   "number": 27,
+   "topicCode": "sql_join",
+   "stem": "가입한 학생이 없는 동아리까지 모든 동아리를 결과에 남기려 한다. STUDENT 를 먼저 적고 CLUB 을 JOIN 오른쪽에 둘 때 의도한 결과를 내는 SQL 로 옳은 것은?",
+   "choices": [
+    {
+     "body": "SELECT C.CLUB_NAME, S.STU_NAME\n  FROM STUDENT S\n INNER JOIN CLUB C ON S.CLUB_ID = C.CLUB_ID\n ORDER BY C.CLUB_NAME, S.STU_NAME",
+     "isSql": true
+    },
+    {
+     "body": "SELECT C.CLUB_NAME, S.STU_NAME\n  FROM STUDENT S\n  LEFT OUTER JOIN CLUB C ON S.CLUB_ID = C.CLUB_ID\n ORDER BY C.CLUB_NAME, S.STU_NAME",
+     "isSql": true
+    },
+    {
+     "body": "SELECT C.CLUB_NAME, S.STU_NAME\n  FROM STUDENT S\n CROSS JOIN CLUB C ON S.CLUB_ID = C.CLUB_ID\n ORDER BY C.CLUB_NAME, S.STU_NAME",
+     "isSql": true
+    },
+    {
+     "body": "SELECT C.CLUB_NAME, S.STU_NAME\n  FROM STUDENT S\n RIGHT OUTER JOIN CLUB C ON S.CLUB_ID = C.CLUB_ID\n ORDER BY C.CLUB_NAME, S.STU_NAME",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 4,
+   "tables": [
+    {
+     "name": "STUDENT",
+     "columns": [
+      "STU_ID",
+      "STU_NAME",
+      "CLUB_ID"
+     ],
+     "rows": [
+      [
+       1,
+       "가온",
+       10
+      ],
+      [
+       2,
+       "나래",
+       10
+      ],
+      [
+       3,
+       "다인",
+       null
+      ]
+     ]
+    },
+    {
+     "name": "CLUB",
+     "columns": [
+      "CLUB_ID",
+      "CLUB_NAME"
+     ],
+     "rows": [
+      [
+       10,
+       "밴드"
+      ],
+      [
+       20,
+       "바둑"
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "50": [
+  {
+   "id": "past50_07",
+   "round": 50,
+   "number": 7,
+   "topicCode": "data_modeling",
+   "stem": "택배 엔터티에는 하루에도 수만 건의 택배가 담기는데, 운송장번호를 보면 그중 어느 택배인지 하나로 딱 정해진다.\n운송장번호처럼 한 엔터티 안의 인스턴스들을 서로 구별해 주는 속성 또는 속성들의 묶음을 가리키는 말로 가장 적절한 것은?",
+   "choices": [
+    {
+     "body": "엔터티끼리 맺는 연관을 뜻하는 관계",
+     "isSql": false
+    },
+    {
+     "body": "값의 허용 범위를 정한 도메인",
+     "isSql": false
+    },
+    {
+     "body": "인스턴스의 특성을 담는 속성 일반",
+     "isSql": false
+    },
+    {
+     "body": "인스턴스를 하나로 짚어 내는 식별자",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 4
+  },
+  {
+   "id": "past50_11",
+   "round": 50,
+   "number": 11,
+   "topicCode": "sql_group_aggregate",
+   "stem": "대여 금액의 평균이 40000 이상인 고객의 고객번호와 평균 대여 금액을 구하려 한다. 의도한 결과를 내는 SQL 로 가장 적절한 것은?",
+   "choices": [
+    {
+     "body": "SELECT C.CUST_ID,\n       AVG(R.FEE) AS AVG_FEE\n  FROM CUSTOMER C JOIN RENTAL R ON C.CUST_ID = R.CUST_ID\n WHERE AVG(R.FEE) >= 40000\n GROUP BY C.CUST_ID",
+     "isSql": true
+    },
+    {
+     "body": "SELECT C.CUST_ID,\n       AVG(R.FEE) AS AVG_FEE\n  FROM CUSTOMER C JOIN RENTAL R ON C.CUST_ID = R.CUST_ID\nHAVING AVG(R.FEE) >= 40000",
+     "isSql": true
+    },
+    {
+     "body": "SELECT C.CUST_ID,\n       AVG(R.FEE) AS AVG_FEE\n  FROM CUSTOMER C JOIN RENTAL R ON C.CUST_ID = R.CUST_ID\n GROUP BY C.CUST_ID\nHAVING AVG(R.FEE) >= 40000",
+     "isSql": true
+    },
+    {
+     "body": "SELECT C.CUST_ID,\n       AVG(R.FEE) AS AVG_FEE\n  FROM CUSTOMER C JOIN RENTAL R ON C.CUST_ID = R.CUST_ID\n GROUP BY C.CUST_ID\nHAVING SUM(R.FEE) >= 40000",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 3,
+   "tables": [
+    {
+     "name": "CUSTOMER",
+     "columns": [
+      "CUST_ID",
+      "CUST_NAME",
+      "TIER"
+     ],
+     "rows": [
+      [
+       1,
+       "윤슬",
+       "S"
+      ],
+      [
+       2,
+       "도담",
+       "G"
+      ],
+      [
+       3,
+       "라온",
+       "S"
+      ]
+     ]
+    },
+    {
+     "name": "RENTAL",
+     "columns": [
+      "CUST_ID",
+      "ITEM_CD",
+      "FEE"
+     ],
+     "rows": [
+      [
+       1,
+       "K1",
+       30000
+      ],
+      [
+       1,
+       "K2",
+       60000
+      ],
+      [
+       2,
+       "K1",
+       20000
+      ],
+      [
+       2,
+       "K3",
+       40000
+      ],
+      [
+       3,
+       "K2",
+       50000
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "past50_14",
+   "round": 50,
+   "number": 14,
+   "topicCode": "sql_function",
+   "stem": "STOCK_WORD 테이블의 W 값은 'WAREHOUSE' 다. 아래 SQL 을 수행한 결과로 옳은 것은?",
+   "choices": [
+    {
+     "body": "HOUSE",
+     "isSql": false
+    },
+    {
+     "body": "EHOUSE",
+     "isSql": false
+    },
+    {
+     "body": "WARE",
+     "isSql": false
+    },
+    {
+     "body": "OUSE",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 1,
+   "tables": [
+    {
+     "name": "STOCK_WORD",
+     "columns": [
+      "W"
+     ],
+     "rows": [
+      [
+       "WAREHOUSE"
+      ]
+     ]
+    }
+   ],
+   "displaySql": "SELECT SUBSTR(W, LENGTH(W) - 4) AS RESULT\n  FROM STOCK_WORD;"
+  },
+  {
+   "id": "past50_34",
+   "round": 50,
+   "number": 34,
+   "topicCode": "sql_basic_select",
+   "stem": "JAN_CODE 와 FEB_CODE 를 두 가지로 합쳤다. 첫 번째 SQL 을 (가), 두 번째 SQL 을 (나) 라 할 때 각 결과 행 수를 순서대로 바르게 나타낸 것은?",
+   "choices": [
+    {
+     "body": "(가) 7행, (나) 7행",
+     "isSql": false
+    },
+    {
+     "body": "(가) 5행, (나) 7행",
+     "isSql": false
+    },
+    {
+     "body": "(가) 7행, (나) 5행",
+     "isSql": false
+    },
+    {
+     "body": "(가) 2행, (나) 2행",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 3,
+   "tables": [
+    {
+     "name": "JAN_CODE",
+     "columns": [
+      "CODE",
+      "NM"
+     ],
+     "rows": [
+      [
+       1,
+       "A"
+      ],
+      [
+       2,
+       "B"
+      ],
+      [
+       3,
+       "C"
+      ],
+      [
+       5,
+       "E"
+      ]
+     ]
+    },
+    {
+     "name": "FEB_CODE",
+     "columns": [
+      "F_CODE",
+      "F_NM"
+     ],
+     "rows": [
+      [
+       2,
+       "B"
+      ],
+      [
+       3,
+       "C"
+      ],
+      [
+       4,
+       "D"
+      ]
+     ]
+    }
+   ],
+   "displaySql": "SELECT CODE, NM FROM JAN_CODE\nUNION ALL\nSELECT F_CODE, F_NM FROM FEB_CODE;\n\nSELECT CODE, NM FROM JAN_CODE\nUNION\nSELECT F_CODE, F_NM FROM FEB_CODE;"
+  },
+  {
+   "id": "past50_45",
+   "round": 50,
+   "number": 45,
+   "topicCode": "sql_subquery",
+   "stem": "아래 SQL 을 수행한 결과 CNT 값으로 옳은 것은?",
+   "choices": [
+    {
+     "body": "서브쿼리 결과에 NULL 이 있어 실행 오류가 난다",
+     "isSql": false
+    },
+    {
+     "body": "0",
+     "isSql": false
+    },
+    {
+     "body": "3",
+     "isSql": false
+    },
+    {
+     "body": "4",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 2,
+   "tables": [
+    {
+     "name": "ALL_DOCK",
+     "columns": [
+      "DOCK_ID"
+     ],
+     "rows": [
+      [
+       1
+      ],
+      [
+       3
+      ],
+      [
+       5
+      ],
+      [
+       7
+      ]
+     ]
+    },
+    {
+     "name": "BUSY_DOCK",
+     "columns": [
+      "REF_ID"
+     ],
+     "rows": [
+      [
+       3
+      ],
+      [
+       null
+      ]
+     ]
+    }
+   ],
+   "displaySql": "SELECT COUNT(*) AS CNT\n  FROM ALL_DOCK\n WHERE DOCK_ID NOT IN (SELECT REF_ID FROM BUSY_DOCK);"
+  }
+ ],
+ "51": [
+  {
+   "id": "past51_02",
+   "round": 51,
+   "number": 2,
+   "topicCode": "data_modeling",
+   "stem": "택배 회사의 배송상세 테이블은 운송장번호, 품목코드, 수량을 가지고, 품목 테이블은 품목코드, 품목명, 분류, 단가를 가진다.\n배송 조회 화면은 하루 수백만 번 호출되는데, 호출할 때마다 품목명 하나를 얻으려고 품목 테이블과 조인한다.\n성능을 측정해 보니 지금의 정규화된 구조로는 응답 시간 목표를 맞출 수 없었다. 이 상황에서 택할 조치로 가장 적절한 것은?",
+   "choices": [
+    {
+     "body": "자주 쓰는 품목명을 배송상세에 함께 저장해 두어 조회 때 품목 테이블과의 조인을 없앤다",
+     "isSql": false
+    },
+    {
+     "body": "품목 테이블의 품목명 컬럼에 인덱스를 새로 만들고 구조는 손대지 않는다",
+     "isSql": false
+    },
+    {
+     "body": "배송상세의 수량을 다른 테이블로 떼어 내 정규화를 한 단계 더 진행한다",
+     "isSql": false
+    },
+    {
+     "body": "품목 테이블을 컬럼 수 기준으로 아무렇게나 두 개로 쪼개 테이블마다 컬럼을 줄인다",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 1
+  },
+  {
+   "id": "past51_11",
+   "round": 51,
+   "number": 11,
+   "topicCode": "sql_ddl_dml_tcl",
+   "stem": "택배 정산 프로그램이 출고 처리와 요금 반영을 한 트랜잭션으로 묶었다. 트랜잭션을 설명한 내용 가운데 옳지 않은 것은?",
+   "choices": [
+    {
+     "body": "출고 처리와 요금 반영처럼 함께 성공하거나 함께 취소되어야 하는 작업을 하나로 묶는 논리적 단위다",
+     "isSql": false
+    },
+    {
+     "body": "작업이 끝나면 COMMIT 으로 확정하거나 ROLLBACK 으로 되돌려 마무리한다",
+     "isSql": false
+    },
+    {
+     "body": "아직 끝나지 않은 트랜잭션이 고치고 있는 행이라도 다른 트랜잭션이 언제든 값을 바꿀 수 있다",
+     "isSql": false
+    },
+    {
+     "body": "원자성, 일관성, 고립성, 지속성이라는 네 가지 성질을 지켜야 한다",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 3
+  },
+  {
+   "id": "past51_13",
+   "round": 51,
+   "number": 13,
+   "topicCode": "sql_basic_select",
+   "stem": "트레이너를 보너스가 많은 순서로 보여 주되, 보너스가 비어 있는 트레이너는 목록 맨 뒤에 두려 한다. 의도대로 정렬하는 SQL 로 옳은 것은?",
+   "choices": [
+    {
+     "body": "SELECT COACH_NAME, BONUS\n  FROM TRAINER_BONUS\n ORDER BY BONUS DESC NULLS LAST",
+     "isSql": true
+    },
+    {
+     "body": "SELECT COACH_NAME, BONUS\n  FROM TRAINER_BONUS\n ORDER BY NVL(BONUS, 0)",
+     "isSql": true
+    },
+    {
+     "body": "SELECT COACH_NAME, BONUS\n  FROM TRAINER_BONUS\n ORDER BY BONUS DESC NULLS FIRST",
+     "isSql": true
+    },
+    {
+     "body": "SELECT COACH_NAME, BONUS\n  FROM TRAINER_BONUS\n ORDER BY BONUS DESC",
+     "isSql": true
+    }
+   ],
+   "answerNumber": 1,
+   "tables": [
+    {
+     "name": "TRAINER_BONUS",
+     "columns": [
+      "COACH_NAME",
+      "BONUS"
+     ],
+     "rows": [
+      [
+       "도윤",
+       300
+      ],
+      [
+       "서아",
+       null
+      ],
+      [
+       "하준",
+       500
+      ],
+      [
+       "지아",
+       100
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "past51_24",
+   "round": 51,
+   "number": 24,
+   "topicCode": "sql_join",
+   "stem": "아래 SQL 을 실행했을 때 FEE_SUM 의 값으로 옳은 것은?",
+   "choices": [
+    {
+     "body": "40",
+     "isSql": false
+    },
+    {
+     "body": "50",
+     "isSql": false
+    },
+    {
+     "body": "90",
+     "isSql": false
+    },
+    {
+     "body": "NULL",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 3,
+   "tables": [
+    {
+     "name": "HUB",
+     "columns": [
+      "HUB_NO"
+     ],
+     "rows": [
+      [
+       1
+      ],
+      [
+       2
+      ],
+      [
+       3
+      ],
+      [
+       4
+      ]
+     ]
+    },
+    {
+     "name": "ROUTE",
+     "columns": [
+      "HUB_NO",
+      "ROUTE_FEE"
+     ],
+     "rows": [
+      [
+       2,
+       100
+      ],
+      [
+       5,
+       300
+      ]
+     ]
+    },
+    {
+     "name": "DROP_PT",
+     "columns": [
+      "HUB_NO",
+      "DROP_FEE",
+      "PT_NAME"
+     ],
+     "rows": [
+      [
+       3,
+       15,
+       "북문"
+      ],
+      [
+       4,
+       25,
+       "남문"
+      ],
+      [
+       7,
+       40,
+       "동문"
+      ],
+      [
+       8,
+       10,
+       "서문"
+      ]
+     ]
+    }
+   ],
+   "displaySql": "SELECT SUM(D.DROP_FEE) AS FEE_SUM\n  FROM HUB H\n       LEFT OUTER JOIN ROUTE R\n         ON H.HUB_NO = R.HUB_NO\n       RIGHT OUTER JOIN DROP_PT D\n         ON H.HUB_NO = D.HUB_NO;"
+  },
+  {
+   "id": "past51_35",
+   "round": 51,
+   "number": 35,
+   "topicCode": "sql_hierarchy_pivot",
+   "stem": "ORG_UNIT 의 UP_CD 는 상위 조직의 UNIT_CD 를 가리킨다. 아래 SQL 의 실행 결과로 옳은 것은?",
+   "choices": [
+    {
+     "body": "1",
+     "isSql": false
+    },
+    {
+     "body": "3",
+     "isSql": false
+    },
+    {
+     "body": "4",
+     "isSql": false
+    },
+    {
+     "body": "5",
+     "isSql": false
+    }
+   ],
+   "answerNumber": 2,
+   "tables": [
+    {
+     "name": "ORG_UNIT",
+     "columns": [
+      "UNIT_CD",
+      "UP_CD",
+      "HEAD_CNT"
+     ],
+     "rows": [
+      [
+       "HQ",
+       null,
+       9
+      ],
+      [
+       "R1",
+       "HQ",
+       4
+      ],
+      [
+       "R2",
+       "R1",
+       6
+      ],
+      [
+       "R3",
+       "R2",
+       4
+      ],
+      [
+       "R4",
+       "R3",
+       2
+      ]
+     ]
+    }
+   ],
+   "displaySql": "SELECT COUNT(*) AS CNT\n  FROM ORG_UNIT\n WHERE HEAD_CNT <> 4\n START WITH UNIT_CD = 'R4'\nCONNECT BY UNIT_CD = PRIOR UP_CD;"
+  }
+ ],
  "52": [
   {
    "id": "past52_03",
@@ -1228,7 +2896,7 @@
      ]
     }
    ],
-   "displaySql": "SELECT COUNT(*)\n  FROM L_SET A (가) JOIN R_SET B\n    ON A.K = B.RK;\n-- (가) = LEFT OUTER, RIGHT OUTER, FULL OUTER, INNER"
+   "displaySql": "SELECT COUNT(*)\n  FROM L_SET A (가) JOIN R_SET B\n    ON A.K = B.RK;"
   }
  ],
  "58": [
@@ -1573,7 +3241,7 @@
     }
    ],
    "answerNumber": 4,
-   "displaySql": "SELECT W.STAFF_NAME AS WORKER, B.STAFF_NAME AS BOSS\n  FROM STAFF W\n  JOIN STAFF B\n    ON ㉠;"
+   "displaySql": "SELECT W.STAFF_NAME AS WORKER,\n       B.STAFF_NAME AS BOSS\n  FROM STAFF W\n  JOIN STAFF B\n    ON ㉠;"
   },
   {
    "id": "past59_29",
@@ -1605,30 +3273,30 @@
  ],
  "60": [
   {
-   "id": "past60_07",
+   "id": "past60_01",
    "round": 60,
-   "number": 7,
+   "number": 1,
    "topicCode": "data_modeling",
-   "stem": "피터 첸 방식으로 '고객이 상품을 구매한다' 를 ERD 로 그리려 한다. '구매한다' 라는 관계를 그릴 때 쓰는 도형으로 옳은 것은?",
+   "stem": "택배 회사 모델에 고객, 배송주문, 배송추적이력 엔터티가 있다.\n배송추적이력은 배송주문과 거점 정보를 바탕으로 화물이 움직일 때마다 한 건씩 쌓이며, 세 엔터티 가운데 건수가 압도적으로 많다.\n엔터티를 발생 시점으로 나눌 때 배송추적이력이 속하는 분류로 가장 적절한 것은?",
    "choices": [
     {
-     "body": "직사각형",
+     "body": "다른 엔터티 없이 독립적으로 생기는 기본(키) 엔터티에 속한다",
      "isSql": false
     },
     {
-     "body": "마름모",
+     "body": "업무의 중심이 되는 중심 엔터티에 속한다",
      "isSql": false
     },
     {
-     "body": "타원",
+     "body": "업무 흐름에 따라 계속 쌓이는 행위 엔터티에 속한다",
      "isSql": false
     },
     {
-     "body": "도형 없이 두 엔터티를 잇는 연결선만",
+     "body": "눈에 보이지 않는 개념 엔터티에 속한다",
      "isSql": false
     }
    ],
-   "answerNumber": 2
+   "answerNumber": 3
   },
   {
    "id": "past60_12",

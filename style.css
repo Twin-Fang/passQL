@@ -754,3 +754,10 @@ main > section:not(.section):not(.final-cta):not(.section-tight):not(.callout-se
   .past-question { padding: var(--space-md); }
   .past-stem { font-size: var(--font-md); }
 }
+
+/* ── 기출 복원 유형 칩 (나머지 문항 유형, 전 회차 합계) ── */
+.past-type-chips { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-xs); max-width: 860px; }
+.past-type-chip { display: inline-flex; align-items: center; gap: var(--space-2xs); padding: 8px 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: var(--font-sm); }
+.past-type-chip strong { color: var(--accent-text); }
+.past-type-chip.is-highlighted { background: var(--accent-tint); border-color: transparent; font-weight: 700; }
+.past-type-chip .ms { font-size: 18px; color: var(--accent-text); }

@@ -12,11 +12,19 @@ import site_content as content
 PAST_EXAM_INDEX_PATH = "sqld/past/"
 PAST_EXAM_SAMPLES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "past_exam_samples.json")
 # 2026 이전 회차 > 시험일 (2026 회차는 site_content.SQLD_EXAM_ROUNDS 가 원본)
-# 출처: 56~59회 운영 API exam-guide roundNotes, 52~55회 수험 기관 공지
+# 출처: 56~59회 운영 API exam-guide roundNotes, 52~55회 수험 기관 공지, 45~51회 복원 원본 시험일(운영 기출 회차 examDate 와 같음)
 EARLIER_EXAM_DATE_BY_ROUND = {
     59: "2025-11-16", 58: "2025-08-23", 57: "2025-05-31", 56: "2025-03-08",
     55: "2024-11-17", 54: "2024-08-24", 53: "2024-05-25", 52: "2024-03-09",
+    51: "2023-11-18", 50: "2023-09-09", 49: "2023-06-10", 48: "2023-03-19",
+    47: "2022-11-05", 46: "2022-09-04", 45: "2022-05-28",
 }
+# 회차별 유형 집계 (select_past_exam_samples.py 가 만듦, 숫자만)
+PAST_EXAM_PROFILES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "past_exam_round_profiles.json")
+# 개편 첫 회차 (이전 회차는 단답형을 같은 개념의 4지선다로 바꿔 실음)
+REVISED_SCOPE_FIRST_ROUND = 52
+PRE_REVISION_ROUND_NOTE = ("2024년 개편 전 회차예요. 주관식(단답형) 문항은 같은 개념의 4지선다로 바꿔 실었고, "
+                           "지금 범위에서 빠진 개념은 가까운 개념으로 바꿨어요.")
 # 한 회차 전체 문항 수와 공개 문항 수 (공개 문항 수는 JSON 길이로 확인)
 ROUND_QUESTION_COUNT = 50
 PUBLIC_QUESTION_COUNT_PER_ROUND = 5
@@ -51,6 +59,12 @@ def load_samples_by_round():
             raise RuntimeError(f"[site build] past exam round {round_number} has {len(questions)} samples")
         find_exam_date(round_number)
     return samples_by_round
+
+
+def load_round_profiles():
+    """회차 > {topicCounts, figureCount, sqlReadingCount}"""
+    with open(PAST_EXAM_PROFILES_PATH, encoding="utf-8") as profile_file:
+        return {int(round_number): profile for round_number, profile in json.load(profile_file).items()}
 
 
 def find_exam_date(round_number):

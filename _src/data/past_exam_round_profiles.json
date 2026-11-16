@@ -1,0 +1,270 @@
+{
+ "45": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_ddl_dml_tcl": 9,
+   "sql_function": 4,
+   "sql_subquery": 6,
+   "sql_group_aggregate": 5,
+   "sql_basic_select": 5,
+   "sql_window": 3,
+   "sql_join": 6,
+   "sql_hierarchy_pivot": 2
+  },
+  "figureCount": 1,
+  "sqlReadingCount": 15
+ },
+ "46": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_hierarchy_pivot": 3,
+   "sql_function": 6,
+   "sql_basic_select": 4,
+   "sql_group_aggregate": 8,
+   "sql_ddl_dml_tcl": 6,
+   "sql_join": 4,
+   "sql_subquery": 4,
+   "sql_window": 5
+  },
+  "figureCount": 4,
+  "sqlReadingCount": 21
+ },
+ "47": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_ddl_dml_tcl": 8,
+   "sql_group_aggregate": 4,
+   "sql_join": 5,
+   "sql_function": 4,
+   "sql_window": 6,
+   "sql_subquery": 4,
+   "sql_hierarchy_pivot": 2,
+   "sql_basic_select": 7
+  },
+  "figureCount": 1,
+  "sqlReadingCount": 12
+ },
+ "48": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_ddl_dml_tcl": 8,
+   "sql_basic_select": 7,
+   "sql_join": 2,
+   "sql_window": 6,
+   "sql_function": 6,
+   "sql_subquery": 2,
+   "sql_group_aggregate": 6,
+   "sql_hierarchy_pivot": 3
+  },
+  "figureCount": 1,
+  "sqlReadingCount": 18
+ },
+ "49": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_basic_select": 6,
+   "sql_ddl_dml_tcl": 12,
+   "sql_hierarchy_pivot": 1,
+   "sql_function": 4,
+   "sql_group_aggregate": 7,
+   "sql_join": 3,
+   "sql_subquery": 4,
+   "sql_window": 3
+  },
+  "figureCount": 1,
+  "sqlReadingCount": 19
+ },
+ "50": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_group_aggregate": 8,
+   "sql_ddl_dml_tcl": 10,
+   "sql_join": 7,
+   "sql_function": 6,
+   "sql_hierarchy_pivot": 2,
+   "sql_basic_select": 3,
+   "sql_window": 3,
+   "sql_subquery": 1
+  },
+  "figureCount": 1,
+  "sqlReadingCount": 15
+ },
+ "51": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_ddl_dml_tcl": 10,
+   "sql_window": 5,
+   "sql_basic_select": 9,
+   "sql_group_aggregate": 4,
+   "sql_function": 7,
+   "sql_subquery": 2,
+   "sql_join": 2,
+   "sql_hierarchy_pivot": 1
+  },
+  "figureCount": 0,
+  "sqlReadingCount": 27
+ },
+ "52": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_basic_select": 8,
+   "sql_function": 4,
+   "sql_window": 2,
+   "sql_hierarchy_pivot": 3,
+   "sql_group_aggregate": 7,
+   "sql_ddl_dml_tcl": 9,
+   "sql_subquery": 3,
+   "sql_join": 4
+  },
+  "figureCount": 0,
+  "sqlReadingCount": 8
+ },
+ "53": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_ddl_dml_tcl": 7,
+   "sql_basic_select": 12,
+   "sql_function": 8,
+   "sql_join": 4,
+   "sql_window": 2,
+   "sql_subquery": 2,
+   "sql_group_aggregate": 3,
+   "sql_hierarchy_pivot": 2
+  },
+  "figureCount": 0,
+  "sqlReadingCount": 17
+ },
+ "54": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_ddl_dml_tcl": 7,
+   "sql_function": 5,
+   "sql_hierarchy_pivot": 1,
+   "sql_subquery": 5,
+   "sql_basic_select": 6,
+   "sql_join": 7,
+   "sql_group_aggregate": 5,
+   "sql_window": 4
+  },
+  "figureCount": 1,
+  "sqlReadingCount": 20
+ },
+ "55": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_subquery": 3,
+   "sql_ddl_dml_tcl": 8,
+   "sql_window": 3,
+   "sql_group_aggregate": 6,
+   "sql_basic_select": 12,
+   "sql_join": 5,
+   "sql_function": 2,
+   "sql_hierarchy_pivot": 1
+  },
+  "figureCount": 3,
+  "sqlReadingCount": 20
+ },
+ "56": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_basic_select": 8,
+   "sql_group_aggregate": 11,
+   "sql_join": 6,
+   "sql_function": 6,
+   "sql_ddl_dml_tcl": 5,
+   "sql_window": 1,
+   "sql_subquery": 3
+  },
+  "figureCount": 2,
+  "sqlReadingCount": 18
+ },
+ "57": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_basic_select": 8,
+   "sql_function": 5,
+   "sql_ddl_dml_tcl": 5,
+   "sql_subquery": 4,
+   "sql_window": 4,
+   "sql_hierarchy_pivot": 3,
+   "sql_group_aggregate": 7,
+   "sql_join": 4
+  },
+  "figureCount": 3,
+  "sqlReadingCount": 13
+ },
+ "58": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_function": 7,
+   "sql_basic_select": 5,
+   "sql_ddl_dml_tcl": 8,
+   "sql_join": 4,
+   "sql_hierarchy_pivot": 2,
+   "sql_group_aggregate": 6,
+   "sql_subquery": 6,
+   "sql_window": 2
+  },
+  "figureCount": 2,
+  "sqlReadingCount": 23
+ },
+ "59": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_ddl_dml_tcl": 6,
+   "sql_window": 4,
+   "sql_basic_select": 9,
+   "sql_function": 6,
+   "sql_join": 3,
+   "sql_subquery": 4,
+   "sql_group_aggregate": 5,
+   "sql_hierarchy_pivot": 3
+  },
+  "figureCount": 1,
+  "sqlReadingCount": 22
+ },
+ "60": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_hierarchy_pivot": 5,
+   "sql_subquery": 4,
+   "sql_window": 4,
+   "sql_join": 5,
+   "sql_ddl_dml_tcl": 9,
+   "sql_function": 2,
+   "sql_group_aggregate": 5,
+   "sql_basic_select": 6
+  },
+  "figureCount": 0,
+  "sqlReadingCount": 17
+ },
+ "61": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_basic_select": 8,
+   "sql_group_aggregate": 4,
+   "sql_join": 6,
+   "sql_subquery": 7,
+   "sql_function": 4,
+   "sql_window": 4,
+   "sql_ddl_dml_tcl": 5,
+   "sql_hierarchy_pivot": 2
+  },
+  "figureCount": 0,
+  "sqlReadingCount": 24
+ },
+ "62": {
+  "topicCounts": {
+   "data_modeling": 10,
+   "sql_basic_select": 9,
+   "sql_ddl_dml_tcl": 9,
+   "sql_group_aggregate": 7,
+   "sql_function": 4,
+   "sql_subquery": 2,
+   "sql_join": 6,
+   "sql_hierarchy_pivot": 3
+  },
+  "figureCount": 2,
+  "sqlReadingCount": 21
+ }
+}

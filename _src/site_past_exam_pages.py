@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """SQLD 기출 복원 페이지 (#1088): 회차 목록(sqld/past/) + 회차 페이지(sqld/past/62/)
-회차 페이지 흐름: 히어로 > 과목 분포 > 공개 5문항(정답은 <details> 펼침, JS 없음) > 앱 안내 > 이전/다음 회차 > 면책
+회차 페이지 흐름: 히어로 > (개편 전 회차 안내) > 과목 분포 > 공개 5문항(정답은 <details> 펼침, JS 없음) > 나머지 문항 유형 > 앱 안내 > 이전/다음 회차 > 면책
 문구·회차 원본은 site_past_exam_content.py, 문항 원본은 _src/data/past_exam_samples.json
 """
 
 import site_content as content
 import site_past_exam_content as past_content
+import site_past_exam_types as past_types
 from site_exam_pages import render_section
 from site_head import escape, render_symbol
 from site_page_frame import calculate_root, render_app_callout, render_guide_page
@@ -145,12 +146,21 @@ def render_past_round_page(round_number, samples_by_round):
     questions = samples_by_round[round_number]
     exam_date_text = format_long_date(past_content.find_exam_date(round_number))
     hidden_count = past_content.ROUND_QUESTION_COUNT - len(questions)
+    profile = past_content.load_round_profiles()[round_number]
+    pre_revision_note = (
+        render_section("개편 전 회차", "", f'<p class="past-revision-note">{render_symbol("update")}'
+                                         f'{escape(past_content.PRE_REVISION_ROUND_NOTE)}</p>')
+        if round_number < past_content.REVISED_SCOPE_FIRST_ROUND else "")
     body = (
-        render_section("이 회차 과목 분포", "50문항 가운데 1과목 데이터 모델링이 10문항, 2과목 SQL이 40문항이에요.",
+        pre_revision_note
+        + render_section("이 회차 과목 분포", "50문항 가운데 1과목 데이터 모델링이 10문항, 2과목 SQL이 40문항이에요.",
                        render_subject_distribution())
         + render_section(f"공개 문항 {len(questions)}개", "문항 번호는 실제 시험 번호예요. 먼저 풀어 보고 '정답 보기'를 눌러 확인하세요.",
                          f'<div class="past-question-list">{"".join(render_question(question) for question in questions)}\n    </div>',
                          "past-questions")
+        + render_section(f"나머지 {hidden_count}문항에는 이런 유형이 있어요",
+                         "공개한 5문항은 맛보기예요. 같은 회차에서 아래 유형을 더 풀어 볼 수 있어요.",
+                         past_types.render_hidden_types(round_number, profile, questions))
         + render_app_callout(root, f"{round_number}회 나머지 {hidden_count}문항과 해설은 앱에서",
                              f"passQL 앱에서 제{round_number}회 50문항을 실전처럼 90분 안에 풀고, 문항마다 왜 맞고 틀렸는지 해설로 확인해요.",
                              past_content.APP_CALLOUT_POINTS)
@@ -188,6 +198,10 @@ def render_past_index_page(samples_by_round):
         render_section("2024년 제52회 개편 이후 범위", "", f'<p class="past-revision-note">{render_symbol("update")}{escape(past_content.REVISION_NOTE)}</p>')
         + render_section("회차별 기출 복원", f"제{rounds[-1]}회부터 제{rounds[0]}회까지, 회차마다 {past_content.PUBLIC_QUESTION_COUNT_PER_ROUND}문항을 정답과 함께 공개해요.",
                          render_round_cards(root, samples_by_round))
+        + render_section("유형별로 보면",
+                         f"제{rounds[-1]}회부터 제{rounds[0]}회까지 {len(rounds) * past_content.ROUND_QUESTION_COUNT}문항을 "
+                         "유형별로 세었어요. 앱에서 회차마다 50문항 전부 풀 수 있어요.",
+                         past_types.render_all_round_types(past_content.load_round_profiles()))
         + render_app_callout(root, "해설과 전체 문항은 passQL 앱에서",
                              "회차마다 50문항을 실제 시험처럼 90분 안에 풀고, 틀린 문항은 해설과 보기 SQL 실행으로 이유까지 확인해요.",
                              past_content.APP_CALLOUT_POINTS)

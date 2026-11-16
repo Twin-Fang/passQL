@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """기출 복원 공개 문항 고르기 (#1088): 다시 쓴 문항 YAML(연구 폴더, 레포 미포함) > 회차마다 5문항 > _src/data/past_exam_samples.json
+회차별 유형 집계(토픽별 문항 수, 그림 문항 수, SQL 읽기 문항 수, 숫자만) > _src/data/past_exam_round_profiles.json
 빌드가 아니라 손으로 한 번 실행 (같은 입력이면 같은 결과)
 실행: python3 -I _src/select_past_exam_samples.py <past-exams 폴더>
-규칙: 1과목 1개 + 2과목 4개, 서로 다른 토픽 우선, 그림(diagramMermaid) 문항 제외, 보기 전부 SQL 인 결과 비교형 1개 이상
+규칙: 1과목 1개 + 2과목 4개, 서로 다른 토픽 우선, 그림(figureSpec, diagramMermaid) 문항 제외, 보기 전부 SQL 인 결과 비교형 1개 이상
 옮기는 필드: 회차, 번호, 토픽, 지문, 표, SQL, 보기, 정답 번호 (해설·근거·출제 의도 같은 내부 필드는 옮기지 않음)
 """
 
@@ -15,6 +16,9 @@ import sys
 import yaml
 
 OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "past_exam_samples.json")
+PROFILE_OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "past_exam_round_profiles.json")
+# 2과목 토픽 회전 기준 회차 (첫 공개 묶음 52회 = 0번째, 이전 회차를 더해도 기존 회차의 공개 문항이 바뀌지 않게)
+ROTATION_BASE_ROUND = 52
 SUBJECT_ONE_TOPIC_CODE = "data_modeling"
 SUBJECT_TWO_SAMPLE_COUNT = 4
 # 2과목 토픽 순서 (회차마다 ROTATION_STEP 칸씩 돌려 회차별로 다른 토픽이 앞에 옴)
@@ -39,7 +43,7 @@ def to_question_number(question_id):
 
 def is_publishable(question):
     """공개 가능 문항: 그림 없음, 지문이 가리키는 표가 화면에 있음, 그림 언급 없음"""
-    if question.get("diagramMermaid"):
+    if question.get("figureSpec") or question.get("diagramMermaid"):
         return False
     if question.get("data") and not question.get("tables"):
         return False
@@ -131,13 +135,30 @@ def select_samples(source_directory):
     """회차 파일 전부 > {회차: [공개 문항 5개 (번호순)]}"""
     samples_by_round = {}
     yaml_paths = sorted(glob.glob(os.path.join(source_directory, "sqld-*.yaml")))
-    for round_index, yaml_path in enumerate(yaml_paths):
+    for yaml_path in yaml_paths:
         round_number = int(os.path.basename(yaml_path)[len("sqld-"):-len(".yaml")])
         questions = load_round_questions(yaml_path)
-        picked = [pick_subject_one(questions, round_number)] + pick_subject_two(questions, round_index)
+        picked = [pick_subject_one(questions, round_number)] + pick_subject_two(questions, round_number - ROTATION_BASE_ROUND)
         picked.sort(key=lambda question: to_question_number(question["id"]))
         samples_by_round[str(round_number)] = [to_public_question(question, round_number) for question in picked]
     return samples_by_round
+
+
+def build_round_profiles(source_directory):
+    """회차 파일 전부 > {회차: {토픽별 문항 수, 그림 문항 수, SQL 읽기 문항 수}} (문항 내용 없이 숫자만)"""
+    profiles = {}
+    for yaml_path in sorted(glob.glob(os.path.join(source_directory, "sqld-*.yaml"))):
+        round_number = int(os.path.basename(yaml_path)[len("sqld-"):-len(".yaml")])
+        questions = load_round_questions(yaml_path)
+        topic_counts = {}
+        for question in questions:
+            topic_counts[question["topicCode"]] = topic_counts.get(question["topicCode"], 0) + 1
+        profiles[str(round_number)] = {
+            "topicCounts": topic_counts,
+            "figureCount": sum(1 for question in questions if question.get("figureSpec")),
+            "sqlReadingCount": sum(1 for question in questions if question.get("displaySql")),
+        }
+    return profiles
 
 
 def main():
@@ -147,6 +168,9 @@ def main():
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     with open(OUTPUT_PATH, "w", encoding="utf-8") as file:
         json.dump(samples_by_round, file, ensure_ascii=False, indent=1)
+        file.write("\n")
+    with open(PROFILE_OUTPUT_PATH, "w", encoding="utf-8") as file:
+        json.dump(build_round_profiles(sys.argv[1]), file, ensure_ascii=False, indent=1)
         file.write("\n")
     for round_number, questions in samples_by_round.items():
         print(f"[past samples] round {round_number} : "
