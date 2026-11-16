@@ -2,7 +2,7 @@
 type: cluster
 topic: store-release
 created: 2026-10-29
-members: 84
+members: 87
 status: active
 related: []
 ---
@@ -16,10 +16,11 @@ related: []
 (2026-11-12, 자동 생성) 활성 결정 18개, 열린 이슈 5개. 앱 아이콘이 시안 8번으로 바뀌었다 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]]: 사용자 기기에는 스토어 새 버전에서 바뀌고, Play 스토어 목록 아이콘(512px)은 Play Console에서 따로 올려야 한다. 프로모션 코드는 스토어 코드(App Store 오퍼 코드, Play 프로모 코드)만 쓴다 — [[DEC-0244-promo-code-store-codes-only]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 잠금화면 문제(#990)는 특수 용도 포그라운드 서비스 권한 신고 전까지 배포 앱에서 숨김 — [[DEC-0290-lock-screen-question-policy]], [[ISS-0499-play-fgs-declaration-lock-screen]]. (2026-11-12) 소개 사이트·약관 공개 주소는 passql.suhsaechan.kr — [[DEC-0294-intro-site-self-hosted-own-domain]](DEC-0119 대체), 검색 노출 원칙은 [[DEC-0295-seo-public-exam-info-no-hidden-text]]. 스토어 문구 반영 2건(Play 검토 제출, App Store 이름·부제·키워드)이 남아 [[ISS-0508-search-visibility-site-domain-aso]] 열림. (2026-11-12) 최소 지원 버전은 스토어 운영 빌드만 막고 개발용 테스트 빌드는 건너뛴다 — [[DEC-0307-dev-build-skips-minimum-version]].
 
 ## 활성 결정
+- [[DEC-0327-answer-key-highlight-exam-date-plus-7]] — 가채점 강조(사이트 메뉴·첫 화면 띠, 앱 홈 가답안 카드)는 시험일 + 7일까지만, 회차 페이지는 계속 열람 (#1079·#1088)
+- [[DEC-0326-site-past-exam-five-question-preview]] — 소개 사이트는 기출 복원 회차마다 다시 쓴 문항 5개만 지문·보기·정답 공개, 해설·나머지 45문항은 앱. 숨긴 글씨·키워드 나열 금지·공개 정보 페이지·리뷰 규칙은 DEC-0295 에서 이어받음 (#1088, DEC-0295 대체)
 - [[DEC-0315-exam-answer-page-concept-line-no-original]] — 가답안 페이지는 원문 대신 번호·과목·개념 한 줄·가답안, 면책·게시 중단 요청 (#1075)
 - [[DEC-0317-site-answer-key-fallback-operator-draft]] — 사이트는 API 실패 시 운영 가답안 초안 스냅샷, 브라우저 채점 (#1075)
 - [[DEC-0294-intro-site-self-hosted-own-domain]] — 소개 사이트·약관 공개 주소는 passql.suhsaechan.kr(시놀로지 직접 서빙), github.io는 경로별 이동 페이지 (#1027, DEC-0119 대체)
-- [[DEC-0295-seo-public-exam-info-no-hidden-text]] — 검색 노출은 공개 시험 정보 페이지로, 숨긴 글씨·키워드 나열·학습 콘텐츠 원문 공개는 안 함 (#1027)
 - [[DEC-0314-lock-screen-free-reason-pro-detail-continue]] — 잠금화면 문제: 무료도 이유를 보고 크레딧으로 이어 풀기, PRO는 상세 해설, PRO 안내는 해설 한 곳, 선택지 방식은 앱 설정 (#1068, DEC-0290 대체)
 - [[DEC-0280-ios-deploy-skip-app-store-step-while-in-review]] — 심사 대기·심사 중 버전이 있거나 확인 불가면 iOS 배포는 TestFlight 업로드만
 - [[DEC-0065-source-available-license-no-commercial]] — 저장소 라이선스를 MIT에서 자체 Source-Available License 1.0으로 — 상업적 이용 영구 금지
@@ -46,12 +47,14 @@ related: []
 - [[DEC-0319-round-pass-rate-unofficial-only]]: 합격률은 연도별 공식 값만 수치로, 회차별은 확인된 전언(61회 약 26%)만 비공식 배지로
 
 ## 대체된 결정 (역사)
+- [[DEC-0295-seo-public-exam-info-no-hidden-text]] → [[DEC-0326-site-past-exam-five-question-preview]] — 학습 콘텐츠 원문 비공개 항목만 바뀜(기출 복원 회차당 5문항 공개), 나머지 항목은 DEC-0326 이 이어받음 (#1088)
 - [[DEC-0119-legal-urls-on-github-pages]] — 약관 공개 URL은 GitHub Pages에 두고 웹 `/legal/*`은 그쪽으로 리다이렉트 (대체: DEC-0294)
 - [[DEC-0233-store-images-accent-keyword-style]] — 스토어 홍보 이미지는 앱 토큰의 `accent` 단색 바탕과 큰 SQL 키워드로 만들고, 한국어와 `scenes.json` 렌더 방식은 유지한다 (대체: DEC-0235)
 - [[DEC-0169-store-listing-korean-only]] — 스토어 홍보 이미지·설명은 한국어만 만들고, 문구는 `scenes.json`에서 도구로 렌더링한다 (대체: DEC-0233)
 - [[DEC-0290-lock-screen-question-policy]] → [[DEC-0314-lock-screen-free-reason-pro-detail-continue]] — 프로만 한 문제 더 > 무료도 크레딧으로 이어 풀기 (#1068)
 
 ## 관련 이슈
+- [[ISS-0534-intro-site-past-exam-preview-study-guides]] (resolved, #1088): 소개 사이트 `sqld/past/` 회차마다 5문항 공개·공부 글 3편·가채점 강조 시험일 + 7일. 완료 리포트 [[ISS-0534-intro-site-past-exam-preview-study-guides-report]]
 - [[ISS-0520-sqld-round-answer-key-omr-grading]] (resolved, #1075): SQLD 회차별 가답안·OMR 가채점, 2026-11-15 릴리스 PR #1094 로 서버·앱 배포, 63회 운영 가답안 50문항 입력(우세 34, 갈림 15, 미복원 1), 사이트 제출·채점·CORS 실측 정상. 완료 리포트 [[ISS-0520-sqld-round-answer-key-omr-grading-report]]
 - [[ISS-0512-test-build-minimum-version-block]] (resolved, GitHub #962, PR #967): 최소 지원 버전을 올리면 테스트 빌드도 업데이트 필요 화면에 막힘
 - [[ISS-0508-search-visibility-site-domain-aso]] (open, #1027): 소개 사이트 개편·passql.suhsaechan.kr 이전·스토어 검색 최적화, Play 검토 제출·App Store 이름/부제/키워드 남음

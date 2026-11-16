@@ -2,7 +2,7 @@
 type: cluster
 topic: question-bank
 created: 2026-10-29
-members: 94
+members: 99
 status: active
 related: []
 ---
@@ -16,6 +16,8 @@ related: []
 (2026-11-07, 자동 생성) 활성 결정 23개, 열린 이슈 1개. 문항 형식 규칙 단일 원본 `QuestionFormatRule`(사유별 결과, 규칙 7개)을 가져오기, 관리자 저장과 편집, 모의고사 공개 검사가 거치고, 문항과 생성 글에는 줄표와 가운뎃점을 쓰지 않으며 데이터 표는 스키마 표 한 곳: [[DEC-0277-no-dash-middle-dot-server-cleaner]] (#905, 운영 데이터와 프롬프트 정리 완료, 코드 배포 전). 지문 화면 규칙: [[DEC-0278-stem-blocks-single-table-shape]] (#903). 운영 문항의 지문 표 자동 정리는 옛 앱 보호를 위해 #903 앱 보급과 최소 버전 상향 뒤 적용: [[DEC-0279-stem-table-data-cleanup-after-min-version]] (#923 열림). 실제 SQLD 형식(결과 행 수, 오류 나는 SQL)과 함정 문제 92개 추가: [[ISS-0479-sqld-real-format-trap-questions]] (#834). 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 운영 활성 499건 구조 전수조사: 데이터 누락 0, 표 소실 17건은 앱 배치 원인 — [[ISS-0504-question-structure-audit-harness]]. 표 대체는 이름 기준(서버 `QuestionFormatRule`·하네스 lint 포함) — [[DEC-0292-stem-table-match-by-name-short-code-caption]](DEC-0278 대체).
 
 ## 활성 결정
+- [[DEC-0328-past-exam-rewrite-operation-rules]] — 기출 복원 문항: 지문·보기·정답만 수집, 다시 쓰기 + 5-gram 유사도 0.35 이하 + Oracle 검증, 원본 레포 밖, 가장 최근 1회차 무료, 게시 중단 시 round 태그로 비활성화 (#1079)
+- [[DEC-0326-site-past-exam-five-question-preview]] — 소개 사이트는 기출 복원 회차마다 다시 쓴 문항 5개만 지문·보기·정답 공개, 해설·나머지 45문항은 앱. 숨긴 글씨·키워드 나열 금지·공개 정보 페이지·리뷰 규칙은 DEC-0295 에서 이어받음 (#1088, DEC-0295 대체)
 - [[DEC-0324-question-internal-tag-namespace-format]] — 문제 내부 관리 태그는 별도 테이블 소문자 `네임스페이스:값`(source·round·trend·batch·concept + 자유 태그), 규칙은 `QuestionInternalTagRule` 한 곳 (#1117)
 - [[DEC-0325-import-without-internal-tags-keeps-existing]] — 가져오기에 `internalTags` 칸이 없으면 갱신 시 기존 태그 유지, `[]`일 때만 전부 제거 (#1117)
 - [[DEC-0292-stem-table-match-by-name-short-code-caption]] — 스키마 표는 이름이 같은 지문 표 자리에만, 코드 제목은 짧은 이름표 주석만 (#1015, DEC-0278 대체)
@@ -54,6 +56,8 @@ related: []
 - [[DOC-0007-question-bank-implementation-code-trace]] (internal, 2026-11-13 코드 기준) — 문제 은행 지도: 등록 3경로와 형식 관문, 선택지 세트 관리, 비활성화 삭제, 신고 처리(비활성화·소급 보정·신고자 알림)
 
 ## 관련 이슈
+- [[ISS-0535-past-exam-restored-rounds]] (open, #1079): 기출 복원 회차 — 52~62회 11회차 550문항(다시 쓴 문항) 공개, PR #1124·릴리스 #1125. 남은 일 45~51회·학습 모드(#1084)·단답형(#1085)·그림 머메이드
+- [[ISS-0534-intro-site-past-exam-preview-study-guides]] (resolved, #1088): 소개 사이트 `sqld/past/` 회차마다 5문항 공개·공부 글 3편·가채점 강조 시험일 + 7일. 완료 리포트 [[ISS-0534-intro-site-past-exam-preview-study-guides-report]]
 - [[ISS-0526-question-internal-tags]] (resolved, #1117): 문제 내부 관리 태그, PR #1120, 릴리스 #1121 서버만 배포, 운영 213건 백필. 완료 리포트 [[ISS-0526-question-internal-tags-report]]
 - [[ISS-0527-sqld-round63-batch07-internal-tags]] (resolved, #1122): 63회 신유형 batch07 37건 태그 포함 등록(1건 verify 실패 미등록), 537 > 574. 완료 리포트 [[ISS-0527-sqld-round63-batch07-internal-tags-report]]
 - [[ISS-0519-sqld-round63-trend-new-questions]] (resolved, #1074): 63회 출제 경향 반영(제58~63회), 신규 38건 등록 499 > 537, 서버 형식 규칙 위반 24건 재등록, 기존 5문항 최신 경향 해제, 2026-11-15 릴리스 PR #1094 배포. 완료 리포트 [[ISS-0519-sqld-round63-trend-new-questions-report]]. 교훈 [[LSN-0002-harness-lint-misses-server-format-rule]], [[LSN-0003-question-export-500-limit-backup-by-topic]]
@@ -116,5 +120,6 @@ related: []
 - [[ISS-0435-concept-ai-only-49-rewrite-curated]] (resolved, GitHub #767) — AI 선택지 개념 문제 49개 — 정답 오류와 의미 없는 보기, 고정 보기 문제로 재작성
 
 ## 관련 교훈
+- [[LSN-0005-question-export-500-limit-split-before-dedupe]] — 등록 전 중복·건수 집계도 내보내기 500건 상한, 토픽·난이도로 나눠 합계 대조 (#1079)
 - [[LSN-0002-harness-lint-misses-server-format-rule]] — 하네스 lint 통과는 서버 형식 규칙 통과가 아님, 가져오기 전 따로 확인 (#1074)
 - [[LSN-0003-question-export-500-limit-backup-by-topic]] — 문제 내보내기 1회 500건 한도, 전체 백업은 토픽별로 (#1074)

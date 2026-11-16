@@ -2,7 +2,7 @@
 type: cluster
 topic: concept-learning
 created: 2026-10-29
-members: 22
+members: 24
 status: active
 related: []
 ---
@@ -33,6 +33,8 @@ related: []
 - [[DEC-0256-concept-lesson-blocks-by-table-header]] → DEC-0277
 
 ## 관련 이슈
+- [[ISS-0533-lock-screen-ox-card-no-credit]] (resolved, #1110): Android 잠금화면 표시 3번에 1번 OX 카드, 크레딧 없음, 비율 설정 화면 없음. 완료 리포트 [[ISS-0531-ox-quiz-expected-pass-lock-screen-ox-report]]
+- [[ISS-0531-ox-quiz-leitner-review]] (resolved, #1083): 개념 '바로 확인' 표를 OX 카드로, Leitner 5칸 간격 반복, PR #1118·릴리스 #1119. 완료 리포트(#1086·#1110 공유) [[ISS-0531-ox-quiz-expected-pass-lock-screen-ox-report]]
 - [[ISS-0474-question-format-rule-forbidden-punctuation]] (resolved, GitHub #905): 문제 형식 규칙 하네스: 줄표 금지, 표는 스키마 한 곳, SQL 서식, 운영 데이터와 프롬프트 정리
 - [[ISS-0472-stem-readability-blocks-single-table]] (resolved, GitHub #903): 문제 지문 가독성: 단락, 목록, 질문 구분, 표 한 가지 모양, SQL 상자
 - [[ISS-0465-concept-memorize-highlight-wide-tables]] (open, GitHub #876) — 개념 학습 외울 부분 강조와 과목별 암기 포인트 보강, 가로로 긴 표 정리 (PR #890 머지, 리포트 전)

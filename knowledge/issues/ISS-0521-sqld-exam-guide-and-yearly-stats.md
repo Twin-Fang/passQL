@@ -5,15 +5,15 @@ created: 2026-11-16
 topics: [progress-stats, home, ci-deploy]
 symptoms: ["SQLD 알아보기", "시험 소개", "역대 합격률", "연도별 응시자", "합격률 통계", "exam-guide", "/api/meta/exam-guide/sqld", "sqld-exam-guide.json", "sqld/stats", "61회 26%", "회차별 합격률 비공개", "PQI 자격취득현황", "SqldExamFacts 중복"]
 root_cause: "SQLD 를 모르는 사람용 시험 소개와 수험생이 궁금해하는 역대 합격률·응시자 통계를 앱 어디에서도 볼 수 없었다(기능 부재)"
-status: open
-resolution: null
+status: resolved
+resolution: "[[ISS-0521-sqld-exam-guide-and-yearly-stats-report]]"
 related: ["[[DEC-0318-exam-guide-single-source-public-api]]", "[[DEC-0319-round-pass-rate-unofficial-only]]", "[[LSN-0004-app-change-release-means-ios-review]]", "[[DEC-0311-web-app-support-stopped-code-kept]]", "[[DEC-0295-seo-public-exam-info-no-hidden-text]]", "[[ISS-0520-sqld-round-answer-key-omr-grading]]"]
 source: "_sources/issues/ISS-0521-sqld-exam-guide-and-yearly-stats.md"
 ---
 
 # ISS-0521: SQLD 알아보기 — 시험 소개와 역대 응시자·합격률 통계 (앱, 소개 사이트)
 
-GitHub #1077 (열림, 작업중 — 앱 출시 대기), 함께 처리 #1076. 원본: https://github.com/Twin-Fang/passQL/issues/1077 · 보고서 댓글: https://github.com/Twin-Fang/passQL/issues/1077#issuecomment-6896691133 · 서버 PR #1097 (머지) · 배포 PR #1098 · 소개 사이트 https://passql.suhsaechan.kr/sqld/stats/ (배포 완료)
+GitHub #1077 (닫힘, 작업완료), 함께 처리 #1076 (닫힘). 원본: https://github.com/Twin-Fang/passQL/issues/1077 · 보고서 댓글: https://github.com/Twin-Fang/passQL/issues/1077#issuecomment-6896691133 · 서버 PR #1097 (머지) · 배포 PR #1098 · 소개 사이트 https://passql.suhsaechan.kr/sqld/stats/ (배포 완료)
 
 ## 증상
 - 경쟁 학습 서비스 비교 컨설팅(2026-11-14)에서 나온 누락 기능. SQLD 가 무슨 시험인지 모르는 사람을 위한 안내와, 연도·회차별 합격률 같은 통계 자료가 앱에 없었다.
@@ -29,6 +29,7 @@ GitHub #1077 (열림, 작업중 — 앱 출시 대기), 함께 처리 #1076. 원
 - 2026-11-15: 앱 — `ExamGuidePage`(시험 소개/역대 통계 세그먼트), CustomPainter 차트(막대 자람 + 합격률 선), 진입점 2곳(시험 일정 행, 홈 첫 방문 안내). 로그인 필요 + 로컬 서버 소셜 로그인 불가로 실기기 대신 실제 응답 데이터 렌더 캡처(라이트·다크·글자 2배)로 확인, 과목 막대 높이 0·인사이트 줄바꿈·큰 글자 날짜 깨짐 3건 수정.
 - 2026-11-15: 배포 분리 — deploy 에 `app/` 변경이 섞이면 스토어 제출 자동 실행([[LSN-0004-app-change-release-means-ios-review]] 적용). 서버만 담은 브랜치로 PR #1097 > 배포 PR #1098, 스토어 워크플로 미실행 확인. 운영 API 200, insights 2025/2024/2018/11.5배/-15.61%p 실측.
 - 2026-11-16: 소개 사이트 — 운영 사이트가 gh-pages 가 아닌 #1075 사이트 브랜치로 배포된 상태라 그 브랜치 기준으로 `sqld/stats/` 추가(빌드 때 API 읽기, 실패 시 빌드 중단). 합격률 FAQ 답변 수정. 시놀로지 배포, 200 실측, 기존 `sqld/63/` 유지 확인.
+- 2026-11-15: 앱 출시 반영(후속 댓글) — 앱 PR #1102 머지 > 릴리스 PR #1104(서버·앱). Android Play 업로드, iOS 1.132.0(빌드 90690619) — 심사 대기 중이던 1.130.1 을 심사에서 빼고 1.132.0 으로 재제출(가채점 기능 포함). 스토어 '새로운 기능' 문구는 고정 문구 유지. #1077·#1076 닫힘.
 
 ## 근본 원인
-기능 부재. 남은 일: 앱 브랜치(`20261114_#1077_...`) main 병합과 앱 출시(사용자 결정), 실기기 확인.
+기능 부재. 완료 리포트 [[ISS-0521-sqld-exam-guide-and-yearly-stats-report]]. 실기기 확인 기록은 원본에 없다.

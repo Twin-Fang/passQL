@@ -2,7 +2,7 @@
 type: cluster
 topic: home
 created: 2026-10-29
-members: 79
+members: 80
 status: active
 related: []
 ---
@@ -16,6 +16,7 @@ related: []
 (2026-11-12, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 홈 상단 바는 로고 + 시험 D-day 배지와 크레딧 알약, 오늘의 세트와 랜덤 풀기는 별도 구간 — [[ISS-0489-pass-sheet-home-profile-cleanup]], [[ISS-0490-credit-term-purchase-funnel-events]]. (2026-11-12) 홈 시험 D-day 배지에 지금 단계 한 줄이 붙고 누르면 시험 일정 화면으로 간다 — [[ISS-0506-sqld-exam-schedule-auto-sync]]. (2026-11-13) 홈 첫 진입 환영 시트는 오늘 할 일 3단계 + `오늘의 세트 시작하기` — [[ISS-0511-qa-1112-ui-polish-eight]]. (2026-11-12) 홈 「다음에 할 일」 카드는 광고를 권하지 않고, 크레딧이 0이면 모의고사 무료 1회 카드를 보이거나 숨긴다 — [[DEC-0305-home-next-step-no-ad-card-mock-trial]].
 
 ## 활성 결정
+- [[DEC-0327-answer-key-highlight-exam-date-plus-7]] — 가채점 강조(사이트 메뉴·첫 화면 띠, 앱 홈 가답안 카드)는 시험일 + 7일까지만, 회차 페이지는 계속 열람 (#1079·#1088)
 - [[DEC-0302-first-run-sheets-today-steps-notification-preview]] — 홈 첫 진입 환영 시트는 오늘 할 일 3단계 + 오늘의 세트 바로 시작, 알림 안내는 실제 알림 미리보기 카드 (#1041)
 - [[DEC-0034-greeting-nickname-template-message-type]] — 인사말 응답은 `nickname`·`{nickname}` 템플릿·`messageType`으로 나누고, 이모지·아이콘은 프론트가 정한다
 - [[DEC-0035-greeting-dday-weighted-mix]] — D-day 구간에도 일반 인사말을 섞고, 시험이 가까울수록 D-day 메시지 비중을 높인다
@@ -98,4 +99,4 @@ related: []
 - [[ISS-0395-home-countdown-badge-cleanup]] (resolved, GitHub #648) — 홈 첫 화면 인사 아래 시험 카운트다운 보조 문구가 시험 일정 카드와 겹침 (앱)
 - [[ISS-0405-home-first-load-skeleton-wait]] (resolved, GitHub #676) — 홈 첫 로딩 대기 시간 단축 — 지난 데이터 먼저 보여 주기
 - [[ISS-0413-app-home-ui-ux-redesign]] (resolved, GitHub #701) — 앱 홈 화면 UI/UX 개편
-- [[ISS-0521-sqld-exam-guide-and-yearly-stats]] (open, #1077·#1076): SQLD 알아보기(시험 소개, 연도별 응시자·합격률) — 서버 API·소개 사이트 sqld/stats/ 운영 반영, 앱 화면은 브랜치 대기(앱 출시 때 병합)
+- [[ISS-0521-sqld-exam-guide-and-yearly-stats]] (resolved, #1077·#1076): SQLD 알아보기(시험 소개, 연도별 응시자·합격률) — 서버 API·소개 사이트 sqld/stats/, 앱 PR #1102·릴리스 #1104 출시(iOS 1.132.0 재제출). 완료 리포트 [[ISS-0521-sqld-exam-guide-and-yearly-stats-report]]
