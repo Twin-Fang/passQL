@@ -276,3 +276,8 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-16 09:27 | W4 | decision 생성 3건 + supersede: DEC-0295 superseded_by DEC-0326 (사용자 선택 "기출 문항도 일부 공개", 원문 비공개 항목만 변경·나머지 이어받음); DEC-0327 충돌 없음(DEC-0315·0317·0320·0321); DEC-0328 DEC-0264 와 조건부 공존 | DEC-0326, DEC-0327, DEC-0328, DEC-0295
 - 2026-11-16 09:27 | W8 | lesson 생성 2건 (내보내기 500건 상한으로 중복 판단 집계 잘림, 운영 조회 출력 자르기로 스위치 오판) | LSN-0005, LSN-0006
 - 2026-11-16 09:27 | W2 | 활성 결정·관련 이슈·관련 교훈 줄 추가, DEC-0295 대체된 결정으로 이동, ISS-0521 줄 resolved 로, members 실제 수로 갱신(W10 수정, W11 크기·요약 날짜 경고는 보고만) | cluster-practice, cluster-progress-stats, cluster-concept-learning, cluster-store-release, cluster-question-bank, cluster-admin, cluster-home, cluster-billing, cluster-ops-infra, cluster-dev-workflow, cluster-ci-deploy
+- 2026-11-16 10:04 | W6 | issue 2건 생성 + 공유 completion-report 1건, 두 이슈 resolved + resolution 연결 (#1084 모의고사 학습 모드·FINAL 회차, #1078 학습 가이드, PR #1129, 릴리스 #1130) | ISS-0536, ISS-0537, ISS-0536-mock-study-final-study-guide-report
+- 2026-11-16 10:04 | W6 | ISS-0535 조사 기록에 학습 모드 반영(#1084) 줄 추가 + related 연결 | ISS-0535
+- 2026-11-16 10:04 | W6 | 원본 이슈 본문 보존 3건 (ISS-0535 누락분 포함, W8 수정) | _sources/issues/ISS-0535, ISS-0536, ISS-0537
+- 2026-11-16 10:04 | W4 | decision 생성 3건, 대체 없음: DEC-0329 DEC-0264 와 조건부 공존(실전/학습)·DEC-0328 충돌 없음; DEC-0330 DEC-0264 조건부 공존, DEC-0131·0132 마케팅 푸시 해당 여부 확인 필요로 기록; DEC-0331 DEC-0302·0305·0328 충돌 없음 | DEC-0329, DEC-0330, DEC-0331
+- 2026-11-16 10:04 | W2 | 현재 상태 요약·활성 결정·관련 이슈 줄 추가, members 실제 수로 갱신(W10 수정, W11 크기·요약 날짜 경고는 보고만) | cluster-practice, cluster-billing, cluster-notification, cluster-admin, cluster-home
