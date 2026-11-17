@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import '../../../core/utils/question_difficulty.dart';
 import '../../../data/models/home/question_summary.dart';
 import '../../design/design.dart';
 import '../question/stem_text.dart';
@@ -78,33 +79,49 @@ class _QuestionRow extends StatelessWidget {
 
   const _QuestionRow({required this.question, this.onTap});
 
+  /// 난이도 앞 메타 글자: "SQL 기본 | 최신 경향" (없는 항목 생략, #523)
+  static String _metaTextOf(QuestionSummary question) =>
+      [?question.topicName, if (question.isLatestTrend) '최신 경향'].join(' | ');
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
+    final metaStyle = PassqlTypography.footnote.copyWith(
+      color: colors.secondaryLabel,
+    );
+    final metaText = _metaTextOf(question);
+    final difficultyLevel = toQuestionDifficultyLevel(question.difficulty);
+    final hasMetaLine = metaText.isNotEmpty || difficultyLevel != null;
     return PassqlPressable(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 토픽 배지 + (최신 경향이면) 최신 경향 배지 (#523)
-          Wrap(
-            spacing: PassqlSpacing.xs,
-            runSpacing: PassqlSpacing.xxs,
-            children: [
-              if (question.topicName != null)
-                PassqlBadge(text: question.topicName!),
-              if (question.isLatestTrend) const PassqlLatestTrendBadge(),
-            ],
-          ),
-          const SizedBox(height: PassqlSpacing.xs),
+          // 제목 위 회색 메타 한 줄: "SQL 기본 | 최신 경향 | ━━─ 어려움" (칩 없이, 풀이 머리와 같은 모양, #1147)
+          if (hasMetaLine) ...[
+            Text.rich(
+              TextSpan(
+                style: metaStyle,
+                children: [
+                  TextSpan(text: metaText),
+                  if (difficultyLevel != null) ...[
+                    if (metaText.isNotEmpty) const TextSpan(text: ' | '),
+                    PassqlDifficultyIndicator.spanOf(
+                      difficultyLevel,
+                      metaStyle,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: PassqlSpacing.xxs),
+          ],
           Text(
             stripCodeFences(question.stemPreview ?? ''),
             style: PassqlTypography.subheadline.copyWith(color: colors.label),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: PassqlSpacing.xxs),
-          PassqlDifficultyStars(difficulty: question.difficulty),
         ],
       ),
     );

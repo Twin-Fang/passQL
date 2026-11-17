@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 178
+members: 181
 status: active
 related: []
 ---
@@ -17,7 +17,7 @@ related: []
 
 ## 활성 결정
 - [[DEC-0338-app-figure-white-paper-tap-to-zoom]] — 앱 그림은 지문 카드 아래 흰 종이(검정 선, 라이트·다크 공통) + 눌러서 크게 보기(시안 C), `QuestionFigure` 한 부품·토큰, 머메이드 앱 렌더링 안 함 (#1132)
-- [[DEC-0303-display-parts-difficulty-stars-count-up-key-badge-cutoff]] — 난이도 별 `PassqlDifficultyStars`, 숫자 `PassqlCountUp`, PK·FK 색 배지, 과락은 과목별 기준 칸 (#1041)
+- [[DEC-0343-app-difficulty-three-segment-band-with-label]] — 난이도는 가로 3칸 띠 + 글자(쉬움 1칸, 보통 2칸, 어려움 3칸) 공통 부품 `PassqlDifficultyIndicator`, 풀이 머리·홈 추천·프로필 적용, 홈 추천 칩은 제목 위 회색 메타 한 줄 + DEC-0342의 3단계 구간·프로필 3행 유지 (#1147)
 - [[DEC-0299-gem-3d-via-perspective-single-pro-gem]] — 젬 3D는 3D 모델 대신 원근 회전 부품 Passql3dTilt, PRO 에셋은 무한 젬 1종 (#1014)
 - [[DEC-0292-stem-table-match-by-name-short-code-caption]] — 스키마 표는 이름이 같은 지문 표 자리에만, 코드 제목은 짧은 이름표 주석만 (#1015, DEC-0278 대체)
 - [[DEC-0017-fullscreen-result-screen]] — 제출 결과 화면은 풀스크린 1종으로 통일 (bottom sheet 변형 미채택)
@@ -75,6 +75,8 @@ related: []
 - [[DEC-0332-exam-answer-share-image-always-light]] — 가답안·가채점 화면은 DEC-0321 원칙(목록 행·의미색 글자·채운 버튼 하나) 그대로, 공유 이미지는 다크 모드여도 항상 흰 바탕·라이트 로고 (#1126, DEC-0321 대체)
 
 ## 대체된 결정 (역사)
+- [[DEC-0342-app-difficulty-text-label-three-levels]] → [[DEC-0343-app-difficulty-three-segment-band-with-label]] — 난이도 회색 글자 > 가로 3칸 띠 + 글자 (#1147)
+- [[DEC-0303-display-parts-difficulty-stars-count-up-key-badge-cutoff]] → [[DEC-0342-app-difficulty-text-label-three-levels]] — 난이도 별 부품 > 글자 3단계 (#1145)
 - [[DEC-0321-exam-answer-screen-list-rows-no-chip-gradient]] → [[DEC-0332-exam-answer-share-image-always-light]] — 공유 이미지 "다크면 앱 배경" > 항상 흰 바탕 (#1126)
 - [[DEC-0278-stem-blocks-single-table-shape]] → DEC-0292
 - [[DEC-0284-pass-sheet-plain-copy-small-discount-badge]] → DEC-0286
@@ -91,6 +93,7 @@ related: []
 - [[DEC-0255-code-font-d2coding-subset]] → DEC-0278
 
 ## 관련 이슈
+- [[ISS-0541-app-difficulty-three-segment-band]] (resolved, #1147, PR #1148, 앱 배포 전): 난이도 가로 3칸 띠 공통 부품 `PassqlDifficultyIndicator`, 홈 추천 칩 > 회색 메타 한 줄. 완료 리포트 [[ISS-0541-app-difficulty-three-segment-band-report]]
 - [[ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking]] (resolved, #1126) — SQLD 63회 가답안·모의고사 결과 실기 검수 결함 7건: 빈 답안 순위 제외, 공유 이미지 흰 바탕, 합의율 응답 5명 미만이면 "응답 N명", 관리자 답안지 삭제. 완료 리포트 [[ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking-report]] (PR #1127, 릴리스 #1130)
 - [[ISS-0514-remove-unused-jetbrains-mono]] (resolved, GitHub #858, PR #859): D2Coding 교체 뒤 남은 JetBrains Mono 파일 3개 삭제
 - [[ISS-0511-qa-1112-ui-polish-eight]] (resolved, #1041, PR #1042): 11/12 QA UI 개선 8건 — 환영 시트·알림 안내·모의고사 순위·크레딧 아이콘·PK FK·난이도 별·카운트업·과락 칸
