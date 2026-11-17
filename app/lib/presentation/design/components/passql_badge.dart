@@ -11,7 +11,6 @@ enum PassqlBadgeKind {
   warning, // 연속 학습·시험 임박
   important, // 중요 공지
   ai, // AI 생성 내용
-  latestTrend, // 최신 출제 경향 반영 문제 (#523)
   memorize, // 꼭 외울 것 (#876)
   info, // 정보·우세 (파랑, 가답안 #1075)
 }
@@ -43,8 +42,7 @@ class PassqlBadge extends StatelessWidget {
     PassqlColors colors,
   ) => switch (kind) {
     PassqlBadgeKind.topic ||
-    PassqlBadgeKind.ai ||
-    PassqlBadgeKind.latestTrend => (colors.accent, colors.accentText),
+    PassqlBadgeKind.ai => (colors.accent, colors.accentText),
     PassqlBadgeKind.neutral => (colors.secondaryLabel, colors.secondaryLabel),
     PassqlBadgeKind.success => (colors.correct, colors.correctText),
     PassqlBadgeKind.warning => (colors.warning, colors.warningText),
@@ -59,8 +57,7 @@ class PassqlBadge extends StatelessWidget {
     PassqlBadgeKind.neutral ||
     PassqlBadgeKind.info => null,
     PassqlBadgeKind.success => CupertinoIcons.checkmark_alt,
-    PassqlBadgeKind.warning ||
-    PassqlBadgeKind.latestTrend => CupertinoIcons.flame_fill,
+    PassqlBadgeKind.warning => CupertinoIcons.flame_fill,
     PassqlBadgeKind.important => CupertinoIcons.exclamationmark_circle_fill,
     PassqlBadgeKind.ai => CupertinoIcons.sparkles,
     PassqlBadgeKind.memorize => CupertinoIcons.bookmark_fill,
@@ -102,16 +99,4 @@ class PassqlBadge extends StatelessWidget {
       ),
     );
   }
-}
-
-/// '최신 경향' 배지: 최신 출제 경향 반영 문제·토픽 표시 (문제 머리·추천 행·토픽 행·홈 진입 카드 공통, #523)
-class PassqlLatestTrendBadge extends StatelessWidget {
-  const PassqlLatestTrendBadge({super.key});
-
-  /// 배지 문구 원본
-  static const String label = '최신 경향';
-
-  @override
-  Widget build(BuildContext context) =>
-      const PassqlBadge(text: label, kind: PassqlBadgeKind.latestTrend);
 }

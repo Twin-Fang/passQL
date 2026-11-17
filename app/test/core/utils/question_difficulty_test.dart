@@ -11,4 +11,12 @@ void main() {
     expect(toDifficultyLabel(6), isNull);
     expect(toDifficultyLabel(null), isNull);
   });
+
+  // 난이도 띠 채운 칸 수: 경계값 2/3/4 > 1/2/3칸 (#1147)
+  test('difficultyStepNumber: 경계 2 > 1칸, 3 > 2칸, 4 > 3칸', () {
+    expect(toQuestionDifficultyLevel(2)!.difficultyStepNumber, 1);
+    expect(toQuestionDifficultyLevel(3)!.difficultyStepNumber, 2);
+    expect(toQuestionDifficultyLevel(4)!.difficultyStepNumber, 3);
+    expect(QuestionDifficultyLevel.difficultyStepCount, 3);
+  });
 }
