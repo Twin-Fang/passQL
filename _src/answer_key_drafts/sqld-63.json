@@ -1,5 +1,5 @@
 {
- "basis": "passQL 운영 가답안 초안 (응시 후기 종합, 2026-11-16 01:00)",
+ "basis": "passQL 운영 가답안 초안 (응시 후기 종합, 2026-11-17)",
  "items": [
   {
    "questionNo": 1,
@@ -421,11 +421,12 @@
   {
    "questionNo": 29,
    "subjectNo": 2,
-   "conceptTitle": "(미복원) 셀프 조인 합계 / 순위 서브쿼리 번호 혼선",
+   "conceptTitle": "(미확정) 성적 표 정렬 결과, 동점 포함 이름 순서 고르기",
    "conceptTags": [
-    "셀프 조인"
+    "ORDER BY",
+    "동점 정렬"
    ],
-   "topicCode": "sql_join",
+   "topicCode": "sql_basic_select",
    "answer": null,
    "answerStatus": "UNKNOWN",
    "alternativeAnswers": [],
