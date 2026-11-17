@@ -4,9 +4,9 @@ id: DEC-0342
 created: 2026-11-16
 reviewed: null
 topics: [design-system, practice, progress-stats]
-status: active
+status: superseded
 supersedes: DEC-0303
-superseded_by: null
+superseded_by: DEC-0343
 related: ["[[DEC-0303-display-parts-difficulty-stars-count-up-key-badge-cutoff]]", "[[ISS-0539-pro-recheck-fail-risk-headline-exam-answer-owner-report]]", "[[DEC-0116-app-apple-hig-design-system]]", "[[DEC-0332-exam-answer-share-image-always-light]]", "[[DEC-0274-stats-radar-above-list-study-pattern-free]]"]
 ---
 
