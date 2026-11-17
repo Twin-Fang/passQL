@@ -2,6 +2,8 @@ package com.passql.submission.service;
 
 import com.passql.common.exception.CustomException;
 import com.passql.common.exception.constant.ErrorCode;
+import com.passql.meta.constant.CertType;
+import com.passql.submission.constant.ExamAnswerRoundStatus;
 import com.passql.submission.constant.MockExamAttemptStatus;
 import com.passql.submission.constant.MockExamRoundStatus;
 import com.passql.submission.constant.MockExamRoundType;
@@ -10,10 +12,12 @@ import com.passql.submission.dto.mockexam.MockExamRoundDifficultyProjection;
 import com.passql.submission.dto.mockexam.MockExamRoundListResponse;
 import com.passql.submission.dto.mockexam.MockExamStudySetResponse;
 import com.passql.submission.dto.mockexam.MockExamRuleResponse;
+import com.passql.submission.entity.ExamAnswerRound;
 import com.passql.submission.entity.MockExamAnswer;
 import com.passql.submission.entity.MockExamAttempt;
 import com.passql.submission.entity.MockExamRound;
 import com.passql.submission.entity.MockExamRoundItem;
+import com.passql.submission.repository.ExamAnswerRoundRepository;
 import com.passql.submission.repository.MockExamAnswerRepository;
 import com.passql.submission.repository.MockExamAttemptRepository;
 import com.passql.submission.repository.MockExamRoundItemRepository;
@@ -27,6 +31,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -45,6 +50,7 @@ public class MockExamRoundQueryService {
     private final MockExamAnswerRepository answerRepository;
     private final MockExamRoundItemRepository roundItemRepository;
     private final MockExamAttemptService attemptService;
+    private final ExamAnswerRoundRepository examAnswerRoundRepository;
 
     /** 회차 목록: 형식 > 풀이 중 응시 > 공개 회차별 시작·학습 판정·난이도·최고 점수·마지막 응시 (마감 지난 응시는 먼저 채점) */
     @Transactional
@@ -68,9 +74,10 @@ public class MockExamRoundQueryService {
             .map(attempt -> roundByUuid.get(attempt.getMockExamRoundUuid()))
             .anyMatch(round -> round != null && round.getRoundType() == MockExamRoundType.MOCK);
 
+        Set<Integer> gradableExamRoundNumbers = findGradableExamRoundNumbers();
         List<MockExamRoundListResponse.RoundSummary> roundSummaries = publishedRounds.stream()
             .map(round -> toRoundSummary(round, memberAttempts, isPro, freeRounds, hasAnyMockRoundAttempt, inProgressAttempt,
-                averageDifficultyByRoundUuid.get(round.getMockExamRoundUuid())))
+                averageDifficultyByRoundUuid.get(round.getMockExamRoundUuid()), gradableExamRoundNumbers))
             .toList();
         return new MockExamRoundListResponse(MockExamRuleResponse.fromRule(),
             toInProgressAttempt(inProgressAttempt, roundByUuid), roundSummaries);
@@ -122,7 +129,8 @@ public class MockExamRoundQueryService {
                                                                   boolean isPro, MockExamFreeRounds freeRounds,
                                                                   boolean hasAnyMockRoundAttempt,
                                                                   MockExamAttempt inProgressAttempt,
-                                                                  Double averageDifficulty) {
+                                                                  Double averageDifficulty,
+                                                                  Set<Integer> gradableExamRoundNumbers) {
         UUID roundUuid = round.getMockExamRoundUuid();
         boolean isFreeTrialRound = freeRounds.isFreeTrialRound(roundUuid);
         boolean isFreePastExamRound = freeRounds.isFreePastExamRound(roundUuid);
@@ -146,7 +154,17 @@ public class MockExamRoundQueryService {
             bestAttempt == null ? null : bestAttempt.getIsPassed(),
             bestAttempt == null ? null : bestAttempt.getFailReason(),
             lastAttempt == null ? null : new MockExamRoundListResponse.LastAttempt(lastAttempt.getMockExamAttemptUuid(),
-                lastAttempt.getStatus(), lastAttempt.getTotalScore(), lastAttempt.getIsPassed(), lastAttempt.getSubmittedAt()));
+                lastAttempt.getStatus(), lastAttempt.getTotalScore(), lastAttempt.getIsPassed(), lastAttempt.getSubmittedAt()),
+            round.getRoundType() == MockExamRoundType.PAST_EXAM
+                && gradableExamRoundNumbers.contains(round.getExamRoundNumberOrNull()));
+    }
+
+    /** OMR 가채점이 열린 SQLD 시험 회차 번호 (가답안 회차 중 마감 제외, 기출 회차 행의 진입 표시용) */
+    private Set<Integer> findGradableExamRoundNumbers() {
+        return examAnswerRoundRepository.findByCertTypeAndStatusIn(CertType.SQLD,
+                List.of(ExamAnswerRoundStatus.COLLECTING, ExamAnswerRoundStatus.OFFICIAL)).stream()
+            .map(ExamAnswerRound::getRoundNumber)
+            .collect(Collectors.toSet());
     }
 
     /** 회차 uuid > 문항 평균 난이도 (회차 없으면 빈 맵) */

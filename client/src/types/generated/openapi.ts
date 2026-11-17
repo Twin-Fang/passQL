@@ -4514,6 +4514,8 @@ export interface components {
              * @description 실제 시험 회차 번호 (PAST_EXAM 만, 예 62)
              */
             examRoundNumber: number | null;
+            /** @description 이 기출 회차의 가답안·OMR 가채점이 열려 있음 (PAST_EXAM 만 true 가능, #1151) */
+            hasExamAnswerKey: boolean;
             /** @description 무료 기출 회차 (가장 최근 기출 회차, 무료 회원도 체험 횟수와 별개로 응시) */
             isFreePastExamRound: boolean;
             /** @description 무료 체험 회차 (모의고사 회차 중 번호가 가장 작은 회차) */

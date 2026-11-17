@@ -4008,6 +4008,10 @@
             "format" : "int32",
             "type" : [ "integer", "null" ]
           },
+          "hasExamAnswerKey" : {
+            "description" : "이 기출 회차의 가답안·OMR 가채점이 열려 있음 (PAST_EXAM 만 true 가능, #1151)",
+            "type" : "boolean"
+          },
           "isFreePastExamRound" : {
             "description" : "무료 기출 회차 (가장 최근 기출 회차, 무료 회원도 체험 횟수와 별개로 응시)",
             "type" : "boolean"
@@ -4048,7 +4052,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "averageDifficulty", "bestAttemptFailReason", "bestAttemptIsPassed", "bestScore", "canStart", "canStudy", "examDate", "examRoundNumber", "isFreePastExamRound", "isFreeTrialRound", "lastAttempt", "roundNumber", "roundType", "roundUuid", "startBlockReason", "submittedAttemptCount", "title" ],
+        "required" : [ "averageDifficulty", "bestAttemptFailReason", "bestAttemptIsPassed", "bestScore", "canStart", "canStudy", "examDate", "examRoundNumber", "hasExamAnswerKey", "isFreePastExamRound", "isFreeTrialRound", "lastAttempt", "roundNumber", "roundType", "roundUuid", "startBlockReason", "submittedAttemptCount", "title" ],
         "type" : "object"
       },
       "SheetQuestion" : {

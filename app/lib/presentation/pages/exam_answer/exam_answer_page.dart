@@ -1,10 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/error/error_code.dart';
+import '../../../core/utils/app_clock.dart';
 import '../../../data/models/exam_answer/exam_answer_round_response.dart';
+import '../../../router/app_routes.dart';
 import '../../design/design.dart';
 import '../../providers/exam_answer_providers.dart';
 import '../../widgets/exam_answer/exam_answer_key_tab.dart';
@@ -72,6 +75,8 @@ class _ExamAnswerPageState extends ConsumerState<ExamAnswerPage> {
 
   Widget _buildContent(ExamAnswerRoundResponse roundResponse) {
     final sheetState = ref.watch(examAnswerSheetProvider(_roundKey));
+    // 지난 회차 + 정답 확정: 득표 UI 숨김, 기출 풀기 연결 (#1151)
+    final isPastSettled = roundResponse.isPastSettledRoundAt(AppClock.now());
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
@@ -93,6 +98,17 @@ class _ExamAnswerPageState extends ConsumerState<ExamAnswerPage> {
           sliver: SliverList.list(
             children: [
               ExamAnswerRoundSummary(roundResponse: roundResponse),
+              if (isPastSettled) ...[
+                const SizedBox(height: PassqlSpacing.xs),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: PassqlSectionLink(
+                    label: '이 회차 기출 풀기',
+                    semanticLabel: '기출 복원 회차 목록 열기',
+                    onTap: () => context.push(AppRoutes.mockExamsPastTab),
+                  ),
+                ),
+              ],
               const SizedBox(height: PassqlSpacing.lg),
               PassqlSegmentedControl<_ExamAnswerTab>(
                 segments: const [
@@ -115,6 +131,7 @@ class _ExamAnswerPageState extends ConsumerState<ExamAnswerPage> {
                         items: roundResponse.items,
                         gradingRule: roundResponse.effectiveGradingRule,
                         myAnswers: sheetState.gradedSheet?.answers,
+                        shouldShowVotes: !isPastSettled,
                       ),
               ),
               // 면책 전문 (두 탭 공통, 목록 아래 각주)

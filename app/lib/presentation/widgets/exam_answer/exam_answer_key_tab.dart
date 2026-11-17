@@ -16,6 +16,7 @@ class ExamAnswerKeyTab extends StatefulWidget {
     required this.items,
     required this.gradingRule,
     this.myAnswers,
+    this.shouldShowVotes = true,
   });
 
   final List<ExamAnswerItemResponse> items;
@@ -25,6 +26,9 @@ class ExamAnswerKeyTab extends StatefulWidget {
 
   /// 채점한 내 답안 50자 (채점 전이면 null > 행에 정오 표시 없음)
   final String? myAnswers;
+
+  /// 득표·합의율 표시 (지난 회차 정답 확정은 false, #1151)
+  final bool shouldShowVotes;
 
   @override
   State<ExamAnswerKeyTab> createState() => _ExamAnswerKeyTabState();
@@ -86,6 +90,7 @@ class _ExamAnswerKeyTabState extends State<ExamAnswerKeyTab> {
                           item.questionNo,
                         ),
                         onToggle: () => _toggle(item.questionNo),
+                        shouldShowVotes: widget.shouldShowVotes,
                         myAnswer: myAnswers == null
                             ? null
                             : ExamAnswerGrader.answerAt(
