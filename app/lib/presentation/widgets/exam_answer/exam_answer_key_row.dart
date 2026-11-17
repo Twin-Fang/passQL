@@ -15,6 +15,7 @@ class ExamAnswerKeyRow extends StatelessWidget {
     required this.isExpanded,
     required this.onToggle,
     this.myAnswer,
+    this.shouldShowVotes = true,
   });
 
   final ExamAnswerItemResponse item;
@@ -24,11 +25,14 @@ class ExamAnswerKeyRow extends StatelessWidget {
   /// 채점한 내 답 (1~4, 0 모름, 채점 전이면 null)
   final int? myAnswer;
 
+  /// 득표·합의율 표시 (지난 회차 정답 확정은 false, #1151)
+  final bool shouldShowVotes;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.passqlColors;
     final status = item.answerStatus;
-    final voteSummary = _voteSummaryOf(item);
+    final voteSummary = shouldShowVotes ? _voteSummaryOf(item) : null;
     final answerText = _answerTextOf(item);
     final conceptTitle = item.conceptTitle?.trim() ?? '';
     final myAnswerPart = _myAnswerPartOf(colors);
@@ -136,7 +140,7 @@ class ExamAnswerKeyRow extends StatelessWidget {
           curve: PassqlMotion.curve,
           alignment: Alignment.topCenter,
           child: isExpanded
-              ? _ExpandedDetail(item: item)
+              ? _ExpandedDetail(item: item, shouldShowVotes: shouldShowVotes)
               : const SizedBox(width: double.infinity),
         ),
       ],
@@ -182,9 +186,10 @@ class ExamAnswerKeyRow extends StatelessWidget {
 
 /// 펼친 내용: 보기별 득표 4줄(응답 없으면 안내 한 줄) > 메모(회색 한 줄) > 태그 > 개념 학습·문제 풀기 링크
 class _ExpandedDetail extends StatelessWidget {
-  const _ExpandedDetail({required this.item});
+  const _ExpandedDetail({required this.item, required this.shouldShowVotes});
 
   final ExamAnswerItemResponse item;
+  final bool shouldShowVotes;
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +211,7 @@ class _ExpandedDetail extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // 응답 0명이면 빈 막대 대신 회색 한 줄만 (#1136)
-          if (hasVotes)
+          if (shouldShowVotes && hasVotes)
             for (
               var choice = 1;
               choice <= ExamGradingRule.choiceCount;
@@ -219,12 +224,13 @@ class _ExpandedDetail extends StatelessWidget {
                 isAnswer: item.acceptedAnswers.contains(choice),
                 fillColor: item.answerStatus.fillColorOf(colors),
               ),
-          Text(
-            hasVotes ? '응답 ${item.voteCount}명' : '아직 응답이 없어요',
-            style: PassqlTypography.caption.copyWith(
-              color: colors.secondaryLabel,
+          if (shouldShowVotes)
+            Text(
+              hasVotes ? '응답 ${item.voteCount}명' : '아직 응답이 없어요',
+              style: PassqlTypography.caption.copyWith(
+                color: colors.secondaryLabel,
+              ),
             ),
-          ),
           // 운영 메모: 상자·아이콘 없이 보조 글자 (카드 안 카드 금지, DEC-0321)
           if (note != null && note.trim().isNotEmpty) ...[
             const SizedBox(height: PassqlSpacing.xs),

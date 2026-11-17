@@ -2,6 +2,7 @@
 // ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../core/exam_answer/exam_answer_display_rule.dart';
 import '../../../core/exam_answer/exam_grading_rule.dart';
 import 'exam_answer_enums.dart';
 
@@ -36,6 +37,14 @@ class ExamAnswerRoundResponse with _$ExamAnswerRoundResponse {
   /// 채점 규칙: 서버 규칙 우선, 없으면 SQLD 대체값
   ExamGradingRule get effectiveGradingRule =>
       gradingRule?.toGradingRule() ?? ExamGradingRule.sqldFallback;
+
+  /// 지난 회차 + 정답 반영 완료 (득표 UI 숨김·기출 풀기 연결 기준, #1151)
+  bool isPastSettledRoundAt(DateTime now) =>
+      ExamAnswerDisplayRule.isPastSettledRound(
+        isOfficial: status == ExamAnswerRoundStatus.official,
+        examDate: examDate,
+        now: now,
+      );
 
   /// 회차 제목: 서버 제목, 없으면 `SQLD 제63회`
   String get displayTitle =>

@@ -146,6 +146,7 @@ _$MockExamRoundSummaryImpl _$$MockExamRoundSummaryImplFromJson(
       : MockExamLastAttempt.fromJson(
           json['lastAttempt'] as Map<String, dynamic>,
         ),
+  hasExamAnswerKey: json['hasExamAnswerKey'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$$MockExamRoundSummaryImplToJson(
@@ -170,6 +171,7 @@ Map<String, dynamic> _$$MockExamRoundSummaryImplToJson(
   'bestAttemptFailReason':
       _$MockExamFailReasonEnumMap[instance.bestAttemptFailReason],
   'lastAttempt': instance.lastAttempt,
+  'hasExamAnswerKey': instance.hasExamAnswerKey,
 };
 
 const _$MockExamRoundTypeEnumMap = {

@@ -19,6 +19,9 @@ class ExamAnswerRoundSummary extends StatelessWidget {
   // 면책 문구 (소개 사이트와 같은 뜻)
   static const String disclaimer = '공식 정답이 아니에요. 최종 정답은 한국데이터산업진흥원 발표를 확인하세요.';
 
+  // 지난 회차 정답 상태 글자 (공식 발표가 아니라 응시자 복원 기준)
+  static const String _pastSettledLabel = '복원 자료 기준 정답';
+
   // 보조 한 줄 구분자 (화면 문구 규칙 #947)
   static const String _metaSeparator = ' | ';
 
@@ -66,6 +69,15 @@ class ExamAnswerRoundSummary extends StatelessWidget {
     final updatedAt = roundResponse.updatedAt;
     final participantCount = roundResponse.participantCount;
     final isOfficial = status == ExamAnswerRoundStatus.official;
+    // 지난 회차 정답 확정: 복원 자료 기준 정답이라 "공식" 대신 출처를 밝히고 참여자 수는 숨김 (#1151)
+    final isPastSettled = roundResponse.isPastSettledRoundAt(AppClock.now());
+    if (isPastSettled) {
+      return [
+        _pastSettledLabel,
+        if (updatedAt != null)
+          '${formatNotificationElapsed(updatedAt.toLocal(), now: AppClock.now())} 갱신',
+      ].join(_metaSeparator);
+    }
     return [
       if (status != ExamAnswerRoundStatus.collecting) status.label,
       if (participantCount > 0) '${formatThousands(participantCount)}명 참여',

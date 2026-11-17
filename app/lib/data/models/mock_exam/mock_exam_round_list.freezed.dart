@@ -1140,7 +1140,9 @@ mixin _$MockExamRoundSummary {
   @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
   MockExamFailReason? get bestAttemptFailReason =>
       throw _privateConstructorUsedError;
-  MockExamLastAttempt? get lastAttempt => throw _privateConstructorUsedError;
+  MockExamLastAttempt? get lastAttempt =>
+      throw _privateConstructorUsedError; // 기출 회차의 가답안·OMR 가채점이 열려 있음 (#1151)
+  bool get hasExamAnswerKey => throw _privateConstructorUsedError;
 
   /// Serializes this MockExamRoundSummary to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1180,6 +1182,7 @@ abstract class $MockExamRoundSummaryCopyWith<$Res> {
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     MockExamFailReason? bestAttemptFailReason,
     MockExamLastAttempt? lastAttempt,
+    bool hasExamAnswerKey,
   });
 
   $MockExamLastAttemptCopyWith<$Res>? get lastAttempt;
@@ -1220,6 +1223,7 @@ class _$MockExamRoundSummaryCopyWithImpl<
     Object? bestAttemptIsPassed = freezed,
     Object? bestAttemptFailReason = freezed,
     Object? lastAttempt = freezed,
+    Object? hasExamAnswerKey = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1291,6 +1295,10 @@ class _$MockExamRoundSummaryCopyWithImpl<
                 ? _value.lastAttempt
                 : lastAttempt // ignore: cast_nullable_to_non_nullable
                       as MockExamLastAttempt?,
+            hasExamAnswerKey: null == hasExamAnswerKey
+                ? _value.hasExamAnswerKey
+                : hasExamAnswerKey // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -1341,6 +1349,7 @@ abstract class _$$MockExamRoundSummaryImplCopyWith<$Res>
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     MockExamFailReason? bestAttemptFailReason,
     MockExamLastAttempt? lastAttempt,
+    bool hasExamAnswerKey,
   });
 
   @override
@@ -1378,6 +1387,7 @@ class __$$MockExamRoundSummaryImplCopyWithImpl<$Res>
     Object? bestAttemptIsPassed = freezed,
     Object? bestAttemptFailReason = freezed,
     Object? lastAttempt = freezed,
+    Object? hasExamAnswerKey = null,
   }) {
     return _then(
       _$MockExamRoundSummaryImpl(
@@ -1449,6 +1459,10 @@ class __$$MockExamRoundSummaryImplCopyWithImpl<$Res>
             ? _value.lastAttempt
             : lastAttempt // ignore: cast_nullable_to_non_nullable
                   as MockExamLastAttempt?,
+        hasExamAnswerKey: null == hasExamAnswerKey
+            ? _value.hasExamAnswerKey
+            : hasExamAnswerKey // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -1478,6 +1492,7 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     this.bestAttemptFailReason,
     this.lastAttempt,
+    this.hasExamAnswerKey = false,
   });
 
   factory _$MockExamRoundSummaryImpl.fromJson(Map<String, dynamic> json) =>
@@ -1528,10 +1543,14 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
   final MockExamFailReason? bestAttemptFailReason;
   @override
   final MockExamLastAttempt? lastAttempt;
+  // 기출 회차의 가답안·OMR 가채점이 열려 있음 (#1151)
+  @override
+  @JsonKey()
+  final bool hasExamAnswerKey;
 
   @override
   String toString() {
-    return 'MockExamRoundSummary(roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, roundType: $roundType, examRoundNumber: $examRoundNumber, examDate: $examDate, isFreeTrialRound: $isFreeTrialRound, isFreePastExamRound: $isFreePastExamRound, canStart: $canStart, startBlockReason: $startBlockReason, canStudy: $canStudy, averageDifficulty: $averageDifficulty, submittedAttemptCount: $submittedAttemptCount, bestScore: $bestScore, bestAttemptIsPassed: $bestAttemptIsPassed, bestAttemptFailReason: $bestAttemptFailReason, lastAttempt: $lastAttempt)';
+    return 'MockExamRoundSummary(roundUuid: $roundUuid, roundNumber: $roundNumber, title: $title, roundType: $roundType, examRoundNumber: $examRoundNumber, examDate: $examDate, isFreeTrialRound: $isFreeTrialRound, isFreePastExamRound: $isFreePastExamRound, canStart: $canStart, startBlockReason: $startBlockReason, canStudy: $canStudy, averageDifficulty: $averageDifficulty, submittedAttemptCount: $submittedAttemptCount, bestScore: $bestScore, bestAttemptIsPassed: $bestAttemptIsPassed, bestAttemptFailReason: $bestAttemptFailReason, lastAttempt: $lastAttempt, hasExamAnswerKey: $hasExamAnswerKey)';
   }
 
   @override
@@ -1571,7 +1590,9 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
             (identical(other.bestAttemptFailReason, bestAttemptFailReason) ||
                 other.bestAttemptFailReason == bestAttemptFailReason) &&
             (identical(other.lastAttempt, lastAttempt) ||
-                other.lastAttempt == lastAttempt));
+                other.lastAttempt == lastAttempt) &&
+            (identical(other.hasExamAnswerKey, hasExamAnswerKey) ||
+                other.hasExamAnswerKey == hasExamAnswerKey));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1595,6 +1616,7 @@ class _$MockExamRoundSummaryImpl implements _MockExamRoundSummary {
     bestAttemptIsPassed,
     bestAttemptFailReason,
     lastAttempt,
+    hasExamAnswerKey,
   );
 
   /// Create a copy of MockExamRoundSummary
@@ -1637,6 +1659,7 @@ abstract class _MockExamRoundSummary implements MockExamRoundSummary {
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     final MockExamFailReason? bestAttemptFailReason,
     final MockExamLastAttempt? lastAttempt,
+    final bool hasExamAnswerKey,
   }) = _$MockExamRoundSummaryImpl;
 
   factory _MockExamRoundSummary.fromJson(Map<String, dynamic> json) =
@@ -1680,7 +1703,9 @@ abstract class _MockExamRoundSummary implements MockExamRoundSummary {
   @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
   MockExamFailReason? get bestAttemptFailReason;
   @override
-  MockExamLastAttempt? get lastAttempt;
+  MockExamLastAttempt? get lastAttempt; // 기출 회차의 가답안·OMR 가채점이 열려 있음 (#1151)
+  @override
+  bool get hasExamAnswerKey;
 
   /// Create a copy of MockExamRoundSummary
   /// with the given fields replaced by the non-null parameter values.
