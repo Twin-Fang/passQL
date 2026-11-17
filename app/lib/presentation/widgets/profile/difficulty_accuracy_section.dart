@@ -7,10 +7,10 @@ import 'topic_accuracy_rows.dart';
 
 // 정답률 숫자 칸 폭 (100% 까지 오른쪽 맞춤)
 const double _percentColumnWidth = 44;
-// 단계 이름 칸 폭 ("어려움" 세 글자가 한 줄)
-const double _levelColumnWidth = 56;
+// 단계 칸 폭 (난이도 띠 + "어려움" 세 글자가 한 줄, 큰 글자는 칸 안으로 줄임)
+const double _levelColumnWidth = 88;
 
-/// 난이도별 정답률 (#909, 프로): 단계(쉬움, 보통, 어려움)마다 이름 + 막대 + 정답률 + 푼 문제 수, 약한 단계(60% 미만)는 빨강.
+/// 난이도별 정답률 (#909, 프로): 단계(쉬움, 보통, 어려움)마다 난이도 띠·이름 + 막대 + 정답률 + 푼 문제 수, 약한 단계(60% 미만)는 빨강.
 /// 전체 기록, 문제마다 마지막 풀이 기준, 1~5 기록을 3단계로 묶음 (#1145). 푼 단계가 없으면 그리지 않음
 class DifficultyAccuracySection extends StatelessWidget {
   const DifficultyAccuracySection({super.key, required this.difficultyStats});
@@ -69,12 +69,17 @@ class _DifficultyRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: PassqlSpacing.xs),
           child: Row(
             children: [
+              // 단계 라벨: 난이도 띠 + 글자 (풀이 머리·홈 추천과 같은 부품, #1147)
               SizedBox(
                 width: _levelColumnWidth,
-                child: Text(
-                  stat.level.label,
-                  style: PassqlTypography.subheadline.copyWith(
-                    color: colors.secondaryLabel,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: PassqlDifficultyIndicator(
+                    level: stat.level,
+                    textStyle: PassqlTypography.subheadline.copyWith(
+                      color: colors.secondaryLabel,
+                    ),
                   ),
                 ),
               ),

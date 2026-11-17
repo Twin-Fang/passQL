@@ -12,6 +12,12 @@ enum QuestionDifficultyLevel {
 
   /// 화면 표시 이름
   final String label;
+
+  /// 단계 번호 1~3 (쉬움 1, 보통 2, 어려움 3) = 난이도 띠 채운 칸 수 (#1147)
+  int get difficultyStepNumber => index + 1;
+
+  /// 단계 수 3 = 난이도 띠 전체 칸 수
+  static int get difficultyStepCount => values.length;
 }
 
 // 문항 난이도 구간 상한 (이하면 해당 단계, #1145)

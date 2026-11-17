@@ -30,6 +30,9 @@ abstract final class PassqlSize {
   static const double readinessRing = 132;
   static const double readinessRingStroke = 16;
   static const double readinessMetricBarHeight = 8;
+  // 난이도 가로 3칸 띠 한 칸 폭·두께 (납작한 둥근 막대, 칸 사이 hairlineGap, #1147)
+  static const double difficultySegmentWidth = 10;
+  static const double difficultySegmentHeight = 4;
   static const double unitSegmentHeight = 6; // 단원 진행 칸 막대 (개념 하나 = 칸 하나)
   static const double segmentedProgressHeight =
       8; // 풀이 상단 칸 진행 바 (문제 하나 = 칸 하나, #999)

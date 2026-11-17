@@ -16,6 +16,7 @@ export 'components/passql_check_row.dart';
 export 'components/passql_choice_card.dart';
 export 'components/passql_code_block.dart';
 export 'components/passql_dialog.dart';
+export 'components/passql_difficulty_indicator.dart';
 export 'components/passql_fade_switcher.dart';
 export 'components/passql_glass.dart';
 export 'components/passql_glow.dart';
