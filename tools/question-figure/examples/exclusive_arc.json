@@ -1,0 +1,12 @@
+{
+  "entities": [
+    {"id": "ACCOUNT", "title": "계좌", "col": 1, "row": 0, "pk": ["계좌번호"], "attrs": ["개설일자"]},
+    {"id": "PERSON", "title": "개인고객", "col": 0, "row": 1, "pk": ["주민번호"], "attrs": ["성명"]},
+    {"id": "COMPANY", "title": "법인고객", "col": 2, "row": 1, "pk": ["사업자번호"], "attrs": ["법인명"]}
+  ],
+  "relations": [
+    {"from": "ACCOUNT", "to": "PERSON", "fromEnd": "o<", "toEnd": "||", "style": "dashed"},
+    {"from": "ACCOUNT", "to": "COMPANY", "fromEnd": "o<", "toEnd": "||", "style": "dashed"}
+  ],
+  "exclusiveArcs": [{"entity": "ACCOUNT", "targets": ["PERSON", "COMPANY"]}]
+}

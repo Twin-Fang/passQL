@@ -1,46 +1,36 @@
-"""문제 그림 SVG 생성기 (#1132): 그림 명세 JSON > 앱(flutter_svg)이 그대로 그리는 SVG
-그림 4종: 엔터티 상자(IE 표기), 관계선(실선 식별·점선 비식별, 양 끝 IE 기호), 일반 상자, 화살표
-서브타입 묶음(슈퍼타입 아래 갈래)도 지원. CSS·foreignObject·외부 참조 없음 (서버 QuestionFigureSvgRule 통과)
+"""문제 그림 SVG 생성기 (#1132·#1155): 그림 명세 JSON > 앱(flutter_svg)이 그대로 그리는 SVG
+그림: 엔터티 상자(IE·바커·첸 표기), 관계선(실선 식별·점선 비식별, 양 끝 기호), 일반 상자, 화살표, 서브타입 묶음,
+상호배타 호, 키 정의 표, 보기 격자(①~④ 그림·결과 표). CSS·foreignObject·외부 참조 없음 (서버 QuestionFigureSvgRule 통과)
 
-사용: python3 figure_svg.py <명세.json> [--out 그림.svg]
+사용: python3 figure_svg.py <명세.json|.mmd> [--out 그림.svg]
 명세 형식은 README.md
 """
 import argparse
 import json
 import re
 import sys
-from html import escape
+from pathlib import Path
 
 from barker_notation import BARKER_ATTRIBUTE_PREFIX, draw_barker_entity, draw_barker_relation, draw_identifying_bar
+from chen_notation import render_chen_body
+from choice_grid import is_choice_grid_spec, render_choice_grid
+from erd_layout import anchor_points, assign_auto_grid_cells, has_grid_cells, place_on_grid
+from exclusive_arc import draw_exclusive_arc, spread_shared_side_lines
+from figure_style import (BOX_FILL, BOX_PADDING_X, CANVAS_MARGIN, COMPACT_GAP_X, COMPACT_GAP_Y, DASH_PATTERN,
+                          DEPENDENT_ENTITY_CORNER_RADIUS, ENTITY_BOX_PADDING_Y, ENTITY_NAME_GAP, ENTITY_NAME_HEIGHT,
+                          GAP_X, GAP_Y, HEADER_HEIGHT, LABEL_OFFSET, LINE_COLOR, LINE_HEIGHT, MIN_BOX_WIDTH,
+                          STROKE_WIDTH, TITLE_FONT_SIZE)
 from generic_shapes import draw_arrow, draw_subtype_group
+from ie_symbols import draw_end_symbols
 from mermaid_to_spec import convert_mermaid_to_spec
+from svg_primitives import draw_text, measure_text_width, unit_vector, wrap_svg_document
+from table_shapes import build_table, draw_table
 
-from figure_style import (DEPENDENT_ENTITY_CORNER_RADIUS, ENTITY_BOX_PADDING_Y, ENTITY_NAME_GAP, ENTITY_NAME_HEIGHT,
-                          LABEL_OFFSET, BOLD_FONT_FAMILY, BOX_FILL, BOX_PADDING_X, CANVAS_MARGIN, DASH_PATTERN, FONT_FAMILY,
-                          FONT_SIZE, GAP_X, GAP_Y, HEADER_HEIGHT, LINE_COLOR, LINE_HEIGHT,
-                          MIN_BOX_WIDTH, STROKE_WIDTH, TEXT_COLOR, TITLE_FONT_SIZE)
-
-# IE 기호 위치: 엔터티 쪽부터 최대 기호, 그 바깥 최소 기호 (엔터티에 가까운 기호 = 최대)
-MAX_SYMBOL_DISTANCE = 9
-CROW_FOOT_LENGTH = 13
-CROW_FOOT_SPREAD = 8
-MIN_SYMBOL_DISTANCE = 22
-SYMBOL_HALF = 7
-CIRCLE_RADIUS = 5
-
-# 관계 끝 표기 4종 > (최소, 최대): 정확히 하나, 0 또는 1, 1 이상, 0 이상
-END_NOTATIONS = {
-    "||": ("one", "one"),
-    "o|": ("zero", "one"),
-    "|<": ("one", "many"),
-    "o<": ("zero", "many"),
-    "": (None, None),
-}
-
-
-def measure_text_width(text, font_size=FONT_SIZE):
-    """글자 폭 추정 (한글·전각 1em, 그 외 0.6em)"""
-    return sum(font_size if ord(ch) > 0x2E80 else font_size * 0.6 for ch in text)
+# 속성 줄 앞 라벨 "(가)" 와 속성 이름 사이
+ATTRIBUTE_LABEL_GAP = 4
+# ERD 와 키 정의 표 사이, 키 표 기본 열 이름 3개
+KEY_TABLE_GAP = 18
+DEFAULT_KEY_TABLE_COLUMNS = ["테이블명", "컬럼", "키 구분"]
 
 
 def to_display_title(title, show_english_names):
@@ -61,13 +51,23 @@ def is_dependent_entity(entity):
     return any(name.endswith("(FK)") for name in entity.get("pk", []))
 
 
+def build_attribute_labels(entity):
+    """attrLabels {속성 이름: "(가)"} > 표시 이름 기준 라벨, 라벨 칸 폭 (라벨 없으면 0)"""
+    label_by_attribute = {to_display_attribute(name): label for name, label in entity.get("attrLabels", {}).items()}
+    if not label_by_attribute:
+        return {}, 0
+    return label_by_attribute, max(measure_text_width(label) for label in label_by_attribute.values()) + ATTRIBUTE_LABEL_GAP
+
+
 def build_entity_box(entity):
     """IE 엔터티 > 크기: 상자 위 이름 줄 + 상자(주식별자 칸, 구분선, 일반 속성 칸)
     바커(divider False)는 이름이 상자 안 맨 위"""
     primary_keys = [to_display_attribute(name) for name in entity.get("pk", [])]
     attributes = [to_display_attribute(name) for name in entity.get("attrs", [])]
+    label_by_attribute, label_width = build_attribute_labels(entity)
     lines = [entity["title"], *primary_keys, *attributes]
-    width = max([MIN_BOX_WIDTH] + [measure_text_width(line) + BOX_PADDING_X * 2 for line in lines])
+    width = max([MIN_BOX_WIDTH] + [measure_text_width(line) + BOX_PADDING_X * 2 + (label_width if line in
+                                   label_by_attribute else 0) for line in lines])
     if not entity.get("divider", True):
         # 바커: 속성 줄 앞 네모만큼 넓힘
         width += measure_text_width(BARKER_ATTRIBUTE_PREFIX)
@@ -76,7 +76,8 @@ def build_entity_box(entity):
                 "pk": primary_keys, "attrs": attributes}
     box_height = ENTITY_BOX_PADDING_Y * 2 + (max(1, len(primary_keys)) + max(1, len(attributes))) * LINE_HEIGHT
     return {"kind": "entity", "width": width, "height": ENTITY_NAME_HEIGHT + box_height, "nameHeight": ENTITY_NAME_HEIGHT,
-            **entity, "pk": primary_keys, "attrs": attributes, "isDependent": is_dependent_entity(entity)}
+            **entity, "pk": primary_keys, "attrs": attributes, "isDependent": is_dependent_entity(entity),
+            "labelByAttribute": label_by_attribute, "labelWidth": label_width}
 
 
 def build_plain_box(box):
@@ -85,94 +86,6 @@ def build_plain_box(box):
     width = max([MIN_BOX_WIDTH] + [measure_text_width(line) + BOX_PADDING_X * 2 for line in lines])
     height = len(lines) * LINE_HEIGHT + 14
     return {"kind": "box", "width": width, "height": height, "lines": lines, **box}
-
-
-def place_on_grid(shapes):
-    """격자 배치: 칸(col, row)마다 열 폭·행 높이 최댓값 > 칸 가운데에 상자"""
-    column_widths, row_heights = {}, {}
-    for shape in shapes:
-        column_widths[shape["col"]] = max(column_widths.get(shape["col"], 0), shape["width"])
-        row_heights[shape["row"]] = max(row_heights.get(shape["row"], 0), shape["height"])
-    column_x, row_y = {}, {}
-    x = CANVAS_MARGIN
-    for col in sorted(column_widths):
-        column_x[col] = x
-        x += column_widths[col] + GAP_X
-    y = CANVAS_MARGIN
-    for row in sorted(row_heights):
-        row_y[row] = y
-        y += row_heights[row] + GAP_Y
-    for shape in shapes:
-        shape["x"] = column_x[shape["col"]] + (column_widths[shape["col"]] - shape["width"]) / 2
-        shape["y"] = row_y[shape["row"]] + (row_heights[shape["row"]] - shape["height"]) / 2
-    canvas_width = x - GAP_X + CANVAS_MARGIN
-    canvas_height = y - GAP_Y + CANVAS_MARGIN
-    return canvas_width, canvas_height
-
-
-def anchor_points(source, target):
-    """두 상자 사이 선 양 끝 (같은 행 > 좌우 변, 같은 열 > 위아래 변, 그 외 > 가까운 변 꺾은선)"""
-    source_center = (source["x"] + source["width"] / 2, source["y"] + source["height"] / 2)
-    target_center = (target["x"] + target["width"] / 2, target["y"] + target["height"] / 2)
-    if source["row"] == target["row"]:
-        left, right = (source, target) if source_center[0] < target_center[0] else (target, source)
-        y = (max(left["y"], right["y"]) + min(left["y"] + left["height"], right["y"] + right["height"])) / 2
-        start, end = (left["x"] + left["width"], y), (right["x"], y)
-        return [start, end] if left is source else [end, start]
-    if source["col"] == target["col"]:
-        top, bottom = (source, target) if source_center[1] < target_center[1] else (target, source)
-        x = (max(top["x"], bottom["x"]) + min(top["x"] + top["width"], bottom["x"] + bottom["width"])) / 2
-        start, end = (x, top["y"] + top["height"]), (x, bottom["y"])
-        return [start, end] if top is source else [end, start]
-    # 꺾은선: 출발 상자 위아래 변 가운데 > 세로 > 도착 상자 좌우 변 (같은 행 가로선과 겹치지 않게)
-    going_down = target_center[1] > source_center[1]
-    start = (source_center[0], source["y"] + source["height"] if going_down else source["y"])
-    going_right = target_center[0] > source_center[0]
-    end = (target["x"] if going_right else target["x"] + target["width"], target_center[1])
-    return [start, (start[0], end[1]), end]
-
-
-def unit_vector(from_point, to_point):
-    dx, dy = to_point[0] - from_point[0], to_point[1] - from_point[1]
-    length = (dx * dx + dy * dy) ** 0.5 or 1
-    return dx / length, dy / length
-
-
-def draw_end_symbols(edge_point, outward, notation):
-    """관계 끝 IE 기호: 엔터티 쪽 최대 기호(| 또는 까마귀발) > 바깥 최소 기호(| 또는 원)"""
-    minimum, maximum = END_NOTATIONS[notation]
-    ux, uy = outward
-    px, py = -uy, ux
-    parts = []
-
-    def bar_at(distance):
-        cx, cy = edge_point[0] + ux * distance, edge_point[1] + uy * distance
-        return (f'<line x1="{cx + px * SYMBOL_HALF:.1f}" y1="{cy + py * SYMBOL_HALF:.1f}" '
-                f'x2="{cx - px * SYMBOL_HALF:.1f}" y2="{cy - py * SYMBOL_HALF:.1f}" '
-                f'stroke="{LINE_COLOR}" stroke-width="{STROKE_WIDTH}"/>')
-
-    if maximum == "one":
-        parts.append(bar_at(MAX_SYMBOL_DISTANCE))
-    elif maximum == "many":
-        tip_x, tip_y = edge_point[0] + ux * CROW_FOOT_LENGTH, edge_point[1] + uy * CROW_FOOT_LENGTH
-        for spread in (-CROW_FOOT_SPREAD, 0, CROW_FOOT_SPREAD):
-            foot_x, foot_y = edge_point[0] + px * spread, edge_point[1] + py * spread
-            parts.append(f'<line x1="{tip_x:.1f}" y1="{tip_y:.1f}" x2="{foot_x:.1f}" y2="{foot_y:.1f}" '
-                         f'stroke="{LINE_COLOR}" stroke-width="{STROKE_WIDTH}"/>')
-    if minimum == "one":
-        parts.append(bar_at(MIN_SYMBOL_DISTANCE))
-    elif minimum == "zero":
-        cx = edge_point[0] + ux * (MIN_SYMBOL_DISTANCE + CIRCLE_RADIUS - 2)
-        cy = edge_point[1] + uy * (MIN_SYMBOL_DISTANCE + CIRCLE_RADIUS - 2)
-        parts.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{CIRCLE_RADIUS}" fill="{BOX_FILL}" '
-                     f'stroke="{LINE_COLOR}" stroke-width="{STROKE_WIDTH}"/>')
-    return parts
-
-
-def draw_text(x, y, text, anchor="start", weight="normal", font_size=FONT_SIZE):
-    font_family = BOLD_FONT_FAMILY if weight == "bold" else FONT_FAMILY
-    return (f'<text x="{x:.1f}" y="{y:.1f}" font-family="{font_family}" font-size="{font_size}" '
-            f'font-weight="{weight}" fill="{TEXT_COLOR}" text-anchor="{anchor}">{escape(text)}</text>')
 
 
 def draw_label(points, label, canvas_width=None):
@@ -198,15 +111,26 @@ def draw_entity(shape):
     primary_keys, attributes = shape.get("pk", []), shape.get("attrs", [])
     text_y = y + ENTITY_BOX_PADDING_Y + 14
     for line in primary_keys:
-        parts.append(draw_text(x + BOX_PADDING_X, text_y, line))
+        parts += draw_attribute_line(shape, x, text_y, line)
         text_y += LINE_HEIGHT
     divider_y = y + ENTITY_BOX_PADDING_Y + max(1, len(primary_keys)) * LINE_HEIGHT + ENTITY_BOX_PADDING_Y / 2
     parts.append(f'<line x1="{x:.1f}" y1="{divider_y:.1f}" x2="{x + width:.1f}" y2="{divider_y:.1f}" '
                  f'stroke="{LINE_COLOR}" stroke-width="1"/>')
     text_y = divider_y + ENTITY_BOX_PADDING_Y / 2 + 14
     for line in attributes:
-        parts.append(draw_text(x + BOX_PADDING_X, text_y, line))
+        parts += draw_attribute_line(shape, x, text_y, line)
         text_y += LINE_HEIGHT
+    return parts
+
+
+def draw_attribute_line(shape, x, text_y, line):
+    """속성 한 줄: 라벨 있는 엔터티는 라벨 칸(굵게) > 이름, 없으면 이름만"""
+    label_width = shape.get("labelWidth", 0)
+    if not label_width:
+        return [draw_text(x + BOX_PADDING_X, text_y, line)]
+    parts = [draw_text(x + BOX_PADDING_X + label_width, text_y, line)]
+    if line in shape["labelByAttribute"]:
+        parts.append(draw_text(x + BOX_PADDING_X, text_y, shape["labelByAttribute"][line], weight="bold"))
     return parts
 
 
@@ -223,10 +147,8 @@ def draw_plain_box(shape):
     return parts
 
 
-def draw_relation(relation, shape_by_id, notation, label_drawer=draw_label):
+def draw_relation(relation, points, notation, label_drawer=draw_label):
     """관계선: IE(실선 식별·점선 비식별 > 양 끝 IE 기호) 또는 바커(끝마다 실선·점선 절반, 식별 바) > 가운데 글자"""
-    source, target = shape_by_id[relation["from"]], shape_by_id[relation["to"]]
-    points = anchor_points(source, target)
     if notation == "barker":
         parts = draw_barker_relation(points, relation["fromEnd"], relation["toEnd"], LINE_COLOR, STROKE_WIDTH,
                                      DASH_PATTERN)
@@ -245,8 +167,8 @@ def draw_relation(relation, shape_by_id, notation, label_drawer=draw_label):
     return parts
 
 
-def render_figure(spec):
-    """명세 > SVG 문자열: 상자 크기 > 격자 배치 > 선(뒤) > 상자(앞), notation: ie(기본) 또는 barker"""
+def render_erd_body(spec, is_compact=False):
+    """ERD 명세 > (폭, 높이, 본문): 상자 크기 > 격자 배치(칸 없으면 자동) > 선(뒤) > 상자(앞) > 키 정의 표"""
     notation = spec.get("notation", "ie")
     entities = spec.get("entities", [])
     if notation == "barker":
@@ -258,18 +180,31 @@ def render_figure(spec):
     shape_by_id = {shape["id"]: shape for shape in shapes}
     if len(shape_by_id) != len(shapes):
         raise ValueError("상자 id 중복")
-    canvas_width, canvas_height = place_on_grid(shapes)
+    # 칸 없는 명세는 자동 배치 + 좁은 간격 (큰 ERD 가 폰 폭에서 글자가 줄지 않게)
+    is_auto_layout = bool(shapes) and not has_grid_cells(shapes)
+    if is_auto_layout:
+        edges = [(line["from"], line["to"]) for line in [*spec.get("relations", []), *spec.get("arrows", [])]]
+        assign_auto_grid_cells(shapes, edges)
+    is_narrow = is_compact or is_auto_layout
+    canvas_width, canvas_height = place_on_grid(shapes, *((COMPACT_GAP_X, COMPACT_GAP_Y) if is_narrow else (GAP_X, GAP_Y)))
     for shape in shapes:
         if shape.get("nameHeight"):
             shape["y"] += shape["nameHeight"]
             shape["height"] -= shape["nameHeight"]
+
     # 라벨은 그림 폭을 알아야 잘리지 않는 쪽에 놓음
     def label_drawer(points, label):
         return draw_label(points, label, canvas_width)
 
+    relations = spec.get("relations", [])
+    points_by_index = [anchor_points(shape_by_id[relation["from"]], shape_by_id[relation["to"]]) for relation in relations]
+    for arc in spec.get("exclusiveArcs", []):
+        spread_shared_side_lines(arc, relations, points_by_index)
     parts = []
-    for relation in spec.get("relations", []):
-        parts += draw_relation(relation, shape_by_id, notation, label_drawer)
+    for relation, points in zip(relations, points_by_index):
+        parts += draw_relation(relation, points, notation, label_drawer)
+    for arc in spec.get("exclusiveArcs", []):
+        parts += draw_exclusive_arc(arc, relations, points_by_index)
     for arrow in spec.get("arrows", []):
         parts += draw_arrow(arrow, shape_by_id, anchor_points, label_drawer)
     for group in spec.get("subtypes", []):
@@ -281,10 +216,42 @@ def render_figure(spec):
             parts += draw_barker_entity(shape, draw_text, LINE_COLOR, BOX_FILL, STROKE_WIDTH, BOX_PADDING_X, LINE_HEIGHT)
         else:
             parts += draw_entity(shape)
+    if spec.get("keyTable"):
+        canvas_width, canvas_height = add_key_table(spec["keyTable"], canvas_width, canvas_height, parts)
     # 선 끝 기호는 상자 밖이라 상자 그린 뒤에도 보임, 라벨 상자는 선 위
-    header = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {canvas_width:.0f} {canvas_height:.0f}" '
-              f'width="{canvas_width:.0f}" height="{canvas_height:.0f}">')
-    return header + "".join(parts) + "</svg>"
+    return canvas_width, canvas_height, "".join(parts)
+
+
+def add_key_table(key_table, canvas_width, canvas_height, parts):
+    """키 정의 표를 ERD 아래(기본) 또는 오른쪽(position "right")에 붙임 > 늘어난 그림 크기"""
+    layout = build_table({"columns": DEFAULT_KEY_TABLE_COLUMNS, **key_table})
+    if key_table.get("position") == "right":
+        x, y = canvas_width - CANVAS_MARGIN + KEY_TABLE_GAP, CANVAS_MARGIN
+        parts += draw_table(layout, x, y)
+        return x + layout["width"] + CANVAS_MARGIN, max(canvas_height, y + layout["height"] + CANVAS_MARGIN)
+    x, y = CANVAS_MARGIN, canvas_height - CANVAS_MARGIN + KEY_TABLE_GAP
+    parts += draw_table(layout, x, y)
+    return max(canvas_width, x + layout["width"] + CANVAS_MARGIN), y + layout["height"] + CANVAS_MARGIN
+
+
+def render_figure_body(spec, is_compact=False):
+    """그림 1개 > (폭, 높이, 본문): notation chen 이면 첸, 그 외 ERD(IE·바커·상자)"""
+    if spec.get("notation") == "chen":
+        return render_chen_body(spec)
+    return render_erd_body(spec, is_compact)
+
+
+def render_figure(spec):
+    """명세 > SVG 문자열: 보기 격자(choiceFigures·choiceTables) 또는 그림 1개"""
+    if is_choice_grid_spec(spec):
+        return render_choice_grid(spec, render_figure_body)
+    return wrap_svg_document(*render_figure_body(spec))
+
+
+def load_spec(path):
+    """명세 파일 > dict (JSON, 또는 머메이드 erDiagram 원문)"""
+    source = Path(path).read_text(encoding="utf-8")
+    return json.loads(source) if source.lstrip().startswith("{") else convert_mermaid_to_spec(source)
 
 
 def main():
@@ -292,10 +259,7 @@ def main():
     parser.add_argument("spec")
     parser.add_argument("--out")
     args = parser.parse_args()
-    with open(args.spec, encoding="utf-8") as spec_file:
-        source = spec_file.read()
-    spec = json.loads(source) if source.lstrip().startswith("{") else convert_mermaid_to_spec(source)
-    svg = render_figure(spec)
+    svg = render_figure(load_spec(args.spec))
     if args.out:
         with open(args.out, "w", encoding="utf-8") as out_file:
             out_file.write(svg)

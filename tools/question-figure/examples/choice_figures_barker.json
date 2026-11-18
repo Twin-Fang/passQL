@@ -1,0 +1,19 @@
+{
+  "stemFigure": {
+    "entities": [
+      {"id": "CUSTOMER", "title": "고객", "col": 0, "row": 0, "pk": ["고객번호"], "attrs": ["고객명"]},
+      {"id": "SERVICE", "title": "서비스", "col": 1, "row": 0, "pk": ["서비스번호"], "attrs": ["서비스명"]}
+    ],
+    "relations": [{"from": "CUSTOMER", "to": "SERVICE", "fromEnd": "o<", "toEnd": "o<", "style": "dashed"}]
+  },
+  "choiceFigures": [
+    {"notation": "barker", "entities": [{"id": "A", "title": "고객", "col": 0, "row": 0}, {"id": "B", "title": "서비스", "col": 1, "row": 0}],
+     "relations": [{"from": "A", "to": "B", "fromEnd": "1", "toEnd": "N"}]},
+    {"notation": "barker", "entities": [{"id": "A", "title": "고객", "col": 0, "row": 0}, {"id": "B", "title": "서비스", "col": 1, "row": 0}],
+     "relations": [{"from": "A", "to": "B", "fromEnd": "1?", "toEnd": "N"}]},
+    {"notation": "barker", "entities": [{"id": "A", "title": "고객", "col": 0, "row": 0}, {"id": "B", "title": "서비스", "col": 1, "row": 0}],
+     "relations": [{"from": "A", "to": "B", "fromEnd": "1", "toEnd": "N?", "identifyingAt": "to"}]},
+    {"notation": "barker", "entities": [{"id": "A", "title": "고객", "col": 0, "row": 0}, {"id": "B", "title": "서비스", "col": 1, "row": 0}],
+     "relations": [{"from": "A", "to": "B", "fromEnd": "N?", "toEnd": "N?"}]}
+  ]
+}
