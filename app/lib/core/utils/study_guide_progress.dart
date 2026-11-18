@@ -9,6 +9,15 @@ const int latestSyllabusFirstExamRound = 52;
 /// 진행을 세는 단계 4개
 enum StudyGuideStage { latestPastExams, olderPastExams, mockExams, finalCheck }
 
+/// 단계 > 제목 ('1단계 최신 기출 복원', 로드맵 화면·홈 입구 행 공통 원본, #1158)
+String toStudyGuideStageTitle(StudyGuideStage stage) =>
+    '${stage.index + 1}단계 ${switch (stage) {
+      StudyGuideStage.latestPastExams => '최신 기출 복원',
+      StudyGuideStage.olderPastExams => '이전 기출로 넓히기',
+      StudyGuideStage.mockExams => '모의고사',
+      StudyGuideStage.finalCheck => '시험 직전 FINAL',
+    }}';
+
 /// 단계 상태 4개: 준비 중(열린 회차 없음), 시작 전, 진행 중, 완료
 enum StudyGuideStageStatus { notReady, notStarted, inProgress, done }
 

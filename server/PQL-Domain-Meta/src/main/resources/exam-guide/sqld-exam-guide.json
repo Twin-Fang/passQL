@@ -42,13 +42,13 @@
     {"year": 2025, "applicantCount": 88440, "examineeCount": 62664, "passerCount": 26121, "passRatePercent": 41.68}
   ],
   "roundNotes": [
-    {"round": 56, "examDate": "2025-03-08", "difficultyNote": "개정 이후 난도가 오르기 시작한 회차", "passRatePercent": null, "isOfficial": false},
-    {"round": 57, "examDate": "2025-05-31", "difficultyNote": "어려웠다는 후기가 많은 회차", "passRatePercent": null, "isOfficial": false},
-    {"round": 58, "examDate": "2025-08-23", "difficultyNote": "역대급으로 어려웠다는 회차", "passRatePercent": null, "isOfficial": false},
-    {"round": 59, "examDate": "2025-11-16", "difficultyNote": "앞 회차보다 확실히 쉬워진 회차", "passRatePercent": null, "isOfficial": false},
-    {"round": 60, "examDate": "2026-03-07", "difficultyNote": "무난했다는 평이 많은 회차", "passRatePercent": null, "isOfficial": false},
-    {"round": 61, "examDate": "2026-05-31", "difficultyNote": "생각보다 어려웠다는 회차", "passRatePercent": 26.0, "isOfficial": false},
-    {"round": 62, "examDate": "2026-08-22", "difficultyNote": "쉬운 편이었지만 복수 정답이 나온 회차", "passRatePercent": null, "isOfficial": false}
+    {"round": 56, "examDate": "2025-03-08", "difficultyNote": "개정 이후 난도가 오르기 시작한 회차", "difficultyLevel": 2, "passRatePercent": null, "isOfficial": false},
+    {"round": 57, "examDate": "2025-05-31", "difficultyNote": "어려웠다는 후기가 많은 회차", "difficultyLevel": 3, "passRatePercent": null, "isOfficial": false},
+    {"round": 58, "examDate": "2025-08-23", "difficultyNote": "역대급으로 어려웠다는 회차", "difficultyLevel": 3, "passRatePercent": null, "isOfficial": false},
+    {"round": 59, "examDate": "2025-11-16", "difficultyNote": "앞 회차보다 확실히 쉬워진 회차", "difficultyLevel": 1, "passRatePercent": null, "isOfficial": false},
+    {"round": 60, "examDate": "2026-03-07", "difficultyNote": "무난했다는 평이 많은 회차", "difficultyLevel": 2, "passRatePercent": null, "isOfficial": false},
+    {"round": 61, "examDate": "2026-05-31", "difficultyNote": "생각보다 어려웠다는 회차", "difficultyLevel": 3, "passRatePercent": 26.0, "isOfficial": false},
+    {"round": 62, "examDate": "2026-08-22", "difficultyNote": "쉬운 편이었지만 복수 정답이 나온 회차", "difficultyLevel": 1, "passRatePercent": null, "isOfficial": false}
   ],
   "comparisons": [
     {"certificationName": "SQLP (SQL 전문가)", "year": 2024, "passRatePercent": 9.13},

@@ -130,6 +130,7 @@ _$SqldRoundNoteImpl _$$SqldRoundNoteImplFromJson(Map<String, dynamic> json) =>
       round: (json['round'] as num).toInt(),
       examDate: json['examDate'] as String,
       difficultyNote: json['difficultyNote'] as String,
+      difficultyLevel: (json['difficultyLevel'] as num?)?.toInt() ?? 0,
       passRatePercent: (json['passRatePercent'] as num?)?.toDouble(),
       isOfficial: json['isOfficial'] as bool? ?? false,
     );
@@ -139,6 +140,7 @@ Map<String, dynamic> _$$SqldRoundNoteImplToJson(_$SqldRoundNoteImpl instance) =>
       'round': instance.round,
       'examDate': instance.examDate,
       'difficultyNote': instance.difficultyNote,
+      'difficultyLevel': instance.difficultyLevel,
       'passRatePercent': instance.passRatePercent,
       'isOfficial': instance.isOfficial,
     };

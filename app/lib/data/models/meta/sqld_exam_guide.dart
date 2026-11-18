@@ -77,6 +77,8 @@ class SqldRoundNote with _$SqldRoundNote {
     required int round,
     required String examDate,
     required String difficultyNote,
+    // 체감 난이도 단계: 1 쉬움, 2 보통, 3 어려움 (0: 값 없음 > 아이콘 숨김, #1158)
+    @Default(0) int difficultyLevel,
     // 알려진 합격률 (없으면 null)
     double? passRatePercent,
     // false: 수험생 전언·후기 (화면에 비공식 배지)

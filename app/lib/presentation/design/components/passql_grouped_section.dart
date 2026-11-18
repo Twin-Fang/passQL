@@ -79,7 +79,11 @@ class PassqlGroupedSection extends StatelessWidget {
           borderRadius: BorderRadius.circular(PassqlRadius.lg),
           child: ColoredBox(
             color: colors.card,
-            child: Column(children: rows),
+            // 행은 카드 폭을 꽉 채움 (글자만 쌓은 행이 가운데로 몰리지 않게, #1158)
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: rows,
+            ),
           ),
         ),
         if (footer != null)
