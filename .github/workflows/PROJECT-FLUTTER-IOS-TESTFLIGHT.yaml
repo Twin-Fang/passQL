@@ -98,7 +98,7 @@ env:
   # FLUTTER_ROOT는 Flutter SDK 경로용 공식 변수라 충돌 — APP_ROOT로 분리
   APP_ROOT: "app"
   FLUTTER_VERSION: "3.38.9"
-  XCODE_VERSION: "26.0"
+  XCODE_VERSION: "27.2"  # xcode-27 러너의 Xcode (iOS 27 SDK, ITMS-90725). macos-26 러너에는 없음
   PROJECT_TYPE: "flutter"
 
   # ============================================
@@ -136,7 +136,7 @@ env:
 jobs:
   prepare-build:
     name: 환경 설정 및 준비
-    runs-on: macos-26
+    runs-on: ${{ vars.IOS_RUNNER || 'macos-26' }}  # 레포 변수 IOS_RUNNER=xcode-27 → iOS 27 SDK 빌드 (ITMS-90725)
     defaults:
       run:
         shell: bash
@@ -330,7 +330,7 @@ jobs:
   # 번호 거부 시 아카이브부터 다시 해야 하므로 빌드와 배포를 한 job 에 둔다 (#643).
   build-upload-ios:
     name: iOS 빌드 및 TestFlight 배포
-    runs-on: macos-26
+    runs-on: ${{ vars.IOS_RUNNER || 'macos-26' }}  # 레포 변수 IOS_RUNNER=xcode-27 → iOS 27 SDK 빌드 (ITMS-90725)
     defaults:
       run:
         shell: bash

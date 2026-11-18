@@ -81,7 +81,7 @@ permissions:
 # ===================================================================
 env:
   FLUTTER_VERSION: "3.38.9"
-  XCODE_VERSION: "26.0"
+  XCODE_VERSION: "27.2"  # xcode-27 러너의 Xcode (iOS 27 SDK, ITMS-90725). macos-26 러너에는 없음
   PROJECT_TYPE: "flutter"
   ENV_FILE_PATH: ".env"
   # Flutter 루트 경로(레포 루트 기준). 단일레포면 ".", 모노레포면 "app" 등.
@@ -275,7 +275,7 @@ jobs:
   # ===================================================================
   prepare-test-build:
     name: 테스트 빌드 준비
-    runs-on: macos-26
+    runs-on: ${{ vars.IOS_RUNNER || 'macos-26' }}  # 레포 변수 IOS_RUNNER=xcode-27 → iOS 27 SDK 빌드 (ITMS-90725)
     defaults:
       run:
         shell: bash
@@ -692,7 +692,7 @@ jobs:
   #   아카이브부터 업로드까지를 ios_release.py 가 맡아 번호 결정, 번들 번호 검증, 재시도를 한다.
   build-upload-ios-test:
     name: iOS 테스트 빌드 및 TestFlight 배포
-    runs-on: macos-26
+    runs-on: ${{ vars.IOS_RUNNER || 'macos-26' }}  # 레포 변수 IOS_RUNNER=xcode-27 → iOS 27 SDK 빌드 (ITMS-90725)
     defaults:
       run:
         shell: bash

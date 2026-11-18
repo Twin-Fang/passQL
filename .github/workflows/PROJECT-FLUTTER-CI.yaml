@@ -79,7 +79,7 @@ env:
   # 🔧 프로젝트별 설정
   FLUTTER_VERSION: "3.38.9"
   JAVA_VERSION: "17"
-  XCODE_VERSION: "26.0"
+  XCODE_VERSION: "27.2"  # xcode-27 러너의 Xcode (iOS 27 SDK, ITMS-90725). macos-26 러너에는 없음
   ENV_FILE_PATH: ".env"     # 환경변수 파일 경로 (커스터마이징 가능)
 
 concurrency:
@@ -431,7 +431,7 @@ jobs:
     if: |
       needs.prepare.outputs.analyze_only != 'true' &&
       needs.prepare.outputs.enable_ios == 'true'
-    runs-on: macos-26
+    runs-on: ${{ vars.IOS_RUNNER || 'macos-26' }}  # 레포 변수 IOS_RUNNER=xcode-27 → iOS 27 SDK 빌드 (ITMS-90725)
     needs: prepare
 
     outputs:
