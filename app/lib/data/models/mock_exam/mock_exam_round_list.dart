@@ -99,6 +99,8 @@ class MockExamRoundSummary with _$MockExamRoundSummary {
     @JsonKey(unknownEnumValue: MockExamFailReason.unknown)
     MockExamFailReason? bestAttemptFailReason,
     MockExamLastAttempt? lastAttempt,
+    // 기출 회차의 가답안·OMR 가채점이 열려 있음 (#1151)
+    @Default(false) bool hasExamAnswerKey,
   }) = _MockExamRoundSummary;
 
   factory MockExamRoundSummary.fromJson(Map<String, dynamic> json) =>

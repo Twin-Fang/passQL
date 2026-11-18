@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../../../data/models/mock_exam/mock_exam_round_list.dart';
 import '../../design/design.dart';
+import 'mock_exam_past_grading_entry.dart';
 import 'mock_exam_round_row.dart';
 
 /// 기출 복원 탭 본문 (#1079): 안내 한 줄 > 연도별 묶음(최근 회차 먼저), 없으면 빈 상태
@@ -38,6 +39,7 @@ class MockExamPastRoundSections extends StatelessWidget {
             color: context.passqlColors.secondaryLabel,
           ),
         ),
+        MockExamPastGradingEntry(pastRounds: pastRounds),
         for (final entry in roundsByYear.entries) ...[
           const SizedBox(height: PassqlSpacing.lg),
           PassqlGroupedSection(

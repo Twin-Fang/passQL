@@ -40,7 +40,8 @@ public record MockExamRoundListResponse(
         @Schema(nullable = true) Integer bestScore,
         @Schema(nullable = true, description = "최고 점수 응시(동점이면 최근)의 합격 여부 (과락 포함)") Boolean bestAttemptIsPassed,
         @Schema(nullable = true, description = "최고 점수 응시(동점이면 최근)의 불합격 이유") MockExamFailReason bestAttemptFailReason,
-        @Schema(nullable = true) LastAttempt lastAttempt
+        @Schema(nullable = true) LastAttempt lastAttempt,
+        @Schema(description = "이 기출 회차의 가답안·OMR 가채점이 열려 있음 (PAST_EXAM 만 true 가능, #1151)") boolean hasExamAnswerKey
     ) {
     }
 
