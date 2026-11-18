@@ -99,6 +99,15 @@ const Map<String, Map<String, String>> _allowedUsages = {
   },
 };
 
+/// 왼쪽 세로 막대 테두리 (AI 티 나는 콜아웃 모양, #1158)
+final _leftAccentBarPattern = RegExp(r'Border\(\s*left:|\bleft:\s*BorderSide\(');
+
+/// 왼쪽 막대 예외: {파일 경로: 이유}
+const Map<String, String> _allowedLeftAccentBars = {
+  'lib/presentation/widgets/concept/concept_row_filter_diagram.dart':
+      'GROUP BY 그림의 같은 그룹 행 표시 (콜아웃 아님)',
+};
+
 /// 규칙을 적용하는 화면 코드 폴더 3곳
 const _screenCodeDirectories = [
   'lib/presentation/pages',
@@ -161,6 +170,21 @@ void main() {
             );
           }
         }
+      }
+    }
+    expect(violations, isEmpty, reason: violations.join('\n'));
+  });
+
+  test('디자인 시스템·화면 모두 왼쪽 세로 막대 테두리를 쓰지 않는다', () {
+    final violations = <String>[];
+    for (final file in handWrittenDartFiles('lib/presentation')) {
+      final path = normalizedPath(file);
+      if (_allowedLeftAccentBars.containsKey(path)) continue;
+      final code = codeLinesOf(file).map((line) => line.$2).join('\n');
+      for (final match in _leftAccentBarPattern.allMatches(code)) {
+        final lineNumber =
+            '\n'.allMatches(code.substring(0, match.start)).length + 1;
+        violations.add('$path:~$lineNumber 왼쪽 막대 > 옅은 바탕·아이콘으로 구분');
       }
     }
     expect(violations, isEmpty, reason: violations.join('\n'));

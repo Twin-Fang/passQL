@@ -2,7 +2,7 @@
 type: cluster
 topic: home
 created: 2026-10-29
-members: 86
+members: 88
 status: active
 related: []
 ---
@@ -13,9 +13,10 @@ related: []
 홈 화면·추천
 
 ## 현재 상태 요약
-(2026-11-12, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 홈 상단 바는 로고 + 시험 D-day 배지와 크레딧 알약, 오늘의 세트와 랜덤 풀기는 별도 구간 — [[ISS-0489-pass-sheet-home-profile-cleanup]], [[ISS-0490-credit-term-purchase-funnel-events]]. (2026-11-12) 홈 시험 D-day 배지에 지금 단계 한 줄이 붙고 누르면 시험 일정 화면으로 간다 — [[ISS-0506-sqld-exam-schedule-auto-sync]]. (2026-11-13) 홈 첫 진입 환영 시트는 오늘 할 일 3단계 + `오늘의 세트 시작하기` — [[ISS-0511-qa-1112-ui-polish-eight]]. (2026-11-12) 홈 「다음에 할 일」 카드는 광고를 권하지 않고, 크레딧이 0이면 모의고사 무료 1회 카드를 보이거나 숨긴다 — [[DEC-0305-home-next-step-no-ad-card-mock-trial]]. (2026-11-16) 학습 가이드 화면(입구 홈·문제 탭·프로필) — [[DEC-0331-study-guide-four-stages-progress-counts-study]] (#1078). (2026-11-18) 환영 시트는 오늘의 세트를 풀 수 있을 때만, 버튼은 `오늘의 세트 시작하기` + `나중에` — [[DEC-0345-home-welcome-sheet-only-when-daily-set-solvable]] (#1157).
+(2026-11-12, 자동 생성) 활성 결정 21개, 열린 이슈 0개. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 홈 상단 바는 로고 + 시험 D-day 배지와 크레딧 알약, 오늘의 세트와 랜덤 풀기는 별도 구간 — [[ISS-0489-pass-sheet-home-profile-cleanup]], [[ISS-0490-credit-term-purchase-funnel-events]]. (2026-11-12) 홈 시험 D-day 배지에 지금 단계 한 줄이 붙고 누르면 시험 일정 화면으로 간다 — [[ISS-0506-sqld-exam-schedule-auto-sync]]. (2026-11-13) 홈 첫 진입 환영 시트는 오늘 할 일 3단계 + `오늘의 세트 시작하기` — [[ISS-0511-qa-1112-ui-polish-eight]]. (2026-11-12) 홈 「다음에 할 일」 카드는 광고를 권하지 않고, 크레딧이 0이면 모의고사 무료 1회 카드를 보이거나 숨긴다 — [[DEC-0305-home-next-step-no-ad-card-mock-trial]]. (2026-11-16) 학습 가이드 화면(입구는 #1158 에서 홈 한 곳, 이름 합격 로드맵) — [[DEC-0331-study-guide-four-stages-progress-counts-study]] (#1078). (2026-11-18) 환영 시트는 오늘의 세트를 풀 수 있을 때만, 버튼은 `오늘의 세트 시작하기` + `나중에` — [[DEC-0345-home-welcome-sheet-only-when-daily-set-solvable]] (#1157).
 
 ## 활성 결정
+- [[DEC-0347-roadmap-entry-home-only-more-practice-group]] — 학습 가이드는 합격 로드맵, 입구 홈 한 곳(부제 지금 단계), 홈 랜덤 풀기·모의고사·로드맵은 「더 풀기」 구간 하나. DEC-0331 의 입구 부분을 대신함 (#1158)
 - [[DEC-0345-home-welcome-sheet-only-when-daily-set-solvable]] — 환영 시트는 오늘의 세트를 풀 수 있을 때만(이미 풀었으면 알림 안내로, 세트 정보 없으면 미룸), 버튼 `오늘의 세트 시작하기` + `나중에`, SQLD 알아보기 버튼 제거. DEC-0302 의 환영 시트 버튼 부분을 대신함 (#1157)
 - [[DEC-0343-app-difficulty-three-segment-band-with-label]] — 난이도는 가로 3칸 띠 + 글자(쉬움 1칸, 보통 2칸, 어려움 3칸) 공통 부품 `PassqlDifficultyIndicator`, 풀이 머리·홈 추천·프로필 적용, 홈 추천 칩은 제목 위 회색 메타 한 줄 + DEC-0342의 3단계 구간·프로필 3행 유지 (#1147)
 - [[DEC-0327-answer-key-highlight-exam-date-plus-7]] — 가채점 강조(사이트 메뉴·첫 화면 띠, 앱 홈 가답안 카드)는 시험일 + 7일까지만, 회차 페이지는 계속 열람 (#1079·#1088)
@@ -49,6 +50,7 @@ related: []
 - [[DEC-0167-five-tabs-with-text-labels]] → DEC-0171
 
 ## 관련 이슈
+- [[ISS-0544-callout-no-left-bar-roadmap-home-entry]] (resolved, #1158): 강조 상자 왼쪽 선·학습 가이드 입구 중복·홈 구간 불통일·회차 목록 정렬. 완료 리포트 [[ISS-0544-callout-no-left-bar-roadmap-home-entry-report]]
 - [[ISS-0543-home-welcome-sheet-only-when-daily-set-solvable]] (resolved, #1157): 환영 시트가 세트 푼 사람에게 세트를 다시 권하고 글자 버튼 2개가 경쟁. 완료 리포트 [[ISS-0543-home-welcome-sheet-only-when-daily-set-solvable-report]]
 - [[ISS-0541-app-difficulty-three-segment-band]] (resolved, #1147, PR #1148, 앱 배포 전): 난이도 가로 3칸 띠 공통 부품 `PassqlDifficultyIndicator`, 홈 추천 칩 > 회색 메타 한 줄. 완료 리포트 [[ISS-0541-app-difficulty-three-segment-band-report]]
 - [[ISS-0511-qa-1112-ui-polish-eight]] (resolved, #1041, PR #1042): 11/12 QA UI 개선 8건 — 환영 시트·알림 안내·모의고사 순위·크레딧 아이콘·PK FK·난이도 별·카운트업·과락 칸

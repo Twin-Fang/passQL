@@ -1234,6 +1234,8 @@ mixin _$SqldRoundNote {
   int get round => throw _privateConstructorUsedError;
   String get examDate => throw _privateConstructorUsedError;
   String get difficultyNote =>
+      throw _privateConstructorUsedError; // 체감 난이도 단계: 1 쉬움, 2 보통, 3 어려움 (0: 값 없음 > 아이콘 숨김, #1158)
+  int get difficultyLevel =>
       throw _privateConstructorUsedError; // 알려진 합격률 (없으면 null)
   double? get passRatePercent =>
       throw _privateConstructorUsedError; // false: 수험생 전언·후기 (화면에 비공식 배지)
@@ -1260,6 +1262,7 @@ abstract class $SqldRoundNoteCopyWith<$Res> {
     int round,
     String examDate,
     String difficultyNote,
+    int difficultyLevel,
     double? passRatePercent,
     bool isOfficial,
   });
@@ -1283,6 +1286,7 @@ class _$SqldRoundNoteCopyWithImpl<$Res, $Val extends SqldRoundNote>
     Object? round = null,
     Object? examDate = null,
     Object? difficultyNote = null,
+    Object? difficultyLevel = null,
     Object? passRatePercent = freezed,
     Object? isOfficial = null,
   }) {
@@ -1300,6 +1304,10 @@ class _$SqldRoundNoteCopyWithImpl<$Res, $Val extends SqldRoundNote>
                 ? _value.difficultyNote
                 : difficultyNote // ignore: cast_nullable_to_non_nullable
                       as String,
+            difficultyLevel: null == difficultyLevel
+                ? _value.difficultyLevel
+                : difficultyLevel // ignore: cast_nullable_to_non_nullable
+                      as int,
             passRatePercent: freezed == passRatePercent
                 ? _value.passRatePercent
                 : passRatePercent // ignore: cast_nullable_to_non_nullable
@@ -1327,6 +1335,7 @@ abstract class _$$SqldRoundNoteImplCopyWith<$Res>
     int round,
     String examDate,
     String difficultyNote,
+    int difficultyLevel,
     double? passRatePercent,
     bool isOfficial,
   });
@@ -1349,6 +1358,7 @@ class __$$SqldRoundNoteImplCopyWithImpl<$Res>
     Object? round = null,
     Object? examDate = null,
     Object? difficultyNote = null,
+    Object? difficultyLevel = null,
     Object? passRatePercent = freezed,
     Object? isOfficial = null,
   }) {
@@ -1366,6 +1376,10 @@ class __$$SqldRoundNoteImplCopyWithImpl<$Res>
             ? _value.difficultyNote
             : difficultyNote // ignore: cast_nullable_to_non_nullable
                   as String,
+        difficultyLevel: null == difficultyLevel
+            ? _value.difficultyLevel
+            : difficultyLevel // ignore: cast_nullable_to_non_nullable
+                  as int,
         passRatePercent: freezed == passRatePercent
             ? _value.passRatePercent
             : passRatePercent // ignore: cast_nullable_to_non_nullable
@@ -1386,6 +1400,7 @@ class _$SqldRoundNoteImpl implements _SqldRoundNote {
     required this.round,
     required this.examDate,
     required this.difficultyNote,
+    this.difficultyLevel = 0,
     this.passRatePercent,
     this.isOfficial = false,
   });
@@ -1399,6 +1414,10 @@ class _$SqldRoundNoteImpl implements _SqldRoundNote {
   final String examDate;
   @override
   final String difficultyNote;
+  // 체감 난이도 단계: 1 쉬움, 2 보통, 3 어려움 (0: 값 없음 > 아이콘 숨김, #1158)
+  @override
+  @JsonKey()
+  final int difficultyLevel;
   // 알려진 합격률 (없으면 null)
   @override
   final double? passRatePercent;
@@ -1409,7 +1428,7 @@ class _$SqldRoundNoteImpl implements _SqldRoundNote {
 
   @override
   String toString() {
-    return 'SqldRoundNote(round: $round, examDate: $examDate, difficultyNote: $difficultyNote, passRatePercent: $passRatePercent, isOfficial: $isOfficial)';
+    return 'SqldRoundNote(round: $round, examDate: $examDate, difficultyNote: $difficultyNote, difficultyLevel: $difficultyLevel, passRatePercent: $passRatePercent, isOfficial: $isOfficial)';
   }
 
   @override
@@ -1422,6 +1441,8 @@ class _$SqldRoundNoteImpl implements _SqldRoundNote {
                 other.examDate == examDate) &&
             (identical(other.difficultyNote, difficultyNote) ||
                 other.difficultyNote == difficultyNote) &&
+            (identical(other.difficultyLevel, difficultyLevel) ||
+                other.difficultyLevel == difficultyLevel) &&
             (identical(other.passRatePercent, passRatePercent) ||
                 other.passRatePercent == passRatePercent) &&
             (identical(other.isOfficial, isOfficial) ||
@@ -1435,6 +1456,7 @@ class _$SqldRoundNoteImpl implements _SqldRoundNote {
     round,
     examDate,
     difficultyNote,
+    difficultyLevel,
     passRatePercent,
     isOfficial,
   );
@@ -1458,6 +1480,7 @@ abstract class _SqldRoundNote implements SqldRoundNote {
     required final int round,
     required final String examDate,
     required final String difficultyNote,
+    final int difficultyLevel,
     final double? passRatePercent,
     final bool isOfficial,
   }) = _$SqldRoundNoteImpl;
@@ -1470,7 +1493,9 @@ abstract class _SqldRoundNote implements SqldRoundNote {
   @override
   String get examDate;
   @override
-  String get difficultyNote; // 알려진 합격률 (없으면 null)
+  String get difficultyNote; // 체감 난이도 단계: 1 쉬움, 2 보통, 3 어려움 (0: 값 없음 > 아이콘 숨김, #1158)
+  @override
+  int get difficultyLevel; // 알려진 합격률 (없으면 null)
   @override
   double? get passRatePercent; // false: 수험생 전언·후기 (화면에 비공식 배지)
   @override

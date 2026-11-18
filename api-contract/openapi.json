@@ -3948,6 +3948,11 @@
       },
       "RoundNote" : {
         "properties" : {
+          "difficultyLevel" : {
+            "description" : "체감 난이도 단계 (1 쉬움, 2 보통, 3 어려움)",
+            "format" : "int32",
+            "type" : "integer"
+          },
           "difficultyNote" : {
             "type" : "string"
           },
@@ -3968,7 +3973,7 @@
             "type" : "integer"
           }
         },
-        "required" : [ "difficultyNote", "examDate", "isOfficial", "passRatePercent", "round" ],
+        "required" : [ "difficultyLevel", "difficultyNote", "examDate", "isOfficial", "passRatePercent", "round" ],
         "type" : "object"
       },
       "RoundSummary" : {
