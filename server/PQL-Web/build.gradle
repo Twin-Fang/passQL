@@ -24,7 +24,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-admin:9.11.0'
 
     // 계층·에러 응답 규칙 테스트 (ArchitectureRuleTest)
-    testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.5.1'
 }
 
 // 서버 버전 > BuildProperties (관제소 attention source.app_version, #959), 빌드마다 바뀌는 시각은 제외
