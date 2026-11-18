@@ -14,14 +14,14 @@ import '../../providers/plan_providers.dart';
 import '../../providers/push_notification_providers.dart';
 import '../notification/notification_permission_flow.dart';
 
-/// 환영 안내에서 고른 다음 행동 3개: 오늘의 세트, SQLD 알아보기(#1076), 둘러보기
-enum _WelcomeGuideChoice { startDailySet, openExamGuide, browse }
-
-/// 홈 첫 방문 환영 안내 (#975, #1041): 기기에서 한 번만 짧은 시트로 띄움 (오늘 할 일 3단계, 차례로 떠오름)
-/// 오늘의 세트 시작 > 세트로 이동, 둘러보기·닫기 > 알림 허용 안내로 이어짐 (#980)
+/// 홈 첫 방문 환영 안내 (#975, #1041, #1157): 기기에서 한 번만, 오늘의 세트를 풀 수 있을 때만 짧은 시트 (오늘 할 일 3단계)
+/// 오늘의 세트 시작 > 세트로 이동, 나중에·닫기·이미 풂 > 알림 허용 안내로 이어짐 (#980)
 /// 자리만 차지하지 않는 위젯 (홈 목록에 끼워 두면 첫 프레임 뒤 판정)
 class HomeWelcomeGuideTrigger extends ConsumerStatefulWidget {
-  const HomeWelcomeGuideTrigger({super.key});
+  const HomeWelcomeGuideTrigger({super.key, required this.canSolveDailySet});
+
+  /// 오늘의 세트를 지금 풀 수 있는가. null = 세트 정보를 못 받음 (판정 미룸)
+  final bool? canSolveDailySet;
 
   @override
   ConsumerState<HomeWelcomeGuideTrigger> createState() =>
@@ -36,8 +36,10 @@ class _HomeWelcomeGuideTriggerState
     WidgetsBinding.instance.addPostFrameCallback((_) => _showOnce());
   }
 
-  /// 본 적 없고 홈이 맨 위 화면일 때만 띄움 (다른 창이 떠 있으면 다음 방문으로 미룸)
+  /// 본 적 없고 홈이 맨 위 화면일 때만 판정 (다른 창이 떠 있거나 세트 정보가 없으면 다음 방문으로 미룸)
   Future<void> _showOnce() async {
+    final canSolveDailySet = widget.canSolveDailySet;
+    if (canSolveDailySet == null) return;
     final hasSeen =
         await DevicePreferences.readBool(StorageKeys.homeWelcomeGuideSeen) ??
         false;
@@ -46,31 +48,26 @@ class _HomeWelcomeGuideTriggerState
     // 띄우기 전에 기록 (시트를 닫는 방법과 무관하게 한 번만)
     await DevicePreferences.writeBool(StorageKeys.homeWelcomeGuideSeen, true);
     if (!mounted) return;
-    final welcomeGuideChoice = await showPassqlSheet<_WelcomeGuideChoice>(
-      context,
-      builder: (sheetContext) => _HomeWelcomeGuideBody(
-        hasCredits: ref.read(freeRemainingSolvesProvider) != null,
-        isProLocked: ref.read(shouldShowProUiProvider),
-        onStartDailySet: () =>
-            Navigator.of(sheetContext).pop(_WelcomeGuideChoice.startDailySet),
-        onOpenExamGuide: () =>
-            Navigator.of(sheetContext).pop(_WelcomeGuideChoice.openExamGuide),
-        onBrowse: () =>
-            Navigator.of(sheetContext).pop(_WelcomeGuideChoice.browse),
-      ),
-    );
+    // 온보딩에서 이미 세트를 풀었으면 같은 권유를 반복하지 않음 (#1157)
+    final isStartChosen =
+        canSolveDailySet &&
+        await showPassqlSheet<bool>(
+              context,
+              builder: (sheetContext) => _HomeWelcomeGuideBody(
+                hasCredits: ref.read(freeRemainingSolvesProvider) != null,
+                isProLocked: ref.read(shouldShowProUiProvider),
+                onStartDailySet: () => Navigator.of(sheetContext).pop(true),
+                onLater: () => Navigator.of(sheetContext).pop(false),
+              ),
+            ) ==
+            true;
     if (!mounted) return;
     // 세트를 고르면 바로 풀이로 (알림 안내는 학습 결과 뒤 기존 시점에)
-    if (welcomeGuideChoice == _WelcomeGuideChoice.startDailySet) {
+    if (isStartChosen) {
       unawaited(context.push(AppRoutes.dailySet));
       return;
     }
-    // SQLD 가 처음이면 시험 소개부터 (알림 안내는 다음 방문 시점에)
-    if (welcomeGuideChoice == _WelcomeGuideChoice.openExamGuide) {
-      unawaited(context.push(AppRoutes.examGuide));
-      return;
-    }
-    // 둘러보기·닫기면 알림 허용을 바로 안내 (#980, 권한 미결정·나중에 후 7일 지났을 때만)
+    // 나중에·닫기·이미 풂이면 알림 허용 안내 (#980, 권한 미결정·나중에 후 7일 지났을 때만)
     await _promptNotificationPermissionIfUndecided();
   }
 
@@ -94,14 +91,13 @@ class _HomeWelcomeGuideTriggerState
 }
 
 /// 환영 안내 본문 (#1041 B안): 3D 일러스트 팝 > 제목·한 줄 > 오늘 할 일 3단계(번호 원을 세로 선으로 이음, 차례로 떠오름)
-/// > 오늘의 세트 시작하기 / 둘러볼게요 / SQLD 알아보기(#1076). 2단계 문구는 해설 등급, 3단계는 크레딧 적용 여부로 바뀜
+/// > 오늘의 세트 시작하기 / 나중에 (#1157, 다른 안내 시트와 같은 구조). 2단계 문구는 해설 등급, 3단계는 크레딧 적용 여부로 바뀜
 class _HomeWelcomeGuideBody extends StatelessWidget {
   const _HomeWelcomeGuideBody({
     required this.hasCredits,
     required this.isProLocked,
     required this.onStartDailySet,
-    required this.onOpenExamGuide,
-    required this.onBrowse,
+    required this.onLater,
   });
 
   /// 크레딧이 적용되는 회원인가 (무료·결제 켜짐)
@@ -110,8 +106,7 @@ class _HomeWelcomeGuideBody extends StatelessWidget {
   /// AI 해설·직접 실행이 이용권 기능으로 잠긴 회원인가
   final bool isProLocked;
   final VoidCallback onStartDailySet;
-  final VoidCallback onOpenExamGuide;
-  final VoidCallback onBrowse;
+  final VoidCallback onLater;
 
   @override
   Widget build(BuildContext context) {
@@ -207,15 +202,9 @@ class _HomeWelcomeGuideBody extends StatelessWidget {
                   ),
                   const SizedBox(height: PassqlSpacing.xs),
                   PassqlButton(
-                    label: '둘러볼게요',
+                    label: '나중에',
                     variant: PassqlButtonVariant.plain,
-                    onPressed: onBrowse,
-                  ),
-                  const SizedBox(height: PassqlSpacing.xs),
-                  PassqlButton(
-                    label: 'SQLD가 처음이라면 시험부터 알아보기',
-                    variant: PassqlButtonVariant.plain,
-                    onPressed: onOpenExamGuide,
+                    onPressed: onLater,
                   ),
                 ],
               ),
