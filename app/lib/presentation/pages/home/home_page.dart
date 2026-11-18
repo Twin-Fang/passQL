@@ -22,7 +22,6 @@ import '../../widgets/common/app_toast.dart';
 import '../../widgets/community/community_daily_discussion_card.dart';
 import '../../widgets/home/app_notice_banner.dart';
 import '../../widgets/home/daily_set_section.dart';
-import '../../flows/random_practice_flow.dart';
 import '../../widgets/home/daily_study_tip_card.dart';
 import '../../widgets/home/exam_answer_home_section.dart';
 import '../../widgets/home/exam_dday_bar_title.dart';
@@ -242,31 +241,29 @@ class _HomeContent extends ConsumerWidget {
           ),
         ),
 
-      // 랜덤 풀기: 오늘의 세트와 다른 풀이라 별도 구간 (결제 켜짐일 때만, #576, #966)
-      // 다음에 할 일 카드가 랜덤 풀기를 맡은 날은 숨김
-      if (ref.watch(isRandomPracticeVisibleProvider) &&
-          nextStep != HomeNextStep.randomPractice)
-        const PassqlSection(
-          title: RandomPracticeFlow.displayName,
-          child: RandomPracticeRow(
-            title: '한 문제씩 이어서 풀기',
-            hasHorizontalPadding: false,
-          ),
-        ),
-
-      // 모의고사 (#866): 오늘 할 일 다음, 풀이 중이면 이어서 풀기
-      // 다음에 할 일 카드가 무료 1회를 안내하면 행의 같은 배지는 숨김
+      // 더 풀기 (#1158): 랜덤 풀기·모의고사·합격 로드맵 입구를 한 묶음, 같은 행 모양
+      // 다음에 할 일 카드가 맡은 랜덤 풀기는 숨김, 무료 1회 안내 중이면 모의고사 행 배지 숨김
       PassqlSection(
-        title: MockExamEntryRow.defaultTitle,
-        child: MockExamEntryRow(
-          title: '실제 시험처럼 풀기',
-          hasHorizontalPadding: false,
-          shouldShowFreeTrialBadge: nextStep != HomeNextStep.mockExamTrial,
+        title: '더 풀기',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 랜덤 풀기: 결제 켜짐일 때만 (#576, #966)
+            if (ref.watch(isRandomPracticeVisibleProvider) &&
+                nextStep != HomeNextStep.randomPractice) ...[
+              const RandomPracticeRow(hasHorizontalPadding: false),
+              const Divider(),
+            ],
+            // 모의고사 (#866): 풀이 중이면 이어서 풀기
+            MockExamEntryRow(
+              hasHorizontalPadding: false,
+              shouldShowFreeTrialBadge: nextStep != HomeNextStep.mockExamTrial,
+            ),
+            const Divider(),
+            // 합격 로드맵 (#1078): 지금 할 단계
+            const StudyGuideEntryRow(hasHorizontalPadding: false),
+          ],
         ),
-      ),
-      // 학습 가이드 (#1078): 단계별 추천 순서
-      const PassqlSection(
-        child: StudyGuideEntryRow(hasHorizontalPadding: false),
       ),
     ];
 

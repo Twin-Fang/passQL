@@ -10,9 +10,10 @@ import '../../design/design.dart';
 import '../../providers/concept_providers.dart';
 import '../../providers/lock_screen_providers.dart';
 import '../../providers/study_guide_providers.dart';
+import '../../widgets/study_guide/study_guide_entry_row.dart';
 import '../../widgets/study_guide/study_guide_stage_row.dart';
 
-/// 학습 가이드 (#1078): 소개 > 매일(개념·오늘의 세트·잠금화면) > 단계 4개(진행·지금 할 단계) > 언제나(오답노트·즐겨찾기) > 팁
+/// 합격 로드맵 (#1078, #1158 이름 변경): 소개 > 매일(개념·오늘의 세트·잠금화면) > 단계 4개(진행·지금 할 단계) > 언제나(오답노트·즐겨찾기) > 팁
 /// 단계 진행은 회차 목록(실전 응시) + 기기 학습 모드 완료 기준 (studyGuideProgressProvider)
 class StudyGuidePage extends ConsumerWidget {
   const StudyGuidePage({super.key});
@@ -22,7 +23,10 @@ class StudyGuidePage extends ConsumerWidget {
     final colors = context.passqlColors;
     final progressAsync = ref.watch(studyGuideProgressProvider);
     return Scaffold(
-      appBar: PassqlNavBar(title: '학습 가이드', leading: PassqlNavLeading.back),
+      appBar: PassqlNavBar(
+        title: StudyGuideEntryRow.title,
+        leading: PassqlNavLeading.back,
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
@@ -136,7 +140,7 @@ class _StageSection extends StatelessWidget {
       children: [
         StudyGuideStageRow(
           icon: CupertinoIcons.doc_text_fill,
-          title: '1단계 최신 기출 복원',
+          title: toStudyGuideStageTitle(StudyGuideStage.latestPastExams),
           description: '$latestSyllabusFirstExamRound회 이후 개정 범위',
           progress: progressOf(StudyGuideStage.latestPastExams),
           isCurrentStage: currentStage == StudyGuideStage.latestPastExams,
@@ -145,7 +149,7 @@ class _StageSection extends StatelessWidget {
         ),
         StudyGuideStageRow(
           icon: CupertinoIcons.archivebox_fill,
-          title: '2단계 이전 기출로 넓히기',
+          title: toStudyGuideStageTitle(StudyGuideStage.olderPastExams),
           description: '${latestSyllabusFirstExamRound - 1}회 이전 기출',
           progress: progressOf(StudyGuideStage.olderPastExams),
           isCurrentStage: currentStage == StudyGuideStage.olderPastExams,
@@ -154,7 +158,7 @@ class _StageSection extends StatelessWidget {
         ),
         StudyGuideStageRow(
           icon: CupertinoIcons.timer_fill,
-          title: '3단계 모의고사',
+          title: toStudyGuideStageTitle(StudyGuideStage.mockExams),
           description: '새 보기로 신유형 대비',
           progress: progressOf(StudyGuideStage.mockExams),
           isCurrentStage: currentStage == StudyGuideStage.mockExams,
@@ -163,7 +167,7 @@ class _StageSection extends StatelessWidget {
         ),
         StudyGuideStageRow(
           icon: CupertinoIcons.flag_fill,
-          title: '4단계 시험 직전 FINAL',
+          title: toStudyGuideStageTitle(StudyGuideStage.finalCheck),
           description: '고난도 마지막 점검',
           progress: progressOf(StudyGuideStage.finalCheck),
           isCurrentStage: currentStage == StudyGuideStage.finalCheck,

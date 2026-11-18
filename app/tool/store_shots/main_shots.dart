@@ -549,6 +549,13 @@ Object? _respond(RequestOptions o) {
   // 가답안·가채점 (#1075)
   final examAnswerResponse = examAnswerShotResponse(o);
   if (examAnswerResponse != null || p.contains('/exam-answers/')) return examAnswerResponse;
+  // SQLD 알아보기 (#1158): 서버 원본 JSON 을 그대로 (시뮬레이터는 호스트 파일을 읽음, --dart-define=SHOT_EXAM_GUIDE_JSON=<절대경로>)
+  if (p.endsWith('/meta/exam-guide/sqld')) {
+    const examGuideJsonPath = String.fromEnvironment('SHOT_EXAM_GUIDE_JSON');
+    if (examGuideJsonPath.isEmpty) return null;
+    final examGuide = jsonDecode(File(examGuideJsonPath).readAsStringSync()) as Map<String, dynamic>;
+    return {...examGuide, 'insights': null};
+  }
   if (p.endsWith('/home/greeting')) {
     return {'nickname': '새찬', 'message': '오늘도 한 문제씩, 합격에 가까워지고 있어요', 'messageType': 'ENCOURAGE'};
   }

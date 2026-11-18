@@ -3,9 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../router/app_routes.dart';
 import '../../design/design.dart';
-import '../study_guide/study_guide_entry_row.dart';
 
-/// 프로필 즐겨찾기 구간 (#1082): 앞 띠 + 즐겨찾기 행 > 즐겨찾기 화면 (무료 포함 전원), 학습 가이드 행(#1078)
+/// 프로필 즐겨찾기 구간 (#1082): 앞 띠 + 즐겨찾기 행 > 즐겨찾기 화면 (무료 포함 전원)
 class ProfileBookmarksSection extends StatelessWidget {
   const ProfileBookmarksSection({super.key});
 
@@ -28,10 +27,6 @@ class ProfileBookmarksSection extends StatelessWidget {
             hasHorizontalPadding: false,
             onTap: () => context.push(AppRoutes.bookmarks),
           ),
-        ),
-        const PassqlSectionGap(),
-        const PassqlSection(
-          child: StudyGuideEntryRow(hasHorizontalPadding: false),
         ),
       ],
     );

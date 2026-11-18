@@ -37,6 +37,7 @@ public record SqldExamGuideResponse(
             int round,
             String examDate,
             String difficultyNote,
+            @Schema(description = "체감 난이도 단계 (1 쉬움, 2 보통, 3 어려움)") int difficultyLevel,
             @Schema(nullable = true, description = "알려진 합격률 (없으면 null)") Double passRatePercent,
             @Schema(description = "공식 수치 여부 (false: 수험생 전언·후기)") boolean isOfficial
     ) {}

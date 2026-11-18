@@ -20,6 +20,12 @@ enum QuestionDifficultyLevel {
   static int get difficultyStepCount => values.length;
 }
 
+/// 단계 번호 1~3 > 단계 (회차 체감 난이도 등 이미 3단계인 값, 범위 밖이면 null, #1158)
+QuestionDifficultyLevel? toDifficultyLevelFromStepNumber(int stepNumber) =>
+    stepNumber >= 1 && stepNumber <= QuestionDifficultyLevel.values.length
+    ? QuestionDifficultyLevel.values[stepNumber - 1]
+    : null;
+
 // 문항 난이도 구간 상한 (이하면 해당 단계, #1145)
 const int _easyDifficultyUpperBound = 2;
 const int _normalDifficultyUpperBound = 3;

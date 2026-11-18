@@ -2,7 +2,7 @@
 type: cluster
 topic: design-system
 created: 2026-10-29
-members: 181
+members: 183
 status: active
 related: []
 ---
@@ -16,6 +16,7 @@ related: []
 (2026-11-12, 자동 생성) 활성 결정 50개, 열린 이슈 3개. 2026-11-07 main 머지(배포 전): 풀이 메모 컴포넌트 `PassqlMemoScope`([[ISS-0473-solving-memo-pen-toggle]]), 차트 `PassqlBarChart`([[DEC-0274-stats-radar-above-list-study-pattern-free]], DEC-0206 대체), 아바타 `PassqlAvatar`와 제공자 아이콘([[DEC-0276-account-provider-icon-email-avatar]], DEC-0263 대체), 지문 표 한 가지 모양과 테두리 SQL 상자([[DEC-0278-stem-blocks-single-table-shape]]). 코드 상자 속 한글은 본문 글꼴(DEC-0255 를 DEC-0278 이 대체, 코드 글꼴 D2Coding 부분 글꼴은 그대로). 코드 글꼴은 D2Coding 부분 글꼴(#849, 한글은 본문 글꼴로 바뀌어 [[DEC-0278-stem-blocks-single-table-shape]]가 대체). 하단 탭 바는 아이콘 + 라벨을 바 안 세로 가운데, 높이 50 — [[DEC-0241-tab-bar-content-vertically-centered]] (#817 릴리스 반영). 앱 아이콘은 연보라 그라데이션 + `pass`/`QL` 2줄 — [[DEC-0242-app-icon-lavender-two-line-pass-ql]] (main 머지, 작성 시점 미배포). 프로필 상단은 A안(카드형)이고 프로필·정보 시트 탑승권 칸 통일([[DEC-0208-pass-ticket-fields-unified]])은 대체됐으며, 이용권 행은 `/account` 한 곳·프로필은 "이용권 관리" 한 줄(DEC-0263 에서 정하고 [[DEC-0276-account-provider-icon-email-avatar]]가 이어받음). 이용권 혜택은 광고 제거를 더한 7개 — [[DEC-0262-pro-benefits-seven-ad-removal]] (DEC-0205 대체). 개념 글 `**` 는 외울 말 형광펜(`memorizeHighlight` 토큰) — [[DEC-0266-concept-bold-highlight-memorize-section]]. 서술 요약은 아직 작성하지 않았다 — 아래 활성 결정 목록이 현재 기준이다. (2026-11-12) 이용권 시트 작은 할인 배지·PRO 마크·보상 연출(`passql_reward_celebration`) — [[DEC-0284-pass-sheet-plain-copy-small-discount-badge]] (#963). (2026-11-12) 화면 원칙(정보 한 번만, 접지 않기, 한 단어 한 아이콘)을 `Design.md` 5장에 적음 — [[DEC-0287-credit-term-top-bar-balance]], [[DEC-0286-pass-sheet-comparison-table-price-cards]]. (2026-11-12) 지문 표 대체는 이름 기준, 코드 제목은 짧은 이름표 주석만 — [[DEC-0292-stem-table-match-by-name-short-code-caption]](DEC-0278 대체). (2026-11-12) 3D 연출 공통 부품 `Passql3dTilt`(동작 줄이기면 정지)와 PRO 무한 젬 `PassqlProIcon` — [[DEC-0299-gem-3d-via-perspective-single-pro-gem]]. (2026-11-13) 난이도 별·숫자 카운트업은 공통 부품 `PassqlDifficultyStars`·`PassqlCountUp`, 표 머리 PK·FK는 색 배지, 크레딧 뜻 번개는 모두 `PassqlCreditIcon` — [[ISS-0511-qa-1112-ui-polish-eight]]. (2026-11-16) 가답안·가채점 화면(앱·소개 사이트)에 DEC-0116·DEC-0189 원칙 적용 — [[DEC-0321-exam-answer-screen-list-rows-no-chip-gradient]] (#1109, 릴리스 #1115). (2026-11-16) 가답안 공유 이미지는 다크 모드여도 흰 바탕 — [[DEC-0332-exam-answer-share-image-always-light]](DEC-0321 대체); 모의고사 순위는 빈 답안 제외 — [[DEC-0333-mock-exam-ranking-excludes-empty-attempts]] (#1126, 릴리스 #1130).
 
 ## 활성 결정
+- [[DEC-0346-callout-no-left-accent-bar]] — 강조 상자는 왼쪽 막대 없이 옅은 바탕 + 둥근 모서리 + 원형 아이콘, 왼쪽 막대는 규칙 테스트로 금지 (#1158)
 - [[DEC-0338-app-figure-white-paper-tap-to-zoom]] — 앱 그림은 지문 카드 아래 흰 종이(검정 선, 라이트·다크 공통) + 눌러서 크게 보기(시안 C), `QuestionFigure` 한 부품·토큰, 머메이드 앱 렌더링 안 함 (#1132)
 - [[DEC-0343-app-difficulty-three-segment-band-with-label]] — 난이도는 가로 3칸 띠 + 글자(쉬움 1칸, 보통 2칸, 어려움 3칸) 공통 부품 `PassqlDifficultyIndicator`, 풀이 머리·홈 추천·프로필 적용, 홈 추천 칩은 제목 위 회색 메타 한 줄 + DEC-0342의 3단계 구간·프로필 3행 유지 (#1147)
 - [[DEC-0299-gem-3d-via-perspective-single-pro-gem]] — 젬 3D는 3D 모델 대신 원근 회전 부품 Passql3dTilt, PRO 에셋은 무한 젬 1종 (#1014)
@@ -93,6 +94,7 @@ related: []
 - [[DEC-0255-code-font-d2coding-subset]] → DEC-0278
 
 ## 관련 이슈
+- [[ISS-0544-callout-no-left-bar-roadmap-home-entry]] (resolved, #1158): 강조 상자 왼쪽 선 제거, 목록 묶음 행 stretch, 회차 난이도 아이콘
 - [[ISS-0541-app-difficulty-three-segment-band]] (resolved, #1147, PR #1148, 앱 배포 전): 난이도 가로 3칸 띠 공통 부품 `PassqlDifficultyIndicator`, 홈 추천 칩 > 회색 메타 한 줄. 완료 리포트 [[ISS-0541-app-difficulty-three-segment-band-report]]
 - [[ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking]] (resolved, #1126) — SQLD 63회 가답안·모의고사 결과 실기 검수 결함 7건: 빈 답안 순위 제외, 공유 이미지 흰 바탕, 합의율 응답 5명 미만이면 "응답 N명", 관리자 답안지 삭제. 완료 리포트 [[ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking-report]] (PR #1127, 릴리스 #1130)
 - [[ISS-0514-remove-unused-jetbrains-mono]] (resolved, GitHub #858, PR #859): D2Coding 교체 뒤 남은 JetBrains Mono 파일 3개 삭제

@@ -4474,6 +4474,11 @@ export interface components {
             reported: boolean;
         };
         RoundNote: {
+            /**
+             * Format: int32
+             * @description 체감 난이도 단계 (1 쉬움, 2 보통, 3 어려움)
+             */
+            difficultyLevel: number;
             difficultyNote: string;
             examDate: string;
             /** @description 공식 수치 여부 (false: 수험생 전언·후기) */

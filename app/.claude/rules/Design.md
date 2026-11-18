@@ -76,7 +76,7 @@ lib/presentation/design/
 | `PassqlQueryResultTable` / `PassqlQueryResultRow` | 푼 문제를 SQL 실행 결과처럼: 코드 블록 > 결과 표(이름·정답/오답 배지·오답만 `다시 ›`, 행 차례 등장) > `N rows selected · 정답 M`, 행 상한 넘으면 접기 (#999). 결과 화면 3종은 `SolvedQuestionResultTable` 로 씀 |
 | `PassqlQueryStatusLine` | SQL 실행 결과 한 줄(성공 ✓ 정답색·경고 ! 주황): 첫 문제 완료 `1행 수정됨`, 크레딧 소진 `0 rows` (#999) |
 | `PassqlMemoScope` / `PassqlMemoCanvas` / `PassqlMemoController` | 풀이 화면 메모 (#904): 틀(펜 버튼·도구 막대·켬 안내)은 문항 영역을, 층(Canvas)은 스크롤 내용을 감쌈. 켬이면 한 손가락 그리기·두 손가락 스크롤, 끔이면 메모는 흐리게 남고 터치는 전부 아래로. 컨트롤러는 화면 State 가 들고 응시 동안만 메모리에 (문항별 획·되돌리기). 틀 밖의 층은 내용만 그림 |
-| `PassqlCallout` (+`PassqlCalloutKind`) | 강조 상자: 옅은 의미색 바탕 + 왼쪽 막대 + 아이콘·라벨 한 줄 + 내용 (강조·주의·외울 것 3종). 개념 학습 한 줄 핵심·자주 틀리는 점·시험 포인트 (#835), 꼭 외울 것 카드 (#876) |
+| `PassqlCallout` (+`PassqlCalloutKind`) | 강조 상자: 옅은 의미색 바탕 + 둥근 모서리 + 원형 아이콘 > 라벨 > 내용 (왼쪽 막대 없음, #1158) (강조·주의·외울 것 3종). 개념 학습 한 줄 핵심·자주 틀리는 점·시험 포인트 (#835), 꼭 외울 것 카드 (#876) |
 | `PassqlBadge` (+`PassqlBadgeKind`) / `PassqlLatestTrendBadge` / `PassqlProgressBar` | 의미별 캡슐 태그(주제·보조·완료·연속·중요·AI·최신 경향·외울 것, 아이콘·테두리), '최신 경향' 배지(문구 원본, #523), 진행 막대(`height` 두께, `isFillAnimated: false` 면 쓰는 쪽이 차오름을 직접 맞춤) |
 | `PassqlSegmentedProgress` (+`PassqlProgressSegmentState`) / `showPassqlRewardCelebration` | 풀이 상단 칸 N개 진행 바(맞힘 correct·틀림 wrong·지금 칸 accent 숨쉬기, 채점 칸 한 번 튐, #999). 크레딧 보상 창: 동전 팝·빛·불꽃 > +N > 이유 > `UPDATE` 한 줄·실행 결과 > 오늘 크레딧 이전 > 이후 + 기본(accent)·보너스(correct) 게이지. 동작 줄이기면 마지막 모습만 |
 | `PassqlReveal` / `passqlRevealInOrder` | 처음 그려질 때 페이드 + 위로 8px, 순번별 지연(상한 8) (#495) |
@@ -154,6 +154,7 @@ lib/presentation/design/
 - 받는 방법 카드(크레딧 더 받기)는 아이콘 원 > 이름 > 수량 > 상태 한 줄. 받은 것은 초록, 지금 할 수 있는 것은 강조색
 - 한 시트 안 카드들은 같은 머리 구성(아이콘 타일 + 제목 + 한 줄 설명)을 쓴다
 - 흰 구간 면 위에 흰 카드를 또 얹지 않는다 (카드 안 카드 금지). 구간 면 위에서는 테두리·옅은 바탕으로만 묶는다
+- 왼쪽 세로 막대(한쪽 테두리) 상자 금지. 종류는 옅은 바탕·아이콘·라벨로 구분 (규칙 테스트, #1158)
 
 ### 5.6 시안을 보여 줄 때
 - 지금 화면을 실제 코드로 렌더해 먼저 보고, 그 위에서 바꾼 것을 다시 렌더해 나란히 보여 준다 (HTML 로 새로 그린 그림은 실제와 달라 보인다)
