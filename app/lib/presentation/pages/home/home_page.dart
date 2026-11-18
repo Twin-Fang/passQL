@@ -152,13 +152,15 @@ class _HomeContent extends ConsumerWidget {
         dailySet != null &&
         (dailySet.alreadyCompleted || dailySet.questions.isNotEmpty);
     final progress = data.progress;
+    // 오늘의 세트를 지금 풀 수 있는가 (문제가 있고 아직 안 끝냄)
+    final canSolveDailySet =
+        dailySet != null &&
+        !dailySet.alreadyCompleted &&
+        dailySet.questions.isNotEmpty;
     // 다음에 할 일 카드가 맡은 곳은 아래 구간의 같은 버튼을 숨김 (같은 곳 버튼 하나, #993)
     final nextStep = watchHomeNextStep(
       ref,
-      canSolveDailySet:
-          dailySet != null &&
-          !dailySet.alreadyCompleted &&
-          dailySet.questions.isNotEmpty,
+      canSolveDailySet: canSolveDailySet,
     );
     // 첫 구간 아래쪽: 준비도 링, 없으면 푼 문제·정답률 (면은 첫 구간이 감쌈)
     final Widget? status = readiness != null
@@ -193,8 +195,10 @@ class _HomeContent extends ConsumerWidget {
               dailySetQuestionCount: dailySet?.questions.length ?? 0,
               onStartDailySet: () => context.push(AppRoutes.dailySet),
             ),
-            // 첫 방문 환영 안내 (기기에서 한 번만 시트)
-            const HomeWelcomeGuideTrigger(),
+            // 첫 방문 환영 안내 (기기에서 한 번만, 세트를 풀 수 있을 때만 시트, 세트 정보 없으면 판정 미룸 #1157)
+            HomeWelcomeGuideTrigger(
+              canSolveDailySet: dailySet == null ? null : canSolveDailySet,
+            ),
             // 관리자 공지 (안 읽은 중요 공지 첫 건, 닫기 = 서버 읽음)
             if (notice != null) ...[
               if (greeting != null) const SizedBox(height: PassqlSpacing.sm),
