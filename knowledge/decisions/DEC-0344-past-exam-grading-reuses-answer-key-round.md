@@ -7,7 +7,7 @@ topics: [practice, question-bank, admin]
 status: active
 supersedes: null
 superseded_by: null
-related: ["[[ISS-0542-past-exam-grading-omr-link]]", "[[DEC-0327-answer-key-highlight-exam-date-plus-7]]", "[[DEC-0328-past-exam-rewrite-operation-rules]]", "[[DEC-0316-exam-answer-two-sources-operator-first]]"]
+related: ["[[ISS-0542-past-exam-grading-omr-link]]", "[[ISS-0542-past-exam-grading-omr-link-report]]", "[[DEC-0327-answer-key-highlight-exam-date-plus-7]]", "[[DEC-0328-past-exam-rewrite-operation-rules]]", "[[DEC-0316-exam-answer-two-sources-operator-first]]"]
 ---
 
 # DEC-0344: 지난 회차 가채점은 새 모델 없이 가답안 회차를 더해 재사용하고, 진입은 기출 복원 탭, 정답은 확정(CONFIRMED)으로 넣어 득표를 숨긴다
@@ -42,3 +42,11 @@ related: ["[[ISS-0542-past-exam-grading-omr-link]]", "[[DEC-0327-answer-key-high
 
 ## W4 검사
 - DEC-0327: 같은 기준(시험일 + 7일) 재사용, 충돌 없음. DEC-0328: 기출 풀이 무료 경계를 바꾸지 않음, 충돌 없음. DEC-0315(원문 비게시): 개념 한 줄만 써 충돌 없음. DEC-0316(운영 가답안 우선): 같은 방향.
+
+## 후속 확정 (2026-11-17 사용자 결정, 2026-11-18 배포 반영)
+위 「검토한 대안」의 미결 2건과 결과·영향 범위에 아래를 더한다(기존 결정 문장은 그대로).
+- 정답 범위: 58~62회 5개 회차만 입력한다(복원 자료 표기 기준, 회차당 50문항, CONFIRMED·회차 OFFICIAL). 45~57회는 정답 번호를 확보할 수 없어 가채점 없이 기출 풀기만 둔다.
+- 무료 범위: 지난 회차 가채점은 모두 무료. 기출 풀이·해설은 기존대로 최근 1회차만 무료([[DEC-0328-past-exam-rewrite-operation-rules]] 경계 불변).
+- 운영 입력은 입력 전 백업, 되돌리기는 apply 스크립트 `--rollback`(회차 CLOSED). 지난 회차(58~62) 가답안의 운영 안내(notice)는 63회와 같은 기준으로 비운다(근거 문구는 "복원 자료 기준 정답" 표기로 충분).
+- 영향 범위 추가: 운영 DB 가답안 회차 58~62회. 별도 RESTORED 상태는 여전히 두지 않았다.
+- 근거: [[ISS-0542-past-exam-grading-omr-link-report]]
