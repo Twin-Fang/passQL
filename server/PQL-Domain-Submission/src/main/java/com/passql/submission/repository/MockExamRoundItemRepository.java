@@ -19,6 +19,9 @@ public interface MockExamRoundItemRepository extends JpaRepository<MockExamRound
 
     long countByMockExamRoundUuid(UUID mockExamRoundUuid);
 
+    /** 문제를 담은 회차 문항 전체 (회차 상태 무관) */
+    List<MockExamRoundItem> findByQuestionUuid(UUID questionUuid);
+
     /** 회차별 문항 평균 난이도 (문제 난이도 없는 문항은 평균에서 빠짐) */
     @Query("SELECT new com.passql.submission.dto.mockexam.MockExamRoundDifficultyProjection(i.mockExamRoundUuid, AVG(q.difficulty))"
         + " FROM MockExamRoundItem i, com.passql.question.entity.Question q"
