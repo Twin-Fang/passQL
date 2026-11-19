@@ -27,7 +27,7 @@ class ExamAnswerScoreReport {
 
   bool get hasUnsettledQuestion => scoreRange.min != scoreRange.max;
 
-  /// 틀린 문항 (정오를 알 수 없는 문항 제외)
+  /// 틀린 문항 (모름 포함, 정오를 알 수 없는 갈림·미확정 문항 제외)
   List<ExamAnswerQuestionMark> get wrongMarks =>
       questionMarks.where((mark) => mark.isCorrect == false).toList();
 }

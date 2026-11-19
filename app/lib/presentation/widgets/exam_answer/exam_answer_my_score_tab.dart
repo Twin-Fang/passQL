@@ -11,7 +11,7 @@ import 'exam_answer_omr_sheet.dart';
 import 'exam_answer_score_result.dart';
 import 'exam_answer_share_sheet.dart';
 
-/// 내 가채점 탭: 불러오는 중 > OMR 입력(채점 버튼은 화면 하단 바) 또는 결과(공유·답안 수정·틀린 문항 복습)
+/// 내 가채점 탭: 불러오는 중 > OMR 입력(채점 버튼은 화면 하단 바) 또는 결과(공유·답안 수정·틀리거나 모르는 문항 복습)
 class ExamAnswerMyScoreTab extends ConsumerWidget {
   const ExamAnswerMyScoreTab({
     super.key,
@@ -125,7 +125,7 @@ class _OmrView extends StatelessWidget {
   }
 }
 
-/// 결과: 판정·점수·목록 > 결과 공유(채운 버튼 하나)·답안 수정(글자 버튼) > 틀린 문항 복습
+/// 결과: 판정·점수·목록 > 결과 공유(채운 버튼 하나)·답안 수정(글자 버튼) > 틀리거나 모르는 문항 복습
 class _ResultView extends StatelessWidget {
   const _ResultView({
     required this.roundKey,
@@ -184,7 +184,8 @@ class _ResultView extends StatelessWidget {
           )
         else
           PassqlGroupedSection(
-            header: '틀린 문항 개념 복습 ${wrongMarks.length}',
+            // 모름도 0점이라 함께 복습 (행 부제에 `내 답 모름`)
+            header: '틀리거나 모르는 문항 개념 복습 ${wrongMarks.length}',
             children: [
               for (final mark in wrongMarks)
                 PassqlListRow(
