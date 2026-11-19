@@ -51,10 +51,11 @@ class PassqlBarChart extends StatelessWidget {
   // 칸 폭 대비 막대 폭 비율과 상한 (칸이 넓어도 막대가 뭉툭해지지 않게)
   static const double _barWidthRatio = 0.62;
   static const double _maximumBarWidth = 22;
-  // 0 이 아닌 값의 최소 막대 높이 (아주 작은 값도 보이게)
-  static const double _minimumVisibleHeight = 2;
-  // 막대 윗모서리 반경 상한 (가는 막대는 폭의 절반)
-  static const double _maximumTopRadius = 4;
+  /// 0 이 아닌 값의 최소 막대 높이 (아주 작은 값도 보이게, 모의고사 점수 추이 막대도 같은 값)
+  static const double minimumVisibleHeight = 2;
+
+  /// 막대 윗모서리 반경 상한 (가는 막대는 폭의 절반, 모의고사 점수 추이 막대도 같은 값)
+  static const double maximumTopRadius = 4;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +168,7 @@ class _BarSlot extends StatelessWidget {
   Widget build(BuildContext context) {
     if (bar.totalValue <= 0 || maximumValue <= 0) return const SizedBox.shrink();
     final fullHeight = math.max(
-      PassqlBarChart._minimumVisibleHeight,
+      PassqlBarChart.minimumVisibleHeight,
       chartHeight * bar.totalValue / maximumValue,
     );
     final barHeight = fullHeight * growth;
@@ -179,7 +180,7 @@ class _BarSlot extends StatelessWidget {
           constraints.maxWidth * PassqlBarChart._barWidthRatio,
         );
         final topRadius = Radius.circular(
-          math.min(PassqlBarChart._maximumTopRadius, barWidth / 2),
+          math.min(PassqlBarChart.maximumTopRadius, barWidth / 2),
         );
         return Align(
           alignment: Alignment.bottomCenter,
