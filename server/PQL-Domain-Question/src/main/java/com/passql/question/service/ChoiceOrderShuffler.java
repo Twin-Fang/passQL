@@ -12,11 +12,14 @@ import java.util.regex.Pattern;
 /**
  * 고정 보기 표시 순서 섞기: 입력 복사 > 무작위 섞기 > 표시 순번 1..N 재부여 (DB 값 불변, #511)
  * 보기가 모두 숫자면 섞지 않고 오름차순 (시험 관례, 배치로 정답 단서 차단, #565). 채점은 choiceKey 기준이라 순서와 무관
+ * 번호·기호로 시작하는 보기(그림·표 ①~④, 조합 (가)·ㄱ)는 저장 순서 유지 (그림 번호 <-> 보기 자리 일치, #1155)
  */
 public final class ChoiceOrderShuffler {
 
     // 숫자 보기 판별: 정수·소수, 앞뒤 공백 허용
     private static final Pattern NUMERIC_BODY = Pattern.compile("^\\s*-?\\d+(\\.\\d+)?\\s*$");
+    // 순서 고정 보기: ①~④ 그림·표 번호, (가)~(하) 조합, ㄱ~ㅎ 조합 (ㄱ, ㄴ / ㄱ ㄴ)
+    private static final Pattern FIXED_ORDER_BODY = Pattern.compile("^\\s*([①②③④⑤]|\\([가-하]\\)|[ㄱ-ㅎ](\\s|,|$))");
 
     private ChoiceOrderShuffler() {
     }
@@ -26,6 +29,8 @@ public final class ChoiceOrderShuffler {
         List<T> orderedChoices = new ArrayList<>(choices);
         if (isAllNumeric(choices, bodyOf)) {
             orderedChoices.sort(Comparator.comparing(choice -> new BigDecimal(bodyOf.apply(choice).trim())));
+        } else if (hasFixedOrderBody(choices, bodyOf)) {
+            // 저장 순서 그대로 (입력 목록 = sortOrder 순)
         } else {
             Collections.shuffle(orderedChoices);
         }
@@ -34,6 +39,12 @@ public final class ChoiceOrderShuffler {
             renumberedChoices.add(withSortOrder.apply(orderedChoices.get(index), index + 1));
         }
         return renumberedChoices;
+    }
+
+    private static <T> boolean hasFixedOrderBody(List<T> choices, Function<T, String> bodyOf) {
+        return choices.stream()
+                .map(bodyOf)
+                .anyMatch(body -> body != null && FIXED_ORDER_BODY.matcher(body).find());
     }
 
     private static <T> boolean isAllNumeric(List<T> choices, Function<T, String> bodyOf) {
