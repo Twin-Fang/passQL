@@ -2,7 +2,7 @@
 type: cluster
 topic: progress-stats
 created: 2026-10-29
-members: 64
+members: 65
 status: active
 related: []
 ---
@@ -44,6 +44,7 @@ related: []
 - [[DEC-0206-topic-accuracy-list-with-octagon-chart]] → DEC-0274
 
 ## 관련 이슈
+- [[ISS-0545-mock-exam-trend-bar-blob-grading-review-unknown-label]] (resolved, #1166, PR #1167): 점수 추이 낮은 점수 막대 덩어리(반경 8·바닥선 없음) > PassqlBarChart 모양 상수 참조, 가채점 복습 머리글 「틀리거나 모르는 문항」. 완료 리포트 [[ISS-0545-mock-exam-trend-bar-blob-grading-review-unknown-label-report]]
 - [[ISS-0541-app-difficulty-three-segment-band]] (resolved, #1147, PR #1148, 앱 배포 전): 난이도 가로 3칸 띠 공통 부품 `PassqlDifficultyIndicator`, 홈 추천 칩 > 회색 메타 한 줄. 완료 리포트 [[ISS-0541-app-difficulty-three-segment-band-report]]
 - [[ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking]] (resolved, #1126) — SQLD 63회 가답안·모의고사 결과 실기 검수 결함 7건: 빈 답안 순위 제외, 공유 이미지 흰 바탕, 합의율 응답 5명 미만이면 "응답 N명", 관리자 답안지 삭제. 완료 리포트 [[ISS-0538-exam-answer-qa-fixes-empty-attempt-ranking-report]] (PR #1127, 릴리스 #1130)
 - [[ISS-0532-expected-pass-rate-mock-exam]] (resolved, #1086): 예상 합격률(최근 채점 모의고사 최대 5회, 과락 위험 = 과락선 + 4점 이하). 완료 리포트 [[ISS-0531-ox-quiz-expected-pass-lock-screen-ox-report]]
