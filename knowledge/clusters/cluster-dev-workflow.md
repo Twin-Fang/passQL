@@ -2,7 +2,7 @@
 type: cluster
 topic: dev-workflow
 created: 2026-10-29
-members: 81
+members: 83
 status: active
 related: []
 ---
@@ -41,6 +41,7 @@ related: []
 - [[DEC-0177-rename-only-checkable-local-names]] — 약어 풀어쓰기는 컴파일러·타입 검사로 확인 가능한 지역 이름만 — 계약 이름·프레임워크 시그니처·관용 표현·관리자 정적 JS·테스트는 제외
 - [[DEC-0183-keep-only-contract-architecture-tests]] — 기능 테스트는 전부 삭제하고 API 계약 테스트와 아키텍처 규칙 테스트만 남긴다
 - [[DEC-0213-ingest-after-report-same-pr]] — 볼트는 모노레포 knowledge/에 두고, pro-report 직후 지식화해 그 이슈의 같은 PR에 커밋한다
+- [[DEC-0349-pro-brain-run-is-ingest-issue-team-brain-first]] — 이슈 지식화는 /pro-brain(= ingest-issue)으로 실행, "왜" 질문은 팀 브레인 MCP `gbrain-passql` 먼저
 - [[DEC-0214-no-local-design-docs-in-public-vault]] — 퍼블릭 레포 볼트에는 로컬 전용 설계 문서를 넣지 않고, 서버 경로·호스트·내부 포트를 쓰지 않는다
 - [[DEC-0223-audit-followup-small-fixes-split-design]] — 감사 후속은 동작을 바꾸지 않는 작은 수정만 그 이슈에서, 설계 필요 항목은 후속 이슈로, 제품 결정 필요 항목은 사용자 확인으로 나눈다
 - [[DEC-0224-attach-to-existing-common-points]] — 사본 정리는 기존 공통 위치(`UuidUtils`, `PassqlThemeContext`, `crash_reporter`)에 붙이고, 호출부 동작이 다른 곳은 뺀다
@@ -52,6 +53,7 @@ related: []
 - [[DEC-0068-dev-mode-hidden-easter-egg]] → null
 
 ## 관련 이슈
+- [[ISS-0546-pro-brain-knowledge-switch-claude-md-merge]] (resolved, #1169, PR #1170): version.yml pro-brain 스위치(issue-end) 켜고 CLAUDE.md 「지식화」 절과 pro-brain 블록 통합. 완료 리포트 [[ISS-0546-pro-brain-knowledge-switch-claude-md-merge-report]]
 - [[ISS-0504-question-structure-audit-harness]] (resolved, #1017): 운영 활성 499건 구조 전수조사(데이터 누락 0, 표 소실 17건은 앱 배치), 하네스 lint 3개
 - [[ISS-0500-code-consult-today-changes]] (resolved, #1005): 하루 변경분 code-consult check
 - [[ISS-0468-web-audit-cross-tab-reissue-logout]] (resolved, GitHub #881) — 웹 전체 점검: 탭 두 개면 모든 기기 로그아웃, 재발급 실패 강제 로그아웃, 선택지 생성 오류 사유

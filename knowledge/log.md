@@ -319,3 +319,6 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-19 10:30 | W4 | DEC-0348 신설(가채점 복습 모름 포함), DEC-0344·DEC-0315 충돌 없음 | DEC-0348
 - 2026-11-19 10:30 | W2 | cluster-practice(DEC-0348·ISS-0545, members 235)·cluster-progress-stats(ISS-0545, 65)·cluster-design-system(ISS-0545, 184) 갱신 | cluster-practice, cluster-progress-stats, cluster-design-system
 - 2026-11-19 10:31 | W2 | cluster-practice members 정정 235 > 238 (check W10 실측) | cluster-practice
+- 2026-11-23 11:45 | W6 | #1169 이슈·완료 리포트 지식화(pro-brain 메타데이터 키 포함), 원본은 GitHub 이슈 URL | ISS-0546
+- 2026-11-23 11:45 | W4 | DEC-0349 신설(/pro-brain = ingest-issue, 팀 브레인 MCP 먼저), DEC-0213·DEC-0214 충돌 없음 | DEC-0349
+- 2026-11-23 11:45 | W2 | cluster-dev-workflow 에 DEC-0349·ISS-0546 추가, members +2 | cluster-dev-workflow
