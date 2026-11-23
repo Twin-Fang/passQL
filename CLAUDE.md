@@ -55,13 +55,25 @@ passQL은 **4개 스택을 한 레포에서 관리하는 모노레포**다. 작�
 
 ## 지식화 (세컨드 브레인 `knowledge/`)
 
-코드에 남지 않는 "왜 이렇게 됐나"를 볼트에 쌓는다. 규칙 원본은 `SECOND-BRAIN.md`.
+코드에 남지 않는 "왜 이렇게 됐나"를 볼트에 쌓는다. 언제 남기고 어디서 먼저 찾는지는 아래 pro-brain 블록, 노트 형식·절차의 원본은 `SECOND-BRAIN.md`.
 
-- `pro-report`로 리포트 댓글을 올린 직후 해당 이슈를 `ingest-issue`로 지식화한다(열린 이슈 노트가 있으면 완료 리포트로 닫는다). 리포트에 선택(무엇을 고르고 무엇을 버렸나)이 기록돼 있으면 결정 노트(`DEC`)도 만들고, 이전 결정을 바꿨으면 대체 체인(`supersedes`/`superseded_by`)으로 잇는다.
+- `/pro-brain` 실행 = `SECOND-BRAIN.md`의 `ingest-issue` 실행. 이슈 노트(`ISS`)를 만들거나 열린 이슈 노트를 완료 리포트로 닫고, pro-brain 메타데이터 키(`capture_mode`, `issue_url`, `commit_base` 등)는 frontmatter에 덧붙이기만 한다(노트를 따로 하나 더 만들지 않음).
+- 리포트에 선택(무엇을 고르고 무엇을 버렸나)이 기록돼 있으면 결정 노트(`DEC`)도 만들고, 이전 결정을 바꿨으면 대체 체인(`supersedes`/`superseded_by`)으로 잇는다.
 - 만들어진 `knowledge/` 노트는 그 이슈 작업의 **같은 PR에** 커밋한다.
 - 번호(`ISS-`/`DEC-`)는 폴더 최댓값+1이라 동시에 열린 PR끼리 겹칠 수 있다. 머지 직전 최신 main을 받아 겹치면 내 쪽 번호를 올리고 `node second-brain/tools/vault.mjs check`를 돌린다.
 - `knowledge/log.md` 충돌은 양쪽 줄을 모두 남겨 푼다(덧붙이기 전용 파일).
 - 원본에 없는 이유·대안은 지어내지 않고 "논의 기록 없음"으로 쓴다. 노트 `source:`는 GitHub 이슈 URL.
+
+<!-- pro-brain:begin (managed by /pro-brain; settings live in version.yml) -->
+## 프로젝트 지식 (pro-brain)
+
+나중에도 유효한 프로젝트 지식(결정, 이유, 주의점)은 `knowledge/` 폴더에 노트로 남긴다. 팀 브레인은 `main` 브랜치에서 이 폴더를 가져간다. 노트 형식과 절차는 `SECOND-BRAIN.md`를 따른다.
+
+- **언제 남기나**: `/pro-report`로 이슈 보고서를 올린 뒤, 이슈를 닫기 전에 `/pro-brain`을 실행한다 (이슈마다 노트 1건).
+- **왜 이렇게 됐는지, 무엇을 정했는지 답하기 전에**: 팀 브레인 MCP(`gbrain-passql`)에서 먼저 찾는다. 연결돼 있지 않으면 `knowledge/` 폴더를 읽는다 (주제, 파일, 이슈 번호로 검색).
+- 사소한 변경은 이유 한 줄로 건너뛴다. 비밀값, 개인정보, 대화 내용은 노트에 넣지 않는다.
+- 설정: `version.yml` > `metadata.template.options.knowledge`.
+<!-- pro-brain:end -->
 
 ---
 

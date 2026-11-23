@@ -1,0 +1,16 @@
+{
+  "entities": [
+    {"id": "CUSTOMER", "title": "고객", "pk": ["고객번호"], "attrs": ["고객명", "생년월일", "전화번호", "주소", "가입일자", "등급코드"],
+     "attrLabels": {"고객번호": "(가)", "전화번호": "(나)"}},
+    {"id": "ORDERS", "title": "주문", "pk": ["주문번호"], "attrs": ["고객번호 (FK)", "주문일시", "배송지", "결제수단", "주문상태", "총금액"],
+     "attrLabels": {"고객번호 (FK)": "(다)"}},
+    {"id": "ORDER_ITEM", "title": "주문상품", "pk": ["주문번호 (FK)", "순번"], "attrs": ["상품번호 (FK)", "주문수량", "판매단가", "할인금액"],
+     "attrLabels": {"주문번호 (FK)": "(라)"}},
+    {"id": "PRODUCT", "title": "상품", "pk": ["상품번호"], "attrs": ["상품명", "카테고리코드", "정가", "재고수량", "판매여부"]}
+  ],
+  "relations": [
+    {"from": "CUSTOMER", "to": "ORDERS", "fromEnd": "||", "toEnd": "o<", "style": "dashed"},
+    {"from": "ORDERS", "to": "ORDER_ITEM", "fromEnd": "||", "toEnd": "|<", "style": "solid"},
+    {"from": "PRODUCT", "to": "ORDER_ITEM", "fromEnd": "||", "toEnd": "o<", "style": "dashed"}
+  ]
+}

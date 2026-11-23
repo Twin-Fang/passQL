@@ -1,0 +1,11 @@
+{
+  "entities": [
+    {"id": "DEPT", "title": "부서", "col": 0, "row": 0, "pk": ["부서번호"], "attrs": ["부서명"]},
+    {"id": "EMP", "title": "사원", "col": 1, "row": 0, "pk": ["사원번호"], "attrs": ["사원명", "부서번호 (FK)"]}
+  ],
+  "relations": [{"from": "DEPT", "to": "EMP", "fromEnd": "||", "toEnd": "o<", "style": "dashed"}],
+  "keyTable": {
+    "columns": ["테이블", "기본키", "그 밖의 속성"],
+    "rows": [["부서", "부서번호", "부서명"], ["사원", "사원번호", "사원명, 부서번호(FK)"]]
+  }
+}

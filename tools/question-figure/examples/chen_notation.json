@@ -1,0 +1,11 @@
+{
+  "notation": "chen",
+  "entities": [
+    {"id": "STUDENT", "title": "학생", "col": 0, "row": 0, "pk": ["학번"], "attrs": ["이름"]},
+    {"id": "COURSE", "title": "강좌", "col": 2, "row": 0, "pk": ["강좌번호"], "attrs": ["강좌명", "학점"]}
+  ],
+  "relationships": [
+    {"id": "TAKES", "title": "수강", "col": 1, "row": 0,
+     "links": [{"to": "STUDENT", "cardinality": "M"}, {"to": "COURSE", "cardinality": "N"}]}
+  ]
+}
