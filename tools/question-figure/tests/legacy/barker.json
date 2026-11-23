@@ -1,0 +1,4 @@
+{"notation": "barker", "entities": [
+  {"id": "TEACHER", "title": "강사", "col": 0, "row": 0, "pk": ["# 강사번호"], "attrs": ["* 강사명"]},
+  {"id": "LECTURE", "title": "강좌", "col": 1, "row": 0, "pk": ["# 강좌번호"], "attrs": ["* 강좌명", "o 비고"]}],
+ "relations": [{"from": "TEACHER", "to": "LECTURE", "fromEnd": "1", "toEnd": "N?", "identifyingAt": "to", "label": "ㄴ"}]}

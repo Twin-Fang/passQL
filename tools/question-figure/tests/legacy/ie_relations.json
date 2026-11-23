@@ -1,0 +1,11 @@
+{"entities": [
+  {"id": "DEPT", "title": "부서 DEPT", "col": 0, "row": 0, "pk": ["부서번호"], "attrs": ["부서명", "위치"]},
+  {"id": "EMP", "title": "사원 EMP", "col": 1, "row": 0, "pk": ["사원번호"], "attrs": ["사원명", "부서번호 (FK)"]},
+  {"id": "FAMILY", "title": "부양가족", "col": 1, "row": 1, "pk": ["사원번호 (FK)", "가족순번"], "attrs": ["가족명"]},
+  {"id": "PROJECT", "title": "프로젝트", "col": 0, "row": 1, "pk": ["프로젝트번호"], "attrs": []}
+ ],
+ "relations": [
+  {"from": "DEPT", "to": "EMP", "fromEnd": "||", "toEnd": "o<", "style": "dashed", "label": "ㄱ"},
+  {"from": "EMP", "to": "FAMILY", "fromEnd": "||", "toEnd": "|<", "style": "solid", "label": "(가)"},
+  {"from": "DEPT", "to": "FAMILY", "fromEnd": "o|", "toEnd": "", "style": "dashed"}
+ ]}

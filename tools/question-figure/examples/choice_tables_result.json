@@ -1,0 +1,8 @@
+{
+  "choiceTables": [
+    {"columns": ["DEPTNO", "SAL_SUM"], "rows": [[10, 8750], [20, 10875], [null, 29025]]},
+    {"columns": ["DEPTNO", "SAL_SUM"], "rows": [[10, 8750], [20, 10875], [30, 9400]]},
+    {"columns": ["DEPTNO", "SAL_SUM"], "rows": [[10, 8750], [20, 10875], [30, null]]},
+    {"columns": ["DEPTNO", "SAL_SUM"], "rows": [[10, 8750], [20, ""], [null, null]]}
+  ]
+}

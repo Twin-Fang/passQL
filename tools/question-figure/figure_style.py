@@ -28,3 +28,24 @@ ENTITY_NAME_HEIGHT = 22
 ENTITY_NAME_GAP = 6
 ENTITY_BOX_PADDING_Y = 6
 DEPENDENT_ENTITY_CORNER_RADIUS = 9
+
+# 자동 배치·보기 칸 안 그림의 좁은 격자 간격 (IE 기호 양 끝 약 32 + 라벨 자리)
+COMPACT_GAP_X = 80
+COMPACT_GAP_Y = 70
+# 자동 배치 목표 폭: 앱 카드 안쪽 폭(약 340)에서 글자가 줄지 않는 그림 폭 상한
+PHONE_FIGURE_TARGET_WIDTH = 420
+
+# 작은 표 (보기 결과 표·키 정의 표): 칸 좌우 여백, 줄 높이, 제목 줄
+TABLE_CELL_PADDING_X = 8
+TABLE_ROW_HEIGHT = 24
+TABLE_TITLE_HEIGHT = 20
+# SQL NULL 셀: 앱 결과 표(sqlNullCellLabel)와 같은 흐린 NULL 글자
+NULL_CELL_TEXT = "NULL"
+NULL_TEXT_COLOR = "#8E8E93"
+
+# 보기 격자 (①~④): 번호 원 반지름, 번호와 그림 사이, 칸 사이, 지문 그림과 보기 사이
+CHOICE_NUMBER_RADIUS = 9
+CHOICE_NUMBER_GAP = 6
+CHOICE_CELL_GAP_X = 24
+CHOICE_CELL_GAP_Y = 18
+STEM_TO_CHOICES_GAP = 20

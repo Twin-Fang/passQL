@@ -1,0 +1,13 @@
+erDiagram
+  CUSTOMER["고객 CUSTOMER"]
+  %% pos CUSTOMER 0 0
+  %% pos ORDERS 1 0
+  CUSTOMER ||..o{ ORDERS : "ㄱ 주문"
+  ORDERS ||--|{ ORDER_ITEM : "(나) 포함"
+  CUSTOMER { string 고객번호 PK
+             string 고객명 }
+  ORDERS { string 주문번호 PK
+           string 고객번호 FK }
+  ORDER_ITEM { string 주문번호 PK, FK
+               string 순번 PK
+               int 수량 }

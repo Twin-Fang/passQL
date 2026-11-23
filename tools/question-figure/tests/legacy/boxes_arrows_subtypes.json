@@ -1,0 +1,8 @@
+{"showEnglishNames": true, "entities": [
+  {"id": "ITEM", "title": "상품 ITEM", "col": 1, "row": 0, "pk": ["상품번호"], "attrs": ["상품명"]},
+  {"id": "BOOK", "title": "도서", "col": 0, "row": 1, "pk": [], "attrs": ["ISBN", "저자명"], "divider": false},
+  {"id": "FOOD", "title": "식품", "col": 1, "row": 1, "pk": [], "attrs": ["유통기한"], "divider": false}],
+ "boxes": [{"id": "NOTE", "text": ["(가)", "엔터티"], "col": 2, "row": 0, "rounded": true, "bold": true},
+           {"id": "NOTE2", "text": "분해 후", "col": 2, "row": 1}],
+ "arrows": [{"from": "NOTE", "to": "NOTE2", "label": "분해", "style": "dashed"}, {"from": "ITEM", "to": "NOTE"}],
+ "subtypes": [{"parent": "ITEM", "children": ["BOOK", "FOOD"], "exclusive": true}]}
