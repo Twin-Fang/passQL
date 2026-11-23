@@ -75,6 +75,16 @@ metadata:
       changelog:
         provider: "commit"
         base_url: ""
+      knowledge:                     # pro-brain knowledge capture (kept on updates)
+        enabled: true
+        path: "knowledge/"
+        capture: "issue-end"
+        claude_md: "CLAUDE.md"
+        brain_mcp: "gbrain-passql"
+        rules: "SECOND-BRAIN.md"
+        note_dir: "issues/"            # knowledge/ 안: ISS 노트 폴더
+        template: "_templates/completion-report.md"   # knowledge/ 안: 이슈 종료 노트 틀
+        check: "node second-brain/tools/vault.mjs check"   # 쓴 노트 검증
 
 deploy:                          # deploy settings remembered by the wizard (non-sensitive, safe to edit by hand)
   spring:
