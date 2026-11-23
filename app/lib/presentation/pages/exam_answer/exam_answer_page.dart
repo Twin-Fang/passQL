@@ -102,8 +102,9 @@ class _ExamAnswerPageState extends ConsumerState<ExamAnswerPage> {
                 const SizedBox(height: PassqlSpacing.xs),
                 Align(
                   alignment: Alignment.centerLeft,
+                  // 이동 대상은 기출 복원 탭 목록 (회차 직행 아님, #1176)
                   child: PassqlSectionLink(
-                    label: '이 회차 기출 풀기',
+                    label: '기출 복원 풀기',
                     semanticLabel: '기출 복원 회차 목록 열기',
                     onTap: () => context.push(AppRoutes.mockExamsPastTab),
                   ),

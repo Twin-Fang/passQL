@@ -2,7 +2,7 @@
 type: cluster
 topic: admin
 created: 2026-10-29
-members: 122
+members: 123
 status: active
 related: []
 ---
@@ -144,3 +144,4 @@ related: []
 - [[LSN-0007-admin-403-read-only-check-csrf-session]] — 관리자 403 "조회 전용"은 계정 권한보다 세션 만료·CSRF 헤더 누락 먼저 확인 (#1132)
 - [[LSN-0005-question-export-500-limit-split-before-dedupe]] — 등록 전 중복·건수 집계도 내보내기 500건 상한, 토픽·난이도로 나눠 합계 대조 (#1079)
 - [[LSN-0003-question-export-500-limit-backup-by-topic]] — 문제 내보내기 1회 500건 한도, 전체 백업은 토픽별로 (#1074)
+- [[LSN-0008-import-update-breaks-round-choice-set]] — 가져오기로 회차 문항 갱신 뒤 공개 검사 필수

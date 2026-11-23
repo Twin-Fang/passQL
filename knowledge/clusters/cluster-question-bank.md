@@ -2,7 +2,7 @@
 type: cluster
 topic: question-bank
 created: 2026-10-29
-members: 103
+members: 108
 status: active
 related: []
 ---
@@ -46,6 +46,8 @@ related: []
 - [[DEC-0249-result-table-choices-from-executed-sql]] — 결과 표 문제 보기는 AI가 쓴 보기 SQL의 실제 실행 결과로만 (오답 표를 지어내지 않음)
 - [[DEC-0277-no-dash-middle-dot-server-cleaner]]: 문항과 생성 글에 줄표, 가운뎃점 금지(짝은 용어: 분류, 나열은 쉼표), 프롬프트 맨 앞 규칙 + 서버 ForbiddenPunctuationCleaner, 데이터 표는 스키마 한 곳 (#905)
 - [[DEC-0279-stem-table-data-cleanup-after-min-version]]: 운영 지문 표 자동 정리는 #903 앱이 두 스토어에 나오고 최소 지원 버전을 올린 뒤 적용, 그 전까지 데이터 그대로 (#905, #923)
+- [[DEC-0350-past-exam-real-exam-level-standard]] — 기출 복원은 실제 시험 수준: SQL 보통 5~12줄, 표 최대 7행 보통, 함정 1·2개 반반, NULL 30~40%, 모두 고르기 진술 3개 1~3개, 하나만 다른 것 4+, 길이 꾸미지 않기 (#1155)
+- [[DEC-0351-choice-order-fixed-and-round-choice-set-repoint]] — ①~④·(가)·ㄱ 로 시작하는 보기는 섞지 않음, 보기 세트 교체 시 회차 문항 같은 트랜잭션 재연결 (#1155)
 
 ## 대체된 결정 (역사)
 - [[DEC-0278-stem-blocks-single-table-shape]] → DEC-0292
@@ -122,8 +124,10 @@ related: []
 - [[ISS-0419-ai-only-choice-answer-result-feedback]] (resolved, GitHub #720) — 일반 SQL 선택지 생성 — 기준 실행 결과 제공, 재시도 실행 결과 피드백
 - [[ISS-0420-questions-tab-trend-section-layout]] (resolved, GitHub #726) — 문제 탭 경향 화면 구간 개편 (앱)
 - [[ISS-0435-concept-ai-only-49-rewrite-curated]] (resolved, GitHub #767) — AI 선택지 개념 문제 49개 — 정답 오류와 의미 없는 보기, 고정 보기 문제로 재작성
+- [[ISS-0547-past-exam-real-exam-level-rewrite]] (resolved, [[ISS-0547-past-exam-real-exam-level-rewrite-report]]) — 45~63회 950문항 실제 시험 수준 반영, 63회 신규·가채점 마감 (#1155)
 
 ## 관련 교훈
 - [[LSN-0005-question-export-500-limit-split-before-dedupe]] — 등록 전 중복·건수 집계도 내보내기 500건 상한, 토픽·난이도로 나눠 합계 대조 (#1079)
 - [[LSN-0002-harness-lint-misses-server-format-rule]] — 하네스 lint 통과는 서버 형식 규칙 통과가 아님, 가져오기 전 따로 확인 (#1074)
 - [[LSN-0003-question-export-500-limit-backup-by-topic]] — 문제 내보내기 1회 500건 한도, 전체 백업은 토픽별로 (#1074)
+- [[LSN-0008-import-update-breaks-round-choice-set]] — 문항 갱신 뒤 회차 공개 검사, 그림·표·조합 보기 글은 번호로 시작

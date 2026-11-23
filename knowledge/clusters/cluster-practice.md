@@ -2,7 +2,7 @@
 type: cluster
 topic: practice
 created: 2026-10-29
-members: 238
+members: 241
 status: active
 related: []
 ---
@@ -81,6 +81,7 @@ related: []
 - [[DEC-0330-final-round-opens-exam-date-minus-3-pro-only]] — FINAL 회차는 대상 시험일 3일 전부터 열림, 지난 FINAL 계속 열림, PRO 전용, 공개 시 여는 날 09:00 전체 푸시 예약 (#1084)
 - [[DEC-0331-study-guide-four-stages-progress-counts-study]] — 학습 가이드: 매일 > 52회 이후 기출 > 이전 기출 > 모의고사 > FINAL·오답률 TOP 30, 진행은 실전 응시 또는 학습 모드 완료 회차 (#1078)
 - [[DEC-0336-exam-answer-draft-token-per-owner]] — 가채점 임시 답안·답안지 토큰은 주인별(member_{uuid} / guest) 기기 저장, 옛 공용 키는 이관 없이 읽지 않음 (#1136)
+- [[DEC-0351-choice-order-fixed-and-round-choice-set-repoint]] — 그림·표·조합 보기는 학습 모드에서도 순서 고정, 보기 세트 교체 시 회차 자동 재연결 (#1155)
 
 ## 대체된 결정 (역사)
 - [[DEC-0342-app-difficulty-text-label-three-levels]] → [[DEC-0343-app-difficulty-three-segment-band-with-label]] — 난이도 회색 글자 > 가로 3칸 띠 + 글자 (#1147)
@@ -257,3 +258,4 @@ related: []
 - [[ISS-0536-mock-exam-study-mode-final-round]] (resolved, #1084) — 모의고사 학습 모드·FINAL 회차·회차 난이도 표시. 완료 리포트 [[ISS-0536-mock-study-final-study-guide-report]] (PR #1129, 릴리스 #1130)
 - [[ISS-0537-study-guide-stage-route]] (resolved, #1078) — 학습 가이드 단계별 순서·바로가기·소개 사이트 글. 완료 리포트 [[ISS-0536-mock-study-final-study-guide-report]] 공유
 - [[ISS-0539-pro-recheck-fail-risk-headline-exam-answer-owner]] (resolved, #1136) — 프로 계정 재검수 결함 5건: AI 분석 과락 판정 불일치, 가채점 계정 분리, 점수 올리기 영역 캐시, 응답 0명·AI 분석·풀이 머리 정리. 완료 리포트 [[ISS-0539-pro-recheck-fail-risk-headline-exam-answer-owner-report]]
+- [[ISS-0547-past-exam-real-exam-level-rewrite]] (resolved, [[ISS-0547-past-exam-real-exam-level-rewrite-report]]) — 기출 복원 45~63회 실제 시험 수준, 63회 신규 (#1155)
