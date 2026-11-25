@@ -1,10 +1,10 @@
 #!/bin/bash
 # 스토어 홍보 이미지 원본 캡처 전체 재촬영: bash app/tool/store_shots/capture_store_set.sh
-# 주의: iPhone 16 Pro 의 passQL 이 캡처용 앱으로 바뀐다 (flutter run 하면 돌아옴)
+# 주의: iPhone 17 Pro 의 passQL 이 캡처용 앱으로 바뀐다 (flutter run 하면 돌아옴)
 set -euo pipefail
 
 # 사용 중인 시뮬레이터만 쓴다. 다른 기기를 켜면 용량을 차지한다
-DEVICE=7C60B597-45B8-4F82-97EE-67F3C2FE7B9B
+DEVICE=1D760345-875F-40B9-9205-B04971E342D0  # iPhone 17 Pro (16 Pro 는 2026-11 목록에서 사라짐)
 BUNDLE=com.coldredrice.passql
 APP_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 OUT="$APP_ROOT/docs/store/promo/source"
