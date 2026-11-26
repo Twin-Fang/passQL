@@ -327,3 +327,5 @@ LLM이 볼트에 수행한 모든 쓰기 작업의 누적 기록. 절대 수정/
 - 2026-11-23 21:55 | W4 | DEC-0351(번호·조합 보기 순서 고정, 보기 세트 교체 시 회차 재연결) 신설, DEC-0264 충돌 없음 | DEC-0351
 - 2026-11-23 21:55 | W8 | 교훈 캡처: 가져오기 갱신 뒤 회차 공개 검사, 번호로 시작하는 보기 글 | LSN-0008
 - 2026-11-23 21:55 | W2 | cluster-question-bank(+5)·cluster-practice(+3)·cluster-admin(+1)에 ISS-0547·DEC-0350·DEC-0351·LSN-0008 추가 | cluster-question-bank, cluster-practice, cluster-admin
+- 2026-11-26 10:50 | W6 | 이슈·완료 리포트 인제스트 (GitHub #1179, 결정 노트 없음: 캡처 기기 교체는 이유 한 줄로 충분) | ISS-0548
+- 2026-11-26 10:50 | W2 | cluster-store-release에 ISS-0548 추가, members 87→88 (W10 수정) | cluster-store-release
