@@ -2,7 +2,7 @@
 type: cluster
 topic: store-release
 created: 2026-10-29
-members: 87
+members: 88
 status: active
 related: []
 ---
@@ -97,6 +97,7 @@ related: []
 - [[ISS-0354-store-review-status-notifications]] (resolved, GitHub #569) — 스토어 심사 결과를 개인 메일로 받기 — 자동 상태 알림과 계정 알림 설정
 - [[ISS-0360-store-promo-images-descriptions]] (resolved, GitHub #586) — 스토어 홍보 이미지·설명 문구 새로 만들기
 - [[ISS-0438-store-promo-images-v2]] (resolved, GitHub #776, PR #777 미머지 시점 기록) — 스토어 홍보 이미지 v2 교체
+- [[ISS-0548-store-promo-recapture-new-ui]] (resolved, GitHub #1179, PR #1180 미머지 시점 기록) — 바뀐 앱 UI 기준으로 스토어 홍보 이미지 다시 찍기
 - [[ISS-0439-store-images-no-sql-keyword]] (resolved, GitHub #778, PR 미머지 시점 기록) — 스토어 이미지에서 SQL 키워드 제거
 - [[ISS-0389-license-holder-kollylab]] (resolved, GitHub #638) — LICENSE 저작권자·Licensor가 해커톤 팀 이름으로 남아 있고 문의 연락처가 정리되지 않음
 - [[ISS-0397-promo-site-overhaul-operator-notice]] (resolved, GitHub #650) — 홍보 페이지(github.io) 전체 재정비와 약관 운영자 표기
